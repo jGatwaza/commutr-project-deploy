@@ -8,3 +8,5 @@ Vera is a lightweight deepfake detection tool that leverages machine learning to
 - Easy-to-use interface for non-technical users
 - Built to run on modest hardware
 - Extensible: model and pipeline can be replaced or upgraded
+### Drive link
+https://drive.google.com/drive/folders/1w17W1tEhD0DlaJoDO4mZE8NYu_HI0Lir
