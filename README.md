@@ -1,6 +1,6 @@
 # Vera 
 
-Vera is a lightweight deepfake detection tool that leverages machine learning to identify manipulated images and videos. Designed for simplicity and accessibility, Vera aims to help non-technical users and organizations with limited resources quickly assess media authenticity.
+Vera is a lightweight deepfake detection tool that leverages machine learning to identify AI-generated images and videos. Designed for simplicity and accessibility, Vera aims to help non-technical users and organizations with limited resources quickly assess media authenticity in today's rapidly evolving media environment.
 
 ## Features
 
