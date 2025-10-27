@@ -1,0 +1,202 @@
+Commutr: YouTube-Based Microlearning Architecture
+Overview
+Commutr is a mobile-first microlearning platform that curates short, topic-relevant YouTube videos to fit a user’s available commute time. Instead of generating content, Commutr’s AI classifies YouTube content by topic and difficulty, builds a playlist that matches the user’s commute window, and adapts future recommendations based on engagement and learning progression.
+System Architecture (Group Part 1)
+The system consists of five main layers: Client Layer, Edge/Delivery Layer, Core Backend, Data Layer, and External Providers. Each layer’s elements, interactions, and ownership are summarized below.
+1. Client Layer (User-Facing Apps)
+Component
+Description
+Key Interfaces
+Mobile App (React Native)
+Main app for commute setup, video selection, playlist playback, and offline caching.
+API Gateway (REST/GraphQL), Auth Provider, Push Service, Stripe
+Web App (Next.js)
+Handles onboarding, profile setup, and lightweight playback.
+API Gateway, Auth Provider
+
+2. Edge / Delivery Layer
+Component
+Description
+Key Interfaces
+Playback Proxy / Deep Linker
+Opens YouTube app or WebView for playback; logs viewing completion and feedback.
+YouTube API
+Push Notification Service
+Sends commute reminders, progress updates, and streak alerts.
+Mobile App, Notification Orchestrator
+
+3. Core Backend
+Component
+Description
+Key Interactions
+API Gateway (BFF)
+Central endpoint connecting mobile/web apps to backend services; handles routing, auth, and rate limiting.
+All client requests
+Auth & Identity
+Manages users, roles (free/premium), and tokens.
+Auth Provider (Google/Apple/Clerk)
+YouTube Indexer
+Fetches metadata, transcripts, and captions using the YouTube API.
+YouTube API, Metadata Store
+Topic & Level Classifier (AI)
+Uses embeddings from video titles/captions to assign topic and difficulty level.
+Metadata Store
+Playlist Pack Builder
+Combines videos into a “commute-fit” playlist (e.g., 15 minutes total) using a knapsack-style algorithm and user preferences.
+Metadata Store, Relational DB
+Personalization & Recommender
+Selects videos/topics based on commute history, mastery level, and time of day.
+Relational DB, Analytics Warehouse
+Mastery & Progress Engine
+Tracks topics watched, updates learning streaks, and recommends slightly more advanced content each session.
+Relational DB
+Ads & Monetization
+Manages post-roll ads for free users and disables ads for premium users.
+Ad Networks
+Payments & Entitlements
+Handles premium subscriptions via Stripe; updates entitlements.
+Stripe API
+Notifications Orchestrator
+Coordinates push notifications for reminders and streak updates.
+Push Notification Service
+
+4. Data Layer
+Component
+Description
+Relational Database (PostgreSQL)
+Stores user profiles, preferences, playlists, and mastery data.
+Content Metadata Store
+Holds indexed YouTube metadata, captions, and AI-generated difficulty scores.
+Redis Cache / Queue
+Optimizes quick lookups and handles background processing jobs.
+Analytics Warehouse (BigQuery)
+Aggregates user events for personalization, trends, and reporting.
+
+5. External Providers
+Service
+Role
+YouTube API
+Supplies video metadata, captions, and links for playback.
+Auth Provider (Google/Apple/Clerk)
+Handles sign-in and OAuth token exchange.
+Stripe API
+Processes payments and subscription events.
+Ad Networks
+Deliver post-roll ads for free-tier users.
+
+System Interactions (Data Flow Overview)
+User Flow:
+User sets commute duration and topic preferences on the mobile app.
+App calls the API Gateway, which requests recommendations from the Recommender Service.
+The Playlist Builder selects YouTube videos (via the Metadata Store) that best fit the available time.
+Videos open via the Playback Proxy → YouTube App/WebView.
+Learning Progression:
+As the user watches, progress events sync back through the API Gateway → Mastery Engine → Database.
+The system updates topic difficulty and streak data.
+Personalization Loop:
+The Recommender and Classifier update difficulty levels using the Analytics Warehouse, improving future playlist accuracy.
+Monetization:
+Free users see post-roll ads (served via the Ads Service).
+Premium users pay through Stripe, which updates entitlements through a webhook to the backend.
+Ownership (TBD) : Zainab, Namat, Mohamed, Jean Yves, Bradley
+Team Member
+Primary Responsibilities
+Person A
+Mobile App, Mastery & Notifications
+Person B
+Web App, Ads & Monetization
+Person C
+API Gateway, Auth, Payments
+Person D
+YouTube Indexer, Metadata Store, Analytics
+Person E
+AI Classifier, Playlist Builder, Recommender
+
+Block Architecture Diagram
+Link to visualization on graphviz
+Color key for the block architecture diagram:
+Color
+Layer
+🟦 Blue
+Client Layer
+🟨 Yellow
+Edge / Delivery
+🟧 Orange
+Core Backend
+🟩 Green
+Data Layer
+🟪 Purple
+External Providers
+
+
+
+
+Large-Scale Planning and Project Management (Group Part 2)
+A. Numbered Build Order 
+Foundation – getting the “house frame” up
+Repo & Environment Setup – shared Git repo, CI, staging env.
+User Auth Integration – Firebase Auth / Clerk / Stytch (Google SSO).
+API Gateway (BFF) – skeleton with health check & token middleware.
+Database Schema v0 – Users, Playlists, Preferences, Mastery.
+Core “walking slice” – showing that the product works end-to-end
+ 5. Mobile App Shell – commute picker → get playlist → open YouTube.
+ 6. YouTube Indexer (v0) – pull video metadata & captions.
+ 7. Playlist Pack Builder (v0) – simple knapsack by duration.
+ 8. Playback Proxy / Deep Link – open YouTube, mark “done.”
+Learning & productization
+ 9. Mastery & Progress v0 – streaks + topic counters.
+ 10. Topic / Level Classifier v1 – embeddings tag difficulty.
+ 11. Personalization v1 – ladder user to next difficulty.
+ 12. Notifications – “Your 15-min pack is ready.”
+Business & analytics
+ 13. Payments & Entitlements (Stripe) – premium toggle.
+ 14. Ads Stub – post-roll card for free users.
+ 15. Analytics / Feature Flags / Observability – Firebase Analytics + GrowthBook + Sentry.
+B. Rough Schedule (to Thanksgiving Break – Nov 26)
+Week
+Dates
+Milestones
+Primary Owners
+Week 1
+Oct 27 – Nov 2
+(1) Repo & envs (2) Auth (3) API Gateway (4) DB Schema
+Person A + Person B + Person C
+Week 2
+Nov 3 – Nov 9
+(5) Mobile Shell (6) YouTube Indexer (7) Pack Builder (8) Playback Proxy
+Person A + Person D + Person E
+Week 3
+Nov 10 – Nov 16
+(9) Mastery (10) Classifier (11) Personalization (12) Notifications
+Person A + Person E
+Week 4
+Nov 17 – Nov 23
+(13) Payments (14) Ads (15) Analytics / Flags / Obs
+Person C + Person B + Person D
+Buffer
+Nov 24 – Nov 26
+Integration & demo polish (“happy path” playback flow)
+Whole team
+
+C. Parallelization & Dependencies
+Steps 1–4 = critical foundation. All later work depends on them.
+Steps 6 & 7 can run in parallel once (3) is done.
+Steps 9–12 can parallelize after (8), but (11) depends on (9)+(10).
+Steps 13–15 are optional extensions and shouldn’t block the core demo.
+D. “Hello World” Prototype Goal (Week 2)
+By Nov 9, demonstrate:
+Log in with Google.
+Select commute time (5 / 10 / 15 min).
+Receive a playlist of YouTube videos filling that duration.
+Play videos → mark complete → update streak.
+E. Tools & Frameworks
+Auth: Firebase Auth / Clerk / Stytch (free SSO tier).
+Backend: Node (NestJS / Express); optional Python worker for embeddings.
+Database: PostgreSQL (Supabase or Neon).
+Mobile: React Native (Expo).
+Web: Next.js.
+Payments: Stripe (test mode).
+Analytics & Flags: Firebase Analytics, GrowthBook.
+Observability: Sentry + simple uptime ping.
+
+

@@ -5,6 +5,7 @@
   "type": "module",
   "main": "src/server.js",
   "scripts": {
+    "start": "node server.js",
     "dev": "node src/server.js",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand"
   },
