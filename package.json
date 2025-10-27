@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "vera-project",
   "version": "1.0.0",
   "description": "Vera is a lightweight deepfake detection tool that leverages machine learning to identify AI-generated images and videos. Designed for simplicity and accessibility, Vera aims to help non-technical users and organizations with limited resources quickly assess media authenticity in today's rapidly evolving media environment.",
@@ -35,5 +36,23 @@
     "ts-jest": "^29.4.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
+=======
+  "name": "commutr-api",
+  "version": "0.1.0",
+  "description": "Commutr notifications and player events service",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node src/server.js",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.3.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+>>>>>>> 23aadd6 (CTR-41: notifications service v0)
   }
 }
