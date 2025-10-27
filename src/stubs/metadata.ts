@@ -30,36 +30,12 @@ export async function getCandidates(topic: string): Promise<Candidate[]> {
       return youtubeResults;
     } else {
       console.log(`❌ YouTube API found no videos for "${topic}"`);
-      // BUG: Generating fake placeholder videos for invalid topics
-      // This will be fixed in the next commit with proper error handling
-      return generatePlaceholderVideos(topic);
+      // Return empty array - frontend will show "No videos found" message
+      return [];
     }
   } catch (error) {
     console.error(`❌ YouTube API error for "${topic}":`, error);
-    // BUG: Generating fake placeholder videos when API fails
-    // This will be fixed in the next commit with proper error handling
-    return generatePlaceholderVideos(topic);
+    // Return empty array - frontend will show "No videos found" message
+    return [];
   }
-}
-
-/**
- * Generate placeholder videos for topics with no real content
- * BUG: This creates fake videos that don't actually exist on YouTube
- * TODO: Replace with proper "No videos found" error handling
- */
-function generatePlaceholderVideos(topic: string): Candidate[] {
-  console.log(`⚠️ Generating placeholder videos for: "${topic}"`);
-  
-  return [
-    {
-      videoId: `${topic.replace(/\s+/g, '_')}_tutorial`,
-      channelId: 'YouTube',
-      durationSec: 300,
-      topic: topic.toLowerCase(),
-      level: 'beginner',
-      title: `${topic} Tutorial`,
-      channelTitle: 'YouTube',
-      publishedAt: new Date().toISOString()
-    }
-  ];
 }
