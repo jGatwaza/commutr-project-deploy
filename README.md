@@ -1,12 +1,4 @@
-# Vera 
-
-Vera is a lightweight deepfake detection tool that leverages machine learning to identify AI-generated images and videos. Designed for simplicity and accessibility, Vera aims to help non-technical users and organizations with limited resources quickly assess media authenticity in today's rapidly evolving media environment.
-
-## Features
-
-- Fast, lightweight detection for images and videos
-- Easy-to-use interface for non-technical users
-- Built to run on modest hardware
-- Extensible: model and pipeline can be replaced or upgraded
+# Commutr
+Commutr is a app and web based application that helps users use thier commute time more productively by watching content that interest them and fits within their commute window.
 ### Drive link
 https://drive.google.com/drive/folders/1w17W1tEhD0DlaJoDO4mZE8NYu_HI0Lir
