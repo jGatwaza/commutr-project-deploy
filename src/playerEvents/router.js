@@ -23,7 +23,10 @@ router.post("/", limiter, (req, res) => {
   }
 
   const event = parsed.data;
-  const bucket = Math.floor(event.secondsWatched / 5);
+  let bucket = Math.floor(event.secondsWatched / 5);
+  if (event.event === "progress" && event.secondsWatched > 0 && event.secondsWatched % 5 === 0) {
+    bucket -= 1;
+  }
   const key = `${event.sessionId}:${event.event}:${bucket}`;
 
   if (event.event === "progress" && alreadySaw(key)) {

@@ -53,3 +53,25 @@ test("dedupes progress events within same 5s bucket", async () => {
   expect(response.body.deduped).toBe(true);
   expect(getAll()).toHaveLength(1);
 });
+
+test("dedupes progress events across 5s boundary", async () => {
+  const base = {
+    userId: "user-1",
+    videoId: "video-1",
+    ts: new Date().toISOString(),
+    sessionId: "session-1"
+  };
+
+  await request(app)
+    .post("/player-events")
+    .send({ ...base, event: "progress", secondsWatched: 9 })
+    .expect(200);
+
+  const response = await request(app)
+    .post("/player-events")
+    .send({ ...base, event: "progress", secondsWatched: 10 })
+    .expect(200);
+
+  expect(response.body.deduped).toBe(true);
+  expect(getAll()).toHaveLength(1);
+});
