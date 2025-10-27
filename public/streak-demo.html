@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commutr - Streak Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .stats-panel {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            color: white;
+            text-align: center;
+        }
+        
+        .stat-item {
+            margin-bottom: 15px;
+        }
+        
+        .stat-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #c33;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #155724;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .success-message.show {
+            display: block;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 Streak Tracker</h1>
+            <p>Track your learning sessions</p>
+        </div>
+        
+        <div class="content">
+            <!-- Stats Panel -->
+            <div class="stats-panel" id="statsPanel">
+                <div class="stat-item">
+                    <span class="stat-value" id="streakDays">-</span>
+                    <span class="stat-label">Day Streak</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="totalSessions">-</span>
+                    <span class="stat-label">Total Sessions</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="totalMinutes">-</span>
+                    <span class="stat-label">Total Minutes</span>
+                </div>
+            </div>
+            
+            <!-- Session Form -->
+            <form id="sessionForm">
+                <div class="form-group">
+                    <label for="topic">Learning Topic</label>
+                    <input type="text" id="topic" placeholder="e.g., python, math, history..." required />
+                </div>
+                
+                <div class="form-group">
+                    <label for="minutes">Session Duration (minutes)</label>
+                    <select id="minutes" required>
+                        <option value="5">5 minutes</option>
+                        <option value="10">10 minutes</option>
+                        <option value="15" selected>15 minutes</option>
+                        <option value="20">20 minutes</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn" id="submitBtn">
+                    ✅ Mark Today's Session Complete
+                </button>
+            </form>
+            
+            <!-- Messages -->
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        const AUTH_HEADER = { 'Authorization': 'Bearer TEST' };
+        
+        // DOM elements
+        const streakDays = document.getElementById('streakDays');
+        const totalSessions = document.getElementById('totalSessions');
+        const totalMinutes = document.getElementById('totalMinutes');
+        const sessionForm = document.getElementById('sessionForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const topicInput = document.getElementById('topic');
+        const minutesInput = document.getElementById('minutes');
+        
+        // Hide messages
+        function hideMessages() {
+            errorMessage.classList.remove('show');
+            successMessage.classList.remove('show');
+        }
+        
+        // Show error message
+        function showError(message) {
+            hideMessages();
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+        }
+        
+        // Show success message
+        function showSuccess(message) {
+            hideMessages();
+            successMessage.textContent = message;
+            successMessage.classList.add('show');
+            setTimeout(() => {
+                successMessage.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Fetch and display streak stats
+        async function loadStreakStats() {
+            try {
+                const response = await fetch(`${API_BASE}/api/streak`, {
+                    headers: AUTH_HEADER
+                });
+                
+                if (response.status === 401) {
+                    showError('Auth failed (demo uses Authorization: Bearer TEST).');
+                    return;
+                }
+                
+                if (!response.ok) {
+                    showError(`Failed to load streak stats: ${response.status}`);
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                // Update UI with stats
+                streakDays.textContent = data.currentStreakDays;
+                totalSessions.textContent = data.totalSessions;
+                totalMinutes.textContent = data.totalMinutes;
+                
+                hideMessages();
+                
+            } catch (error) {
+                showError('Failed to connect to server. Make sure it\'s running on port 3000.');
+                console.error('Error:', error);
+            }
+        }
+        
+        // Handle form submission
+        sessionForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const topic = topicInput.value.trim();
+            const minutes = parseInt(minutesInput.value);
+            
+            if (!topic) {
+                showError('Please enter a topic.');
+                return;
+            }
+            
+            // Disable button during submission
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Saving...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/session`, {
+                    method: 'POST',
+                    headers: {
+                        ...AUTH_HEADER,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ topic, minutes })
+                });
+                
+                if (response.status === 401) {
+                    showError('Auth failed (demo uses Authorization: Bearer TEST).');
+                    return;
+                }
+                
+                if (response.status === 400) {
+                    const errorData = await response.json();
+                    showError(errorData.error || 'Invalid input');
+                    return;
+                }
+                
+                if (!response.ok) {
+                    showError(`Failed to save session: ${response.status}`);
+                    return;
+                }
+                
+                // Success! Re-fetch stats
+                showSuccess(`✅ Session logged: ${minutes} min on ${topic}`);
+                await loadStreakStats();
+                
+                // Clear form
+                topicInput.value = '';
+                
+            } catch (error) {
+                showError('Failed to connect to server. Make sure it\'s running on port 3000.');
+                console.error('Error:', error);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '✅ Mark Today\'s Session Complete';
+            }
+        });
+        
+        // Load stats on page load
+        window.addEventListener('load', () => {
+            loadStreakStats();
+        });
+    </script>
+</body>
+</html>
