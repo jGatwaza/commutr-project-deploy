@@ -12,15 +12,20 @@ export function scheduleReminder(userId, atISO, now = Date.now) {
     throw new Error("in_past");
   }
 
+  const key = `${userId}:${ts}`;
+  if (scheduled.has(key)) {
+    throw new Error("duplicate");
+  }
+
   const id = `n-${++idCounter}`;
   const timeout = setTimeout(() => {
     console.log(
       `NOTIFY userId=${userId} message="Your 15-min pack is ready" at=${new Date(ts).toISOString()}`
     );
-    scheduled.delete(id);
+    scheduled.delete(key);
   }, delay);
 
-  scheduled.set(id, timeout);
+  scheduled.set(key, timeout);
   return { id, at: new Date(ts).toISOString(), userId };
 }
 

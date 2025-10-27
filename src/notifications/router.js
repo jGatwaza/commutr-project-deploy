@@ -26,6 +26,9 @@ router.post("/schedule", (req, res) => {
       if (error.message === "in_past") {
         return res.status(400).json({ error: "in_past" });
       }
+      if (error.message === "duplicate") {
+        return res.status(200).json({ error: "duplicate", deduped: true });
+      }
     }
     return res.status(500).json({ error: "internal_error" });
   }

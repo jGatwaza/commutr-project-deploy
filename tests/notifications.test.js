@@ -29,3 +29,10 @@ test("throws when scheduled in past", () => {
   const past = new Date(1000).toISOString();
   expect(() => scheduleReminder("user-1", past, () => 2000)).toThrow("in_past");
 });
+
+test("prevents duplicate reminders for same user/time", () => {
+  const baseNow = () => 1_000_000;
+  const at = new Date(1_000_000 + 1_000).toISOString();
+  scheduleReminder("user-1", at, baseNow);
+  expect(() => scheduleReminder("user-1", at, baseNow)).toThrow("duplicate");
+});
