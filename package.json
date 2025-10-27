@@ -1,42 +1,4 @@
 {
-<<<<<<< HEAD
-  "name": "vera-project",
-  "version": "1.0.0",
-  "description": "Vera is a lightweight deepfake detection tool that leverages machine learning to identify AI-generated images and videos. Designed for simplicity and accessibility, Vera aims to help non-technical users and organizations with limited resources quickly assess media authenticity in today's rapidly evolving media environment.",
-  "main": "index.js",
-  "scripts": {
-    "dev": "ts-node src/server.ts",
-    "test": "jest --runInBand",
-    "build": "tsc"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/cs1060f25/Vera-project.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/cs1060f25/Vera-project/issues"
-  },
-  "homepage": "https://github.com/cs1060f25/Vera-project#readme",
-  "dependencies": {
-    "dotenv": "^17.2.3",
-    "express": "^5.1.0",
-    "googleapis": "^164.1.0",
-    "zod": "^4.1.12"
-  },
-  "devDependencies": {
-    "@types/express": "^5.0.4",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^24.9.1",
-    "@types/supertest": "^6.0.3",
-    "jest": "^30.2.0",
-    "supertest": "^7.1.4",
-    "ts-jest": "^29.4.5",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
-=======
   "name": "commutr-api",
   "version": "0.1.0",
   "description": "Commutr notifications and player events service",
@@ -52,7 +14,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "jest": "^29.7.0"
->>>>>>> 23aadd6 (CTR-41: notifications service v0)
+    "jest": "^29.7.0",
+    "supertest": "^7.1.1"
   }
 }

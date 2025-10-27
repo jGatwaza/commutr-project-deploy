@@ -1,5 +1,6 @@
 import express from "express";
 import notificationsRouter from "./notifications/router.js";
+import playerEventsRouter from "./playerEvents/router.js";
 
 const app = express();
 
@@ -10,6 +11,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/notifications", notificationsRouter);
+app.use("/player-events", playerEventsRouter);
 
 const port = process.env.PORT || 3000;
 
