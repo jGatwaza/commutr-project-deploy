@@ -38,6 +38,7 @@ const sessionSchema = z.object({
 });
 
 // Helper: Calculate streak from sessions array
+// Pure function that correctly counts consecutive calendar days up to today
 export function calculateStreak(sessions: Session[]): {
   totalSessions: number;
   totalMinutes: number;
@@ -59,32 +60,38 @@ export function calculateStreak(sessions: Session[]): {
   const lastSessionISO = sessions[sessions.length - 1]?.ts || null;
 
   // Streak calculation: count consecutive days up to today
-  // Group sessions by calendar day (YYYY-MM-DD in local time)
+  // Step 1: Group sessions by calendar day (YYYY-MM-DD)
   const daysWithSessions = new Set<string>();
   for (const session of sessions) {
     const date = new Date(session.ts);
-    const dayKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+    const dayKey = date.toISOString().split('T')[0]; // YYYY-MM-DD in UTC
     if (dayKey) {
       daysWithSessions.add(dayKey);
     }
   }
 
-  // Sort days descending (most recent first)
-  const sortedDays = Array.from(daysWithSessions).sort().reverse();
-
-  // Count streak from today backwards
-  const today = new Date().toISOString().split('T')[0];
+  // Step 2: Count consecutive days backwards from today
+  // Start checking from today (offset = 0), then yesterday (offset = 1), etc.
   let currentStreakDays = 0;
+  let offset = 0;
 
-  for (let i = 0; i < sortedDays.length; i++) {
-    const expectedDay = new Date();
-    expectedDay.setDate(expectedDay.getDate() - i);
-    const expectedDayKey = expectedDay.toISOString().split('T')[0];
-    const currentDay = sortedDays[i];
+  while (true) {
+    // Calculate the expected day (today - offset days)
+    const checkDate = new Date();
+    checkDate.setDate(checkDate.getDate() - offset);
+    const checkDayKey = checkDate.toISOString().split('T')[0];
 
-    if (currentDay && currentDay === expectedDayKey) {
+    // Check if this day has at least one session
+    if (checkDayKey && daysWithSessions.has(checkDayKey)) {
       currentStreakDays++;
+      offset++;
     } else {
+      // Gap found - streak ends
+      break;
+    }
+
+    // Safety: don't loop forever (max reasonable streak is 365 days)
+    if (offset > 365) {
       break;
     }
   }

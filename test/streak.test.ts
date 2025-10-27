@@ -118,8 +118,8 @@ describe('Streak Service Tests', () => {
     });
   });
 
-  describe('Streak Calculation', () => {
-    test('Sessions on two different calendar days computes currentStreakDays correctly', () => {
+  describe('Streak Calculation - Bug Fix CTR-202', () => {
+    test('Scenario A: One session today and one yesterday → streak = 2', () => {
       const today = new Date();
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
@@ -139,6 +139,57 @@ describe('Streak Service Tests', () => {
 
       const stats = calculateStreak(sessions);
       expect(stats.currentStreakDays).toBe(2);
+      expect(stats.totalSessions).toBe(2);
+      expect(stats.totalMinutes).toBe(25);
+    });
+
+    test('Scenario B: One session today and one two days ago (skip yesterday) → streak = 1', () => {
+      const today = new Date();
+      const twoDaysAgo = new Date(today);
+      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+
+      const sessions = [
+        {
+          ts: twoDaysAgo.toISOString(),
+          topic: 'science',
+          minutes: 10
+        },
+        {
+          ts: today.toISOString(),
+          topic: 'math',
+          minutes: 15
+        }
+      ];
+
+      const stats = calculateStreak(sessions);
+      // Streak should be 1 because yesterday was missing (gap in streak)
+      expect(stats.currentStreakDays).toBe(1);
+      expect(stats.totalSessions).toBe(2);
+      expect(stats.totalMinutes).toBe(25);
+    });
+
+    test('No session today → streak = 0', () => {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const twoDaysAgo = new Date();
+      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+
+      const sessions = [
+        {
+          ts: twoDaysAgo.toISOString(),
+          topic: 'history',
+          minutes: 10
+        },
+        {
+          ts: yesterday.toISOString(),
+          topic: 'science',
+          minutes: 15
+        }
+      ];
+
+      const stats = calculateStreak(sessions);
+      // Streak should be 0 because there's no session today
+      expect(stats.currentStreakDays).toBe(0);
       expect(stats.totalSessions).toBe(2);
       expect(stats.totalMinutes).toBe(25);
     });
@@ -163,30 +214,6 @@ describe('Streak Service Tests', () => {
       expect(stats.currentStreakDays).toBe(1);
       expect(stats.totalSessions).toBe(2);
       expect(stats.totalMinutes).toBe(25);
-    });
-
-    test('Streak breaks if missing a day', () => {
-      const today = new Date();
-      const twoDaysAgo = new Date(today);
-      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-
-      const sessions = [
-        {
-          ts: twoDaysAgo.toISOString(),
-          topic: 'science',
-          minutes: 10
-        },
-        {
-          ts: today.toISOString(),
-          topic: 'math',
-          minutes: 15
-        }
-      ];
-
-      const stats = calculateStreak(sessions);
-      // Streak is only 1 because yesterday was missing
-      expect(stats.currentStreakDays).toBe(1);
-      expect(stats.totalSessions).toBe(2);
     });
 
     test('Three consecutive days calculates correctly', () => {
