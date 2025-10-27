@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commutr - Playlist Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .form-section {
+            padding: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .results {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            display: none;
+        }
+        
+        .results.show {
+            display: block;
+        }
+        
+        .playlist-info {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4facfe;
+        }
+        
+        .video-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            border: 1px solid #e1e5e9;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        
+        .video-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .video-info {
+            flex: 1;
+        }
+        
+        .video-id {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .video-duration {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .duration-badge {
+            background: #4facfe;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #c33;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎧 Commutr</h1>
+            <p>AI-Powered Playlist Builder for Your Commute</p>
+        </div>
+        
+        <div class="form-section">
+            <form id="playlistForm">
+                <div class="form-group">
+                    <label for="topic">Learning Topic (required)</label>
+                    <input type="text" id="topic" placeholder="e.g., python, javascript, react, ai, artificial intelligence..." required />
+                    <small style="color: #666; font-size: 14px;">🎯 Search ANY topic! Try: cooking, fitness, music, history, science, languages, hobbies, skills...</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="duration">Commute Duration</label>
+                    <select id="duration">
+                        <option value="300">5 minutes</option>
+                        <option value="600">10 minutes</option>
+                        <option value="900" selected>15 minutes</option>
+                        <option value="1200">20 minutes</option>
+                        <option value="1800">30 minutes</option>
+                        <option value="2700">45 minutes</option>
+                        <option value="3600">60 minutes</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn" id="generateBtn">
+                    🚀 Generate My Playlist
+                </button>
+            </form>
+            
+            <div id="results" class="results">
+                <div id="loading" class="loading" style="display: none;">
+                    <p>🎵 Curating your perfect commute playlist...</p>
+                </div>
+                
+                <div id="playlist" style="display: none;">
+                    <div class="playlist-info">
+                        <h3>📋 Your Commute Playlist</h3>
+                        <p><strong>Total Duration:</strong> <span id="totalDuration"></span></p>
+                        <p><strong>Videos:</strong> <span id="videoCount"></span></p>
+                        <span id="statusBadge"></span>
+                    </div>
+                    
+                    <div id="videoList"></div>
+                </div>
+                
+                <div id="error" class="error" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        const AUTH_TOKEN = 'Bearer TEST';
+        
+        document.getElementById('playlistForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const topic = document.getElementById('topic').value.trim();
+            const duration = document.getElementById('duration').value;
+            const generateBtn = document.getElementById('generateBtn');
+            const results = document.getElementById('results');
+            const loading = document.getElementById('loading');
+            const playlist = document.getElementById('playlist');
+            const error = document.getElementById('error');
+            
+            // Reset UI
+            results.classList.add('show');
+            loading.style.display = 'block';
+            playlist.style.display = 'none';
+            error.style.display = 'none';
+            generateBtn.disabled = true;
+            generateBtn.textContent = '🎵 Generating...';
+            
+            try {
+                // Validate topic is provided
+                if (!topic) {
+                    throw new Error('Please enter a learning topic');
+                }
+                
+                // Build API URL
+                const url = `${API_BASE}/v1/playlist?topic=${encodeURIComponent(topic)}&durationSec=${duration}`;
+                
+                // Call API
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': AUTH_TOKEN
+                    }
+                });
+                
+                // Handle 204 No Content - no videos found
+                if (response.status === 204) {
+                    displayNoContent(topic);
+                    return;
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                // Display results
+                displayPlaylist(data, topic || 'AI Suggested', duration);
+                
+            } catch (err) {
+                console.error('Error:', err);
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                error.textContent = `❌ ${err.message}. Make sure the server is running on port 3000.`;
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = '🚀 Generate My Playlist';
+            }
+        });
+        
+        function displayPlaylist(data, topicUsed, requestedDuration) {
+            const loading = document.getElementById('loading');
+            const playlist = document.getElementById('playlist');
+            const totalDuration = document.getElementById('totalDuration');
+            const videoCount = document.getElementById('videoCount');
+            const statusBadge = document.getElementById('statusBadge');
+            const videoList = document.getElementById('videoList');
+            
+            loading.style.display = 'none';
+            playlist.style.display = 'block';
+            
+            // Format duration
+            function formatDuration(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                return remainingSeconds > 0 ? `${minutes}:${remainingSeconds.toString().padStart(2, '0')}` : `${minutes}:00`;
+            }
+            
+            function getLevelColor(level) {
+                switch(level?.toLowerCase()) {
+                    case 'beginner': return '#22c55e'; // Green
+                    case 'intermediate': return '#f59e0b'; // Orange  
+                    case 'advanced': return '#ef4444'; // Red
+                    default: return '#6b7280'; // Gray
+                }
+            }
+            
+            // Update info
+            totalDuration.textContent = formatDuration(data.totalDurationSec);
+            videoCount.textContent = data.items.length;
+            
+            // Status badge
+            if (data.underFilled) {
+                statusBadge.textContent = '⚠️ Partially Filled';
+                statusBadge.className = 'status-badge status-warning';
+            } else {
+                statusBadge.textContent = '✅ Perfect Fit';
+                statusBadge.className = 'status-badge status-success';
+            }
+            
+            // Video list with embedded YouTube players
+            videoList.innerHTML = data.items.map((video, index) => `
+                <div class="video-container" style="margin-bottom: 20px;">
+                    <div class="video-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #e1e5e9;">
+                        <div class="video-info">
+                            <div class="video-title" style="font-weight: 600; color: #333; margin-bottom: 5px;">🎥 ${video.title || getVideoTitle(video.videoId, topicUsed)}</div>
+                            <div class="video-meta" style="color: #666; font-size: 14px;">
+                                📺 ${video.channelTitle || 'YouTube'} • ${formatDuration(video.durationSec)} • 
+                                <span class="level-badge" style="background: ${getLevelColor(video.level)}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 500;">
+                                    ${video.level ? video.level.toUpperCase() : 'INTERMEDIATE'}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="duration-badge">${formatDuration(video.durationSec)}</div>
+                    </div>
+                    <div class="video-player" style="position: relative; width: 100%; height: 315px; background: #000; border-radius: 8px; overflow: hidden;">
+                        <iframe 
+                            width="100%" 
+                            height="315" 
+                            src="https://www.youtube.com/embed/${video.videoId}?rel=0&modestbranding=1" 
+                            title="${getVideoTitle(video.videoId)}"
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen
+                            style="border-radius: 8px;">
+                        </iframe>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Add topic info
+            if (topicUsed !== 'AI Suggested') {
+                const topicInfo = document.createElement('p');
+                topicInfo.innerHTML = `<strong>Topic:</strong> ${topicUsed}`;
+                document.querySelector('.playlist-info').appendChild(topicInfo);
+            }
+        }
+        
+        function displayNoContent(topic) {
+            const loading = document.getElementById('loading');
+            const playlist = document.getElementById('playlist');
+            const error = document.getElementById('error');
+            
+            loading.style.display = 'none';
+            playlist.style.display = 'none';
+            error.style.display = 'block';
+            
+            // Create friendly no content message
+            error.innerHTML = `
+                <div style="text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white; margin: 20px 0;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
+                    <h3 style="margin: 0 0 12px 0; font-size: 24px; font-weight: 600;">No videos found for "${topic}"</h3>
+                    <p style="margin: 0 0 24px 0; font-size: 16px; opacity: 0.9;">
+                        We couldn't find any educational content for this topic. This might be a typo or a very specific search.
+                    </p>
+                    <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 20px; margin: 20px 0;">
+                        <h4 style="margin: 0 0 12px 0; font-size: 18px;">💡 Here are some topics we suggest you take a look at:</h4>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
+                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; font-size: 14px;">cooking</span>
+                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; font-size: 14px;">javascript</span>
+                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; font-size: 14px;">python</span>
+                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; font-size: 14px;">fitness</span>
+                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; font-size: 14px;">spanish</span>
+                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; font-size: 14px;">photography</span>
+                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; font-size: 14px;">music</span>
+                            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; font-size: 14px;">history</span>
+                        </div>
+                    </div>
+                    <button onclick="document.getElementById('topic').focus(); document.getElementById('error').style.display='none';" 
+                            style="background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3); color: white; padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                        🔄 Try Another Topic
+                    </button>
+                </div>
+            `;
+        }
+        
+        function getVideoTitle(videoId, topic = '') {
+            // For dynamic YouTube videos (mock format: topic_1_300s)
+            if (videoId.includes('_') && videoId.includes('s')) {
+                const parts = videoId.split('_');
+                const duration = parts[2]?.replace('s', '') || '300';
+                const minutes = Math.floor(parseInt(duration) / 60);
+                const topicName = topic.charAt(0).toUpperCase() + topic.slice(1);
+                return `${topicName} Tutorial (${minutes} min)`;
+            }
+            
+            // Fallback to hardcoded titles for known videos
+            const titles = {
+                // Python videos
+                'eWRfhZUzrAc': 'Python Variables & Data Types (5 min)',
+                '_uQrJ0TkZlc': 'Python Tutorial for Beginners (6 min)',
+                'kqtD5dpn9C8': 'Python in 100 Seconds (6.5 min)',
+                'x7X9w_GIm1s': 'Python Functions Explained (8 min)',
+                'YYXdXT2l-Gg': 'Python OOP Tutorial (9 min)',
+                'ZDa-Z5JzLYM': 'Python Lists & Data Structures (10 min)',
+                'WGJJIrtnfpk': 'Python Decorators Explained (12 min)',
+                'rfscVS0vtbw': 'Learn Python - Full Course (15 min)',
+                
+                // JavaScript videos
+                'PkZNo7MFNFg': 'JavaScript Basics Tutorial (6 min)',
+                'W6NZfCO5SIk': 'JavaScript Fundamentals (8 min)',
+                'jS4aFq5-91M': 'JavaScript ES6 Features (7 min)',
+                'Mus_vwhTCq0': 'JavaScript DOM Manipulation (9 min)',
+                'hdI2bqOjy3c': 'Advanced JavaScript Concepts (11 min)',
+                'DHjqpvDnNGE': 'JavaScript Variables Explained (5 min)',
+                
+                // React videos
+                'bMknfKXIFA8': 'React Tutorial for Beginners (6.5 min)',
+                'Ke90Tje7VS0': 'React Hooks Explained (8 min)',
+                'DLX62G4lc44': 'React State Management (7 min)',
+                'f687hBjwFcM': 'React Components Deep Dive (9 min)',
+                'dpw9EHDh2bM': 'Advanced React Patterns (10 min)',
+                'SqcY0GlETPk': 'React Getting Started (5 min)',
+                
+                // AI/ML videos
+                'aircAruvnKk': 'What is Artificial Intelligence? (5 min)',
+                'R9OHn5ZF4Uo': 'AI Basics Explained (6 min)',
+                'JcI5Vnw0b2c': 'Machine Learning Introduction (8 min)',
+                'VYJtb2YXae8': 'Neural Networks Explained (9 min)',
+                'gYayCG6YyO8': 'Deep Learning Fundamentals (10 min)',
+                'UZDiGooFs54': 'Advanced AI Concepts (12 min)',
+                'bHvf7Tagt18': 'AI Masterclass (15 min)',
+                
+                // Spanish videos
+                'DAp_v7EH9AA': 'Spanish Basics for Beginners (5 min)',
+                'VXuZ6jBygpU': 'Spanish Pronunciation Guide (6 min)',
+                'rswtjp3L7_I': 'Essential Spanish Grammar (7 min)',
+                'j25tkxg5Vws': 'Spanish Conversation Practice (8 min)',
+                'XkXwJqBOi5c': 'Spanish Verbs Explained (9 min)',
+                'M6lJVKxmSds': 'Spanish Listening Skills (10 min)',
+                
+                'dQw4w9WgXcQ': 'Never Gonna Give You Up (3.5 min)'
+            };
+            return titles[videoId] || `Programming Tutorial: ${videoId}`;
+        }
+        
+        // Videos are now embedded directly in the page
+        
+        // Test server connection on load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${API_BASE}/v1/playlist?durationSec=300`, {
+                    headers: { 'Authorization': AUTH_TOKEN }
+                });
+                if (response.ok) {
+                    console.log('✅ Server connection successful');
+                }
+            } catch (err) {
+                console.warn('⚠️ Server not responding. Make sure to run: npm run dev');
+            }
+        });
+    </script>
+</body>
+</html>

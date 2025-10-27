@@ -45,18 +45,12 @@ export function buildPack(input: BuildPackInput): BuildPackOutput {
   // Sort by duration (shortest first) to build up gradually
   pool = pool.sort((a, b) => a.durationSec - b.durationSec);
   
-  // Use a greedy approach to maximize duration within the time window
+  // Use a greedy approach to fill the time slot
   const usedChannels = new Set<string>();
   
-  // Continue adding videos until we can't fit any more (maximize duration)
   for (const video of pool) {
     // Skip if adding this video would exceed max duration
     if (out.totalDurationSec + video.durationSec > maxDurationSec) {
-      continue;
-    }
-    
-    // Skip if we already used this video
-    if (out.items.some(item => item.videoId === video.videoId)) {
       continue;
     }
     
@@ -64,31 +58,26 @@ export function buildPack(input: BuildPackInput): BuildPackOutput {
     out.items.push({ videoId: video.videoId, durationSec: video.durationSec, channelId: video.channelId });
     out.totalDurationSec += video.durationSec;
     usedChannels.add(video.channelId);
+    
+    // Stop if we've reached or exceeded the minimum duration
+    if (out.totalDurationSec >= minDurationSec) {
+      break;
+    }
   }
   
-  // Try to optimize by replacing smaller videos with larger ones that still fit
-  let improved = true;
-  while (improved) {
-    improved = false;
+  // Keep trying to add more videos until we reach minimum duration or can't fit any more
+  while (out.totalDurationSec < minDurationSec) {
+    const additionalVideo = pool.find(video => 
+      out.totalDurationSec + video.durationSec <= maxDurationSec &&
+      !out.items.some(item => item.videoId === video.videoId)
+    );
     
-    for (let i = 0; i < out.items.length; i++) {
-      const currentItem = out.items[i];
-      const currentDuration = out.totalDurationSec;
-      
-      // Find a replacement video that would give us more total duration
-      const betterVideo = pool.find(video => 
-        !out.items.some(item => item.videoId === video.videoId) &&
-        video.durationSec > currentItem.durationSec &&
-        currentDuration - currentItem.durationSec + video.durationSec <= maxDurationSec
-      );
-      
-      if (betterVideo) {
-        // Replace the current video with the better one
-        out.totalDurationSec = out.totalDurationSec - currentItem.durationSec + betterVideo.durationSec;
-        out.items[i] = { videoId: betterVideo.videoId, durationSec: betterVideo.durationSec, channelId: betterVideo.channelId };
-        improved = true;
-        break; // Start over to check for more improvements
-      }
+    if (additionalVideo) {
+      out.items.push({ videoId: additionalVideo.videoId, durationSec: additionalVideo.durationSec, channelId: additionalVideo.channelId });
+      out.totalDurationSec += additionalVideo.durationSec;
+    } else {
+      // No more videos can fit, break out of the loop
+      break;
     }
   }
   
