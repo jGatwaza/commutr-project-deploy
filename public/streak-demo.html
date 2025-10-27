@@ -211,8 +211,10 @@
                 </button>
             </form>
             
-            <!-- Messages -->
-            <div id="errorMessage" class="error-message"></div>
+            <!-- Error Box (CTR-203 fix) -->
+            <div id="errorBox" class="error-message"></div>
+            
+            <!-- Success Message -->
             <div id="successMessage" class="success-message"></div>
         </div>
     </div>
@@ -227,27 +229,27 @@
         const totalMinutes = document.getElementById('totalMinutes');
         const sessionForm = document.getElementById('sessionForm');
         const submitBtn = document.getElementById('submitBtn');
-        const errorMessage = document.getElementById('errorMessage');
+        const errorBox = document.getElementById('errorBox');
         const successMessage = document.getElementById('successMessage');
         const topicInput = document.getElementById('topic');
         const minutesInput = document.getElementById('minutes');
         
-        // Hide messages
-        function hideMessages() {
-            errorMessage.classList.remove('show');
-            successMessage.classList.remove('show');
+        // Clear error box (CTR-203)
+        function clearError() {
+            errorBox.textContent = '';
+            errorBox.classList.remove('show');
         }
         
-        // Show error message
+        // Show error in error box (CTR-203)
         function showError(message) {
-            hideMessages();
-            errorMessage.textContent = message;
-            errorMessage.classList.add('show');
+            successMessage.classList.remove('show');
+            errorBox.textContent = message;
+            errorBox.classList.add('show');
         }
         
-        // Show success message
+        // Show success message and clear error
         function showSuccess(message) {
-            hideMessages();
+            clearError();
             successMessage.textContent = message;
             successMessage.classList.add('show');
             setTimeout(() => {
@@ -255,31 +257,35 @@
             }, 3000);
         }
         
-        // Fetch and display streak stats
+        // Fetch and display streak stats (CTR-203: explicit error handling)
         async function loadStreakStats() {
             try {
                 const response = await fetch(`${API_BASE}/api/streak`, {
                     headers: AUTH_HEADER
                 });
                 
+                // Handle 401 Unauthorized
                 if (response.status === 401) {
-                    showError('Auth failed (demo uses Authorization: Bearer TEST).');
+                    showError('Auth failed (demo mode requires Authorization: Bearer TEST).');
                     return;
                 }
                 
-                if (!response.ok) {
-                    showError(`Failed to load streak stats: ${response.status}`);
+                // Handle 200 Success
+                if (response.status === 200) {
+                    const data = await response.json();
+                    
+                    // Update UI with stats
+                    streakDays.textContent = data.currentStreakDays;
+                    totalSessions.textContent = data.totalSessions;
+                    totalMinutes.textContent = data.totalMinutes;
+                    
+                    // Clear error box on success
+                    clearError();
                     return;
                 }
                 
-                const data = await response.json();
-                
-                // Update UI with stats
-                streakDays.textContent = data.currentStreakDays;
-                totalSessions.textContent = data.totalSessions;
-                totalMinutes.textContent = data.totalMinutes;
-                
-                hideMessages();
+                // Handle other error statuses
+                showError(`Failed to load streak stats: ${response.status}`);
                 
             } catch (error) {
                 showError('Failed to connect to server. Make sure it\'s running on port 3000.');
@@ -287,7 +293,7 @@
             }
         }
         
-        // Handle form submission
+        // Handle form submission (CTR-203: explicit error handling)
         sessionForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -313,28 +319,32 @@
                     body: JSON.stringify({ topic, minutes })
                 });
                 
+                // Handle 401 Unauthorized
                 if (response.status === 401) {
-                    showError('Auth failed (demo uses Authorization: Bearer TEST).');
+                    showError('Auth failed (demo mode requires Authorization: Bearer TEST).');
                     return;
                 }
                 
+                // Handle 400 Bad Request
                 if (response.status === 400) {
                     const errorData = await response.json();
-                    showError(errorData.error || 'Invalid input');
+                    showError('Invalid input: ' + (errorData.error || 'Bad request'));
                     return;
                 }
                 
-                if (!response.ok) {
-                    showError(`Failed to save session: ${response.status}`);
+                // Handle 200 Success
+                if (response.status === 200) {
+                    // Success! Show message and re-fetch stats
+                    showSuccess(`✅ Session logged: ${minutes} min on ${topic}`);
+                    await loadStreakStats();
+                    
+                    // Clear form
+                    topicInput.value = '';
                     return;
                 }
                 
-                // Success! Re-fetch stats
-                showSuccess(`✅ Session logged: ${minutes} min on ${topic}`);
-                await loadStreakStats();
-                
-                // Clear form
-                topicInput.value = '';
+                // Handle other error statuses
+                showError(`Failed to save session: ${response.status}`);
                 
             } catch (error) {
                 showError('Failed to connect to server. Make sure it\'s running on port 3000.');
