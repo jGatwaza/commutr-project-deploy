@@ -1,5 +1,5 @@
-import type { Level } from './mastery';
-import { searchYouTubeVideos } from '../services/youtube';
+import type { Level } from './mastery.js';
+import { searchYouTubeVideos } from '../services/youtube.js';
 
 export type Candidate = {
   videoId: string; 

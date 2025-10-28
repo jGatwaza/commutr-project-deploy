@@ -1,4 +1,4 @@
-import type { Candidate } from '../stubs/metadata';
+import type { Candidate } from '../stubs/metadata.js';
 
 // Real YouTube API service - calls actual YouTube Data API v3
 export async function searchYouTubeVideos(topic: string, maxResults: number = 50): Promise<Candidate[]> {

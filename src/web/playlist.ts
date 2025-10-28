@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { buildPack } from '../pack/builder';
-import { getUserMastery } from '../stubs/mastery';
-import { getCandidates } from '../stubs/metadata';
-import { suggestTopic } from '../stubs/reco';
+import { buildPack } from '../pack/builder.js';
+import { getUserMastery } from '../stubs/mastery.js';
+import { getCandidates } from '../stubs/metadata.js';
+import { suggestTopic } from '../stubs/reco.js';
 
 const router = Router();
 const schema = z.object({

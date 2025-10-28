@@ -1,5 +1,5 @@
-import type { Level } from '../stubs/mastery';
-import type { Candidate } from '../stubs/metadata';
+import type { Level } from '../stubs/mastery.js';
+import type { Candidate } from '../stubs/metadata.js';
 
 export type BuildPackInput = {
   topic: string;
