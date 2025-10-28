@@ -1,90 +1,94 @@
-import type { Level } from '../stubs/mastery.js';
-import type { Candidate } from '../stubs/metadata.js';
+/**
+ * Deterministic Playlist Pack Builder
+ * 
+ * Algorithm: Greedy knapsack with deterministic pre-sort
+ * 1. Filter candidates by topic (tag match: topicTags includes topic) and level
+ * 2. Sort deterministically: durationSec ASC, then videoId ASC
+ * 3. Greedy select: iterate sorted list, add if fits within [target-60, target+60]
+ * 4. Enforce upper bound (target+60), no duplicates
+ * 5. Mark underFilled if totalDurationSec < target-60
+ * 
+ * Time Complexity: O(n log n) for sort + O(n) for greedy = O(n log n)
+ * Space Complexity: O(n) for filtered/sorted array
+ */
 
-export type BuildPackInput = {
-  topic: string;
-  minDurationSec: number;
-  maxDurationSec: number;
-  userMasteryLevel: Level;
-  blockedChannelIds?: string[];
-  seed?: number;
-  candidates: Candidate[];
+export type Candidate = {
+  videoId: string;
+  durationSec: number;
+  title?: string;
+  channelTitle?: string;
+  level?: 'beginner' | 'intermediate' | 'advanced';
+  topicTags?: string[];
 };
-export type BuildPackOutput = {
-  items: { videoId: string; durationSec: number; channelId: string }[];
+
+export type PackReq = {
+  topic: string;
+  level: 'beginner' | 'intermediate' | 'advanced';
+  targetSeconds: number;
+};
+
+export type Pack = {
   totalDurationSec: number;
   underFilled: boolean;
+  items: Array<{ videoId: string; durationSec: number }>;
 };
 
-function rng(seed = 7) { let s = seed; return () => (s = (s*9301+49297)%233280)/233280; }
-function levelScore(c: Candidate, target: Level) {
-  const order: Record<Level, number> = { beginner: 0, intermediate: 1, advanced: 2 };
-  const diff = Math.abs(order[c.level] - (order[target] + 1)); // prefer +1 harder
-  return -diff;
-}
+/**
+ * Build a deterministic playlist pack from candidates
+ * @param cands - Array of video candidates
+ * @param req - Pack requirements (topic, level, target duration)
+ * @returns Pack with selected videos
+ */
+export function buildPack(cands: Candidate[], req: PackReq): Pack {
+  const { topic, level, targetSeconds } = req;
+  const minDuration = targetSeconds - 60;
+  const maxDuration = targetSeconds + 60;
 
-export function buildPack(input: BuildPackInput): BuildPackOutput {
-  const { minDurationSec, maxDurationSec, blockedChannelIds = [], topic } = input;
-  
-  // Filter videos for the topic and remove blocked channels
-  let pool = input.candidates
-    .filter(c => c.topic === topic)
-    .filter(c => !blockedChannelIds.includes(c.channelId));
+  // Step 1: Filter by topic and level
+  const filtered = cands.filter((c) => {
+    // Match level
+    if (c.level !== level) return false;
+    
+    // Match topic: check if topicTags includes the topic
+    if (c.topicTags && c.topicTags.includes(topic)) return true;
+    
+    return false;
+  });
 
-  const out: BuildPackOutput = { items: [], totalDurationSec: 0, underFilled: false };
-  
-  // First, try to find a single video that fits perfectly
-  const perfectFit = pool.find(c => c.durationSec >= minDurationSec && c.durationSec <= maxDurationSec);
-  if (perfectFit) {
-    out.items.push({ videoId: perfectFit.videoId, durationSec: perfectFit.durationSec, channelId: perfectFit.channelId });
-    out.totalDurationSec = perfectFit.durationSec;
-    return out;
-  }
-
-  // If no perfect fit, combine multiple videos
-  // Sort by duration (shortest first) to build up gradually
-  pool = pool.sort((a, b) => a.durationSec - b.durationSec);
-  
-  // Use a greedy approach to fill the time slot
-  const usedChannels = new Set<string>();
-  
-  for (const video of pool) {
-    // Skip if adding this video would exceed max duration
-    if (out.totalDurationSec + video.durationSec > maxDurationSec) {
-      continue;
+  // Step 2: Deterministic sort (durationSec ASC, videoId ASC)
+  const sorted = filtered.slice().sort((a, b) => {
+    if (a.durationSec !== b.durationSec) {
+      return a.durationSec - b.durationSec;
     }
-    
-    // Add the video
-    out.items.push({ videoId: video.videoId, durationSec: video.durationSec, channelId: video.channelId });
-    out.totalDurationSec += video.durationSec;
-    usedChannels.add(video.channelId);
-    
-    // Stop if we've reached or exceeded the minimum duration
-    if (out.totalDurationSec >= minDurationSec) {
-      break;
-    }
-  }
-  
-  // Keep trying to add more videos until we reach minimum duration or can't fit any more
-  while (out.totalDurationSec < minDurationSec) {
-    const additionalVideo = pool.find(video => 
-      out.totalDurationSec + video.durationSec <= maxDurationSec &&
-      !out.items.some(item => item.videoId === video.videoId)
-    );
-    
-    if (additionalVideo) {
-      out.items.push({ videoId: additionalVideo.videoId, durationSec: additionalVideo.durationSec, channelId: additionalVideo.channelId });
-      out.totalDurationSec += additionalVideo.durationSec;
-    } else {
-      // No more videos can fit, break out of the loop
-      break;
+    return a.videoId.localeCompare(b.videoId);
+  });
+
+  // Step 3: Greedy selection
+  const selected: Array<{ videoId: string; durationSec: number }> = [];
+  const usedIds = new Set<string>();
+  let totalDurationSec = 0;
+
+  for (const candidate of sorted) {
+    // Skip duplicates
+    if (usedIds.has(candidate.videoId)) continue;
+
+    // Check if adding this video would exceed max duration
+    if (totalDurationSec + candidate.durationSec <= maxDuration) {
+      selected.push({
+        videoId: candidate.videoId,
+        durationSec: candidate.durationSec,
+      });
+      usedIds.add(candidate.videoId);
+      totalDurationSec += candidate.durationSec;
     }
   }
-  
-  // Check if we couldn't fill the minimum time
-  if (out.totalDurationSec < minDurationSec) {
-    out.underFilled = true;
-  }
-  
-  return out;
+
+  // Step 4: Determine if underFilled
+  const underFilled = totalDurationSec < minDuration;
+
+  return {
+    totalDurationSec,
+    underFilled,
+    items: selected,
+  };
 }
