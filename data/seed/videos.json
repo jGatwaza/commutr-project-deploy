@@ -1,0 +1,146 @@
+[
+  {
+    "videoId": "dQw4w9WgXcQ",
+    "durationSec": 212,
+    "title": "Python Fundamentals for Beginners",
+    "channelTitle": "CodeWithMosh",
+    "level": "beginner",
+    "topicTags": ["python", "programming", "tutorial"]
+  },
+  {
+    "videoId": "rfscVS0vtbw",
+    "durationSec": 360,
+    "title": "Learn Python in 6 Minutes",
+    "channelTitle": "TechWorld",
+    "level": "beginner",
+    "topicTags": ["python", "quickstart"]
+  },
+  {
+    "videoId": "kqtD5dpn9C8",
+    "durationSec": 540,
+    "title": "Python Data Structures Deep Dive",
+    "channelTitle": "CS Dojo",
+    "level": "intermediate",
+    "topicTags": ["python", "data-structures", "algorithms"]
+  },
+  {
+    "videoId": "8ext9G7xspg",
+    "durationSec": 720,
+    "title": "Advanced Python: Decorators and Generators",
+    "channelTitle": "RealPython",
+    "level": "advanced",
+    "topicTags": ["python", "decorators", "generators"]
+  },
+  {
+    "videoId": "YYXdXT2l-Gg",
+    "durationSec": 180,
+    "title": "JavaScript ES6 Essentials",
+    "channelTitle": "Traversy Media",
+    "level": "beginner",
+    "topicTags": ["javascript", "es6", "web"]
+  },
+  {
+    "videoId": "PkZNo7MFNFg",
+    "durationSec": 420,
+    "title": "React Hooks Tutorial",
+    "channelTitle": "Net Ninja",
+    "level": "intermediate",
+    "topicTags": ["javascript", "react", "hooks"]
+  },
+  {
+    "videoId": "3PHXvlpOkf4",
+    "durationSec": 300,
+    "title": "Python for Data Science",
+    "channelTitle": "DataCamp",
+    "level": "intermediate",
+    "topicTags": ["python", "data-science", "pandas"]
+  },
+  {
+    "videoId": "gfDE2a7MKjA",
+    "durationSec": 240,
+    "title": "Python List Comprehensions",
+    "channelTitle": "Corey Schafer",
+    "level": "beginner",
+    "topicTags": ["python", "lists", "comprehensions"]
+  },
+  {
+    "videoId": "ZDa-Z5JzLYM",
+    "durationSec": 480,
+    "title": "Building REST APIs with Python Flask",
+    "channelTitle": "Pretty Printed",
+    "level": "intermediate",
+    "topicTags": ["python", "flask", "api", "web"]
+  },
+  {
+    "videoId": "WGJJIrtnfpk",
+    "durationSec": 600,
+    "title": "Python Async/Await Tutorial",
+    "channelTitle": "ArjanCodes",
+    "level": "advanced",
+    "topicTags": ["python", "async", "concurrency"]
+  },
+  {
+    "videoId": "bD05uGo_sVI",
+    "durationSec": 150,
+    "title": "Python Virtual Environments Explained",
+    "channelTitle": "Tech With Tim",
+    "level": "beginner",
+    "topicTags": ["python", "venv", "setup"]
+  },
+  {
+    "videoId": "jNQXAC9IVRw",
+    "durationSec": 390,
+    "title": "Python OOP Concepts",
+    "channelTitle": "Programming with Mosh",
+    "level": "intermediate",
+    "topicTags": ["python", "oop", "classes"]
+  },
+  {
+    "videoId": "YbpKMIUjvK8",
+    "durationSec": 270,
+    "title": "Python Error Handling Best Practices",
+    "channelTitle": "Real Python",
+    "level": "beginner",
+    "topicTags": ["python", "exceptions", "error-handling"]
+  },
+  {
+    "videoId": "daefaLgNkw0",
+    "durationSec": 660,
+    "title": "Python Design Patterns",
+    "channelTitle": "Christopher Okhravi",
+    "level": "advanced",
+    "topicTags": ["python", "design-patterns", "architecture"]
+  },
+  {
+    "videoId": "HGOBQPFzWKo",
+    "durationSec": 330,
+    "title": "Python Testing with Pytest",
+    "channelTitle": "mCoding",
+    "level": "intermediate",
+    "topicTags": ["python", "testing", "pytest"]
+  },
+  {
+    "videoId": "eirjjyP2qcQ",
+    "durationSec": 195,
+    "title": "Python F-Strings Tutorial",
+    "channelTitle": "Corey Schafer",
+    "level": "beginner",
+    "topicTags": ["python", "strings", "formatting"]
+  },
+  {
+    "videoId": "YgtL4S7Hrwo",
+    "durationSec": 450,
+    "title": "Python Type Hints and MyPy",
+    "channelTitle": "ArjanCodes",
+    "level": "intermediate",
+    "topicTags": ["python", "typing", "mypy"]
+  },
+  {
+    "videoId": "Ej_02ICOIgs",
+    "durationSec": 510,
+    "title": "Python Performance Optimization",
+    "channelTitle": "mCoding",
+    "level": "advanced",
+    "topicTags": ["python", "performance", "optimization"]
+  }
+]
