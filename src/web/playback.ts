@@ -236,7 +236,7 @@ router.post(
     const rateLimitResult = checkRateLimit(userId, completeRateLimits, 60);
     
     if (!rateLimitResult.allowed) {
-      res.set('Retry-After', String(rateLimitResult.retryAfter));
+      res.set('Retry-After', '60');
       sendError(
         res,
         429,

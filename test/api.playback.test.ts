@@ -440,7 +440,7 @@ describe('POST /v1/playback/complete', () => {
     
     expect(response.status).toBe(429);
     expect(response.body.error.code).toBe('RATE_LIMIT_EXCEEDED');
-    expect(response.headers['retry-after']).toBeDefined();
+    expect(response.headers['retry-after']).toBe('60');
   });
 
   test('POST 503 via __simulateDown(true)', async () => {
