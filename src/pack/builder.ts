@@ -53,8 +53,9 @@ export function buildPackV2(cands: Candidate[], req: PackReq): Pack {
     // Match level
     if (c.level !== level) return false;
     
-    // Match topic: check if topicTags includes the topic
-    if (c.topicTags && c.topicTags.includes(topic)) return true;
+    // Match topic: check if topicTags includes the topic (case-insensitive)
+    const topicLower = topic.toLowerCase();
+    if (c.topicTags && c.topicTags.some(tag => tag.toLowerCase() === topicLower)) return true;
     
     return false;
   });

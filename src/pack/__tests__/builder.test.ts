@@ -340,4 +340,48 @@ describe('Pack Builder', () => {
     expect(pack.items[1]?.videoId).toBe('beta');
     expect(pack.items[2]?.videoId).toBe('zebra');
   });
+
+  test('topic_case_insensitive', () => {
+    // Catalog with lowercase topic tags
+    const catalog: Candidate[] = [
+      {
+        videoId: 'case1',
+        durationSec: 200,
+        level: 'beginner',
+        topicTags: ['python'],
+      },
+      {
+        videoId: 'case2',
+        durationSec: 250,
+        level: 'beginner',
+        topicTags: ['python'],
+      },
+      {
+        videoId: 'case3',
+        durationSec: 180,
+        level: 'beginner',
+        topicTags: ['python'],
+      },
+    ];
+
+    // Request with capitalized topic 'Python'
+    const req: PackReq = {
+      topic: 'Python',
+      level: 'beginner',
+      targetSeconds: 600,
+    };
+
+    const pack = buildPack(catalog, req);
+
+    // Should match despite case difference
+    expect(pack.items.length).toBeGreaterThan(0);
+    expect(pack.totalDurationSec).toBeGreaterThan(0);
+    expect(pack.underFilled).toBe(false);
+    
+    // Verify all items have 'python' in their tags
+    pack.items.forEach(item => {
+      const candidate = catalog.find(c => c.videoId === item.videoId);
+      expect(candidate?.topicTags).toContain('python');
+    });
+  });
 });
