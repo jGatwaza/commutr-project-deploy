@@ -1,7 +1,7 @@
 export default {
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: "node",
-  testMatch: ["**/tests/**/*.test.js", "**/__tests__/**/*.test.ts"],
+  testMatch: ["**/tests/**/*.test.js", "**/__tests__/**/*.test.ts", "**/test/**/*.test.ts"],
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',

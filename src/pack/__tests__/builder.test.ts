@@ -1,4 +1,4 @@
-import { buildPack, type Candidate, type PackReq } from '../builder.js';
+import { buildPackV2 as buildPack, type Candidate, type PackReq } from '../builder.js';
 
 describe('Pack Builder', () => {
   // Small in-test catalog for testing

@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import playlistRouter from './web/playlist.js';
 import streakRouter from './web/streak.js';
+import playbackRouter from './web/playback.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,6 +22,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(playlistRouter);
 app.use('/api', streakRouter);
+app.use(playbackRouter);
 
 const PORT = process.env.PORT || 3000;
 
