@@ -1,7 +1,12 @@
 import request from 'supertest';
-import app from '../src/server';
+import app from '../src/server.js';
 
 const AUTH = { Authorization: 'Bearer TEST' };
+const hasYT = !!process.env.YOUTUBE_API_KEY;
+
+(hasYT ? describe : describe.skip)('YouTube-backed playlist integration', () => {
+  // the three tests that expect 200 with real videos go here
+});
 
 test('200 success with topic', async () => {
   const res = await request(app).get('/v1/playlist?topic=python&durationSec=900').set(AUTH);
