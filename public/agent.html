@@ -196,7 +196,7 @@
             border-color: #468189;
         }
         
-        .send-btn {
+        .send-btn, .voice-btn {
             background: linear-gradient(135deg, #468189 0%, #77ACA2 100%);
             color: white;
             border: none;
@@ -208,14 +208,39 @@
             transition: transform 0.2s;
         }
         
-        .send-btn:hover {
+        .voice-btn {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .voice-btn.recording {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .send-btn:hover, .voice-btn:hover {
             transform: translateY(-2px);
         }
         
-        .send-btn:disabled {
+        .send-btn:disabled, .voice-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+        }
+        
+        .voice-status {
+            font-size: 12px;
+            color: #468189;
+            margin-top: 8px;
+            text-align: center;
+            min-height: 18px;
         }
         
         /* Playlist Modal */
@@ -378,7 +403,11 @@
                 <div class="message agent">
                     <div class="message-avatar">🤖</div>
                     <div class="message-content">
-                        Hi! I'm your Commutr AI assistant. I can help you create personalized playlists for your commute. Just tell me what topic you'd like to learn about and how long your commute is!
+                        Hi! I'm your Commutr AI assistant. I can help you create personalized playlists for your commute. You can <strong>type or speak</strong> your request!
+                        <br><br>
+                        🎤 <strong>Voice Mode:</strong> Click the microphone button and say your request
+                        <br>
+                        ⌨️ <strong>Text Mode:</strong> Type your message normally
                         <br><br>
                         For example: "Create a playlist about Python programming for a 15-minute commute" or "I want to learn about cooking for my 20-minute drive"
                     </div>
@@ -391,12 +420,16 @@
                         type="text" 
                         class="chat-input" 
                         id="userInput" 
-                        placeholder="Type your message here..." 
+                        placeholder="Type or speak your message..." 
                         autocomplete="off"
                         required
                     />
+                    <button type="button" class="voice-btn" id="voiceBtn" title="Click to speak">
+                        <span id="voiceIcon">🎤</span>
+                    </button>
                     <button type="submit" class="send-btn" id="sendBtn">Send</button>
                 </form>
+                <div class="voice-status" id="voiceStatus"></div>
             </div>
         </div>
     </div>
@@ -594,6 +627,106 @@
                 closeModal();
             }
         });
+        
+        // Voice Input Functionality
+        const voiceBtn = document.getElementById('voiceBtn');
+        const voiceIcon = document.getElementById('voiceIcon');
+        const voiceStatus = document.getElementById('voiceStatus');
+        let recognition = null;
+        let isRecording = false;
+        
+        // Check if browser supports speech recognition
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+            
+            recognition.onstart = () => {
+                isRecording = true;
+                voiceBtn.classList.add('recording');
+                voiceIcon.textContent = '🔴';
+                voiceStatus.textContent = '🎤 Listening... (speak now)';
+                userInput.placeholder = 'Listening...';
+            };
+            
+            recognition.onresult = (event) => {
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                userInput.value = transcript;
+                
+                // Show interim results in status
+                if (!event.results[event.results.length - 1].isFinal) {
+                    voiceStatus.textContent = `🎤 ${transcript}`;
+                }
+            };
+            
+            recognition.onend = () => {
+                isRecording = false;
+                voiceBtn.classList.remove('recording');
+                voiceIcon.textContent = '🎤';
+                userInput.placeholder = 'Type or speak your message...';
+                
+                // If we have text, clear the status after a moment
+                if (userInput.value.trim()) {
+                    voiceStatus.textContent = '✅ Ready to send!';
+                    setTimeout(() => {
+                        voiceStatus.textContent = '';
+                    }, 2000);
+                    userInput.focus();
+                } else {
+                    voiceStatus.textContent = '';
+                }
+            };
+            
+            recognition.onerror = (event) => {
+                isRecording = false;
+                voiceBtn.classList.remove('recording');
+                voiceIcon.textContent = '🎤';
+                userInput.placeholder = 'Type or speak your message...';
+                
+                if (event.error === 'no-speech') {
+                    voiceStatus.textContent = '❌ No speech detected. Try again!';
+                } else if (event.error === 'not-allowed') {
+                    voiceStatus.textContent = '❌ Microphone access denied. Please allow microphone access.';
+                } else {
+                    voiceStatus.textContent = `❌ Error: ${event.error}`;
+                }
+                
+                setTimeout(() => {
+                    voiceStatus.textContent = '';
+                }, 3000);
+            };
+            
+            voiceBtn.addEventListener('click', () => {
+                if (isRecording) {
+                    recognition.stop();
+                } else {
+                    try {
+                        recognition.start();
+                    } catch (error) {
+                        console.error('Recognition error:', error);
+                        voiceStatus.textContent = '❌ Could not start voice recognition';
+                        setTimeout(() => {
+                            voiceStatus.textContent = '';
+                        }, 3000);
+                    }
+                }
+            });
+            
+        } else {
+            // Browser doesn't support speech recognition
+            voiceBtn.disabled = true;
+            voiceBtn.title = 'Voice input not supported in this browser';
+            voiceStatus.textContent = '⚠️ Voice input not supported. Try Chrome, Edge, or Safari.';
+            setTimeout(() => {
+                voiceStatus.textContent = '';
+            }, 5000);
+        }
         
         // Test server connection on load
         window.addEventListener('load', async () => {

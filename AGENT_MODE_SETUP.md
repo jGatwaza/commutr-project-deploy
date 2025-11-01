@@ -4,12 +4,19 @@ This guide will help you set up the new **Agent Mode** feature for Commutr, whic
 
 ## 🎯 What is Agent Mode?
 
-Agent Mode is an AI-powered chat interface that lets users request playlists conversationally. Instead of filling out a form, users can simply say:
+Agent Mode is an AI-powered chat interface that lets users request playlists conversationally using **text or voice input**. Instead of filling out a form, users can simply say or type:
 - "Create a Python playlist for my 15-minute commute"
 - "I want to learn cooking for 20 minutes"
 - "Make me a JavaScript playlist for a 30-minute drive"
 
 The AI agent extracts the topic and duration, then automatically generates a personalized playlist!
+
+### 🎤 Voice Mode Features
+- **Speech-to-Text**: Click the microphone button and speak your request
+- **Real-time Transcription**: See your words appear as you speak
+- **Browser-Based**: Uses Web Speech API (no additional API needed!)
+- **Free**: Completely free, works offline after initial load
+- **Supported Browsers**: Chrome, Edge, Safari (latest versions)
 
 ## 🚀 Free AI Options
 
@@ -65,10 +72,16 @@ The server will start on `http://localhost:3000`
 
 1. Open your browser to `http://localhost:3000`
 2. Click the **"🤖 Agent Mode"** button
-3. Try sending a message like:
-   - "Create a playlist about cooking for 15 minutes"
-   - "I want to learn Python for my 20-minute commute"
-   - "Make me a JavaScript playlist for 30 minutes"
+3. Try either:
+   
+   **Text Mode:**
+   - Type a message like: "Create a playlist about cooking for 15 minutes"
+   - Press Send
+   
+   **Voice Mode:**
+   - Click the 🎤 microphone button
+   - Say: "I want to learn Python for my 20-minute commute"
+   - The agent will transcribe and understand your request!
 
 The agent will understand your request and automatically generate a playlist!
 
@@ -78,6 +91,15 @@ The agent will understand your request and automatically generate a playlist!
 - Natural language understanding
 - Conversational playlist creation
 - Automatic topic and duration extraction
+
+### 🎤 Voice Input Mode
+- **Browser-based speech recognition** (Web Speech API)
+- **Real-time transcription** - see your words as you speak
+- **Visual feedback** - pulsing red button while recording
+- **Automatic text conversion** - voice input fills the text field
+- **No additional APIs needed** - completely free
+- **Supported browsers**: Chrome, Edge, Safari
+- **Hands-free operation** - perfect for accessibility
 
 ### Beautiful Modal Playlist Display
 - Embedded YouTube videos
@@ -141,9 +163,33 @@ The interface uses the Commutr brand colors:
 }
 ```
 
+## 🎤 How to Use Voice Mode
+
+### Using Voice Input
+1. Click the **🎤 microphone button** in the chat input area
+2. The button will turn red and pulse, indicating it's listening
+3. **Speak clearly** into your microphone: "Create a Python playlist for 15 minutes"
+4. Your speech will be transcribed in real-time into the text input
+5. When you finish speaking, the button returns to normal
+6. Click **Send** to submit your request to the AI agent
+7. The agent processes your request and generates a playlist!
+
+### Voice Mode Tips
+- **Speak naturally** - no need for special commands
+- **Be specific** - mention both topic and duration
+- **Check transcription** - the text appears as you speak
+- **Edit if needed** - you can edit the text before sending
+- **Allow microphone access** - browser will ask permission first time
+
+### Browser Compatibility
+- ✅ **Chrome** (recommended) - best support
+- ✅ **Edge** - excellent support
+- ✅ **Safari** - good support (iOS and macOS)
+- ❌ **Firefox** - limited support (may not work)
+
 ## 🔧 How It Works
 
-1. **User sends a message** through the chat interface
+1. **User sends a message** through the chat interface (text or voice)
 2. **AI agent processes** the message using Groq's Mixtral model
 3. **Agent extracts** topic and duration (if present)
 4. **Playlist generator** creates a curated playlist using the existing playlist API
@@ -177,16 +223,31 @@ Agent: "I couldn't find any educational videos for 'asdfghjkl'. Could you try
 
 ## 🎯 Testing Checklist
 
+### Setup
 - [ ] Install dependencies (`npm install`)
 - [ ] Add Groq API key to `.env`
 - [ ] Start server (`npm run dev`)
 - [ ] Click "Agent Mode" button on main page
-- [ ] Send a playlist request message
+
+### Text Mode Testing
+- [ ] Type and send a playlist request message
 - [ ] Verify playlist modal appears
 - [ ] Check video playback works
 - [ ] Test different topics (python, cooking, javascript, etc.)
 - [ ] Test different durations (5, 15, 30 minutes)
 - [ ] Test conversational messages (no playlist request)
+
+### Voice Mode Testing
+- [ ] Click microphone button
+- [ ] Allow microphone access when prompted
+- [ ] Verify button turns red and pulses
+- [ ] Speak a playlist request
+- [ ] Check real-time transcription works
+- [ ] Verify transcribed text appears in input field
+- [ ] Send voice-transcribed message
+- [ ] Test in different browsers (Chrome, Edge, Safari)
+- [ ] Test with background noise
+- [ ] Test stopping recording mid-speech
 
 ## 🐛 Troubleshooting
 
@@ -205,6 +266,30 @@ Agent: "I couldn't find any educational videos for 'asdfghjkl'. Could you try
 ### Groq SDK not found
 - Run `npm install` to install dependencies
 - Restart your IDE/editor
+
+### Voice Mode Issues
+
+**"Microphone access denied"**
+- Click the microphone icon in your browser's address bar
+- Allow microphone access for localhost
+- Refresh the page and try again
+
+**"Voice input not supported"**
+- Use Chrome, Edge, or Safari (latest versions)
+- Firefox has limited Web Speech API support
+- Update your browser to the latest version
+
+**"No speech detected"**
+- Check your microphone is working (test in system settings)
+- Speak closer to the microphone
+- Ensure no other app is using the microphone
+- Check browser permissions for microphone access
+
+**Voice transcription is inaccurate**
+- Speak more clearly and slowly
+- Reduce background noise
+- Use a better quality microphone
+- Edit the transcribed text before sending
 
 ## 🚀 Alternative: Using OpenAI
 
