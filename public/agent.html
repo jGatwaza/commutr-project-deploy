@@ -671,13 +671,16 @@
                 voiceIcon.textContent = '🎤';
                 userInput.placeholder = 'Type or speak your message...';
                 
-                // If we have text, clear the status after a moment
+                // If we have text, automatically submit after a brief delay
                 if (userInput.value.trim()) {
-                    voiceStatus.textContent = '✅ Ready to send!';
+                    voiceStatus.textContent = '✅ Sending...';
+                    
+                    // Small delay to show the final transcription
                     setTimeout(() => {
+                        // Trigger form submission
+                        chatForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
                         voiceStatus.textContent = '';
-                    }, 2000);
-                    userInput.focus();
+                    }, 500);
                 } else {
                     voiceStatus.textContent = '';
                 }

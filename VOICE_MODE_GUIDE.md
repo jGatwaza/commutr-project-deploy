@@ -44,16 +44,18 @@ Speak clearly into your microphone. Examples:
 - "Make me a JavaScript playlist for half an hour"
 - "Build a fitness playlist for 10 minutes"
 
-### Step 4: Review Transcription
+### Step 4: Automatic Submission
 - Your speech appears in real-time in the text input field
 - The status bar shows what you're saying
-- Edit the text if needed before sending
+- Recording stops automatically when you finish speaking
+- **Request is automatically sent** after 0.5 seconds
+- No need to click "Send" - it's hands-free!
 
-### Step 5: Send Request
-1. Recording stops automatically when you finish speaking
-2. Review the transcribed text
-3. Click **"Send"** to submit to the AI agent
-4. The agent processes your request and generates a playlist!
+### Step 5: AI Processing
+1. The agent receives your transcribed request
+2. AI processes and extracts topic + duration
+3. Playlist is automatically generated
+4. Modal appears with your videos - ready to watch!
 
 ## 🎯 Tips for Best Results
 
@@ -110,8 +112,9 @@ Voice Mode uses the browser's built-in **Web Speech API**, which:
 2. **Speak request** → Audio captured by Web Speech API
 3. **Real-time transcription** → Words appear in text field
 4. **Stop recording** → Automatically stops after speech ends
-5. **Send to AI** → Text sent to Groq's Llama 3.3 model
-6. **Generate playlist** → Agent creates playlist via API
+5. **Auto-submit** → Request automatically sent after 0.5s
+6. **AI processing** → Text sent to Groq's Llama 3.3 model
+7. **Generate playlist** → Agent creates playlist via API
 
 ### Privacy & Security
 - Voice processing happens **in your browser**
@@ -174,14 +177,14 @@ Voice Mode uses the browser's built-in **Web Speech API**, which:
 2. Tap microphone button
 3. Allow microphone access
 4. Speak your request
-5. Tap Send
+5. Request sends automatically - done!
 
 ### Android (Chrome)
 1. Open Chrome and go to Commutr
 2. Tap microphone button
 3. Allow microphone access
 4. Speak your request
-5. Tap Send
+5. Request sends automatically - done!
 
 ### Mobile Tips
 - Hold phone normally (mic is at bottom)
@@ -209,7 +212,7 @@ Voice Mode uses the browser's built-in **Web Speech API**, which:
 ### Status Messages
 
 - **"🎤 Listening... (speak now)"** - Recording in progress
-- **"✅ Ready to send!"** - Transcription complete
+- **"✅ Sending..."** - Auto-submitting your request
 - **"❌ No speech detected"** - Try speaking louder
 - **"❌ Microphone access denied"** - Allow permissions
 - **"⚠️ Voice input not supported"** - Use different browser
@@ -220,22 +223,22 @@ Voice Mode uses the browser's built-in **Web Speech API**, which:
 *Hands-free while driving:*
 1. Click microphone before driving
 2. "Create a news podcast playlist for 20 minutes"
-3. Let AI generate playlist
-4. Start listening!
+3. Request auto-submits
+4. Playlist appears - start listening!
 
 ### Accessibility
 *For users with typing difficulties:*
 1. Use voice instead of typing
 2. Speak naturally
-3. Edit if needed
-4. More accessible interface
+3. Auto-submits without manual clicking
+4. Fully hands-free interface
 
 ### Quick Requests
 *Faster than typing:*
 1. Click and speak in seconds
 2. No typing required
 3. Instant transcription
-4. Send immediately
+4. Automatically submitted!
 
 ### Multilingual Support
 *Works with accents:*

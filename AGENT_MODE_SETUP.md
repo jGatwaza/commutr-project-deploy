@@ -14,6 +14,8 @@ The AI agent extracts the topic and duration, then automatically generates a per
 ### 🎤 Voice Mode Features
 - **Speech-to-Text**: Click the microphone button and speak your request
 - **Real-time Transcription**: See your words appear as you speak
+- **Auto-Submit**: Request automatically sent when you finish speaking
+- **Hands-Free**: No need to click "Send" - fully automatic!
 - **Browser-Based**: Uses Web Speech API (no additional API needed!)
 - **Free**: Completely free, works offline after initial load
 - **Supported Browsers**: Chrome, Edge, Safari (latest versions)
@@ -96,10 +98,11 @@ The agent will understand your request and automatically generate a playlist!
 - **Browser-based speech recognition** (Web Speech API)
 - **Real-time transcription** - see your words as you speak
 - **Visual feedback** - pulsing red button while recording
-- **Automatic text conversion** - voice input fills the text field
+- **Auto-submit** - request sent automatically after speaking
+- **Hands-free operation** - no clicking required
 - **No additional APIs needed** - completely free
 - **Supported browsers**: Chrome, Edge, Safari
-- **Hands-free operation** - perfect for accessibility
+- **Perfect for accessibility** - fully voice-controlled
 
 ### Beautiful Modal Playlist Display
 - Embedded YouTube videos
@@ -171,14 +174,14 @@ The interface uses the Commutr brand colors:
 3. **Speak clearly** into your microphone: "Create a Python playlist for 15 minutes"
 4. Your speech will be transcribed in real-time into the text input
 5. When you finish speaking, the button returns to normal
-6. Click **Send** to submit your request to the AI agent
+6. **Request is automatically sent** after 0.5 seconds - no clicking needed!
 7. The agent processes your request and generates a playlist!
 
 ### Voice Mode Tips
 - **Speak naturally** - no need for special commands
 - **Be specific** - mention both topic and duration
-- **Check transcription** - the text appears as you speak
-- **Edit if needed** - you can edit the text before sending
+- **Speak complete requests** - it auto-submits after you finish
+- **Speak clearly** - for best transcription accuracy
 - **Allow microphone access** - browser will ask permission first time
 
 ### Browser Compatibility
