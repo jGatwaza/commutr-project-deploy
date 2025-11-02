@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commutr - Session History</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #FFFFFF;
+            min-height: 100vh;
+            color: #031926;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            padding: 20px 0;
+            border-bottom: 1px solid #e8eaed;
+            margin-bottom: 24px;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 400;
+            color: #031926;
+            margin-bottom: 8px;
+        }
+        
+        .back-btn {
+            color: #468189;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: background 0.2s;
+            font-weight: 500;
+            font-size: 14px;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+        
+        .back-btn:hover {
+            background: #f1f3f4;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 16px;
+            border: 1px solid #dadce0;
+            border-radius: 24px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        .search-box:focus {
+            border-color: #468189;
+        }
+        
+        .filter-dropdown {
+            padding: 12px 16px;
+            border: 1px solid #dadce0;
+            border-radius: 24px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            cursor: pointer;
+            background: white;
+            transition: border-color 0.2s;
+        }
+        
+        .filter-dropdown:focus {
+            border-color: #468189;
+        }
+        
+        .sessions-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sessions-table thead {
+            background: #f8f9fa;
+        }
+        
+        .sessions-table th {
+            text-align: left;
+            padding: 16px;
+            font-weight: 500;
+            color: #5f6368;
+            font-size: 14px;
+        }
+        
+        .sessions-table td {
+            padding: 16px;
+            border-top: 1px solid #e8eaed;
+            font-size: 14px;
+        }
+        
+        .sessions-table tbody tr {
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+        
+        .sessions-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .details-btn {
+            color: #468189;
+            text-decoration: none;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-weight: 500;
+            font-size: 13px;
+            border: 1px solid #468189;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .details-btn:hover {
+            background: #468189;
+            color: white;
+        }
+        
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: -500px;
+            width: 500px;
+            height: 100vh;
+            background: white;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+            transition: right 0.3s;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        
+        .drawer.open {
+            right: 0;
+        }
+        
+        .drawer-header {
+            padding: 20px;
+            border-bottom: 1px solid #e8eaed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .drawer-header h2 {
+            font-size: 20px;
+            font-weight: 500;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #5f6368;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        
+        .close-btn:hover {
+            background: #f1f3f4;
+        }
+        
+        .drawer-content {
+            padding: 20px;
+        }
+        
+        .session-info {
+            margin-bottom: 24px;
+        }
+        
+        .session-info h3 {
+            font-size: 14px;
+            font-weight: 500;
+            color: #5f6368;
+            margin-bottom: 8px;
+        }
+        
+        .session-info p {
+            font-size: 16px;
+            color: #031926;
+        }
+        
+        .playlist-items {
+            margin-top: 24px;
+        }
+        
+        .playlist-item {
+            padding: 12px;
+            border: 1px solid #e8eaed;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .playlist-item h4 {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .playlist-item p {
+            font-size: 13px;
+            color: #5f6368;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-weight: 500;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        
+        .rerun-btn {
+            background: #468189;
+            color: white;
+        }
+        
+        .rerun-btn:hover {
+            background: #3a6a71;
+        }
+        
+        .rerun-btn:disabled {
+            background: #dadce0;
+            cursor: not-allowed;
+        }
+        
+        .share-btn {
+            background: white;
+            color: #468189;
+            border: 1px solid #468189;
+        }
+        
+        .share-btn:hover {
+            background: #f8f9fa;
+        }
+        
+        .share-btn:disabled {
+            color: #dadce0;
+            border-color: #dadce0;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #5f6368;
+        }
+        
+        .error {
+            padding: 16px;
+            background: #fce8e6;
+            color: #c5221f;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #5f6368;
+        }
+        
+        .empty-state h3 {
+            font-size: 20px;
+            font-weight: 400;
+            margin-bottom: 12px;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 999;
+        }
+        
+        .overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+        
+        .badge.success {
+            background: #e6f4ea;
+            color: #1e8e3e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/" class="back-btn">← Back to Home</a>
+            <h1>Session History</h1>
+        </div>
+        
+        <div id="error-container"></div>
+        
+        <div class="controls">
+            <input 
+                type="text" 
+                class="search-box" 
+                id="search-box" 
+                placeholder="Search sessions..."
+            >
+            <select class="filter-dropdown" id="filter-dropdown">
+                <option value="all">All Time</option>
+                <option value="24h">Last 24 Hours</option>
+                <option value="7d">Last 7 Days</option>
+            </select>
+        </div>
+        
+        <div id="loading" class="loading">Loading sessions...</div>
+        
+        <table class="sessions-table" id="sessions-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Created</th>
+                    <th>Query</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="sessions-tbody">
+            </tbody>
+        </table>
+        
+        <div id="empty-state" class="empty-state" style="display: none;">
+            <h3>No sessions found</h3>
+            <p>Your session history will appear here</p>
+        </div>
+    </div>
+    
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="drawer" id="drawer">
+        <div class="drawer-header">
+            <h2>Session Details</h2>
+            <button class="close-btn" id="close-drawer">×</button>
+        </div>
+        <div class="drawer-content" id="drawer-content">
+            <!-- Content will be populated dynamically -->
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        const AUTH_HEADER = { 'Authorization': 'Bearer TEST' };
+        
+        let currentSessions = [];
+        let currentSession = null;
+        
+        // Elements
+        const searchBox = document.getElementById('search-box');
+        const filterDropdown = document.getElementById('filter-dropdown');
+        const loadingEl = document.getElementById('loading');
+        const tableEl = document.getElementById('sessions-table');
+        const tbodyEl = document.getElementById('sessions-tbody');
+        const emptyStateEl = document.getElementById('empty-state');
+        const drawerEl = document.getElementById('drawer');
+        const overlayEl = document.getElementById('overlay');
+        const closeDrawerBtn = document.getElementById('close-drawer');
+        const drawerContentEl = document.getElementById('drawer-content');
+        const errorContainer = document.getElementById('error-container');
+        
+        // Load sessions
+        async function loadSessions() {
+            try {
+                showLoading();
+                clearError();
+                
+                const query = searchBox.value.trim();
+                const filter = filterDropdown.value;
+                
+                let url = `${API_BASE}/api/history?limit=50`;
+                
+                if (query) {
+                    url += `&q=${encodeURIComponent(query)}`;
+                }
+                
+                if (filter === '24h') {
+                    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                    url += `&since=${since}`;
+                } else if (filter === '7d') {
+                    const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+                    url += `&since=${since}`;
+                }
+                
+                const response = await fetch(url, {
+                    headers: AUTH_HEADER
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load sessions');
+                }
+                
+                currentSessions = await response.json();
+                renderSessions();
+            } catch (error) {
+                showError('Failed to load sessions. Please try again.');
+                console.error('Load sessions error:', error);
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Render sessions table
+        function renderSessions() {
+            tbodyEl.innerHTML = '';
+            
+            if (currentSessions.length === 0) {
+                tableEl.style.display = 'none';
+                emptyStateEl.style.display = 'block';
+                return;
+            }
+            
+            tableEl.style.display = 'table';
+            emptyStateEl.style.display = 'none';
+            
+            currentSessions.forEach(session => {
+                const row = document.createElement('tr');
+                
+                const createdDate = new Date(session.createdAt);
+                const formattedDate = createdDate.toLocaleString();
+                
+                row.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td>${escapeHtml(session.queryText)}</td>
+                    <td>
+                        <button class="details-btn" onclick="showDetails('${session.id}')">
+                            Details
+                        </button>
+                    </td>
+                `;
+                
+                tbodyEl.appendChild(row);
+            });
+        }
+        
+        // Show session details
+        async function showDetails(sessionId) {
+            try {
+                const response = await fetch(`${API_BASE}/api/history/${sessionId}`, {
+                    headers: AUTH_HEADER
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load session details');
+                }
+                
+                currentSession = await response.json();
+                renderDetails();
+                openDrawer();
+            } catch (error) {
+                showError('Failed to load session details. Please try again.');
+                console.error('Load details error:', error);
+            }
+        }
+        
+        // Render details in drawer
+        function renderDetails() {
+            if (!currentSession) return;
+            
+            const playlist = currentSession.playlist;
+            let playlistHtml = '';
+            
+            if (playlist && playlist.items && playlist.items.length > 0) {
+                playlistHtml = `
+                    <div class="playlist-items">
+                        <h3>Playlist (${playlist.items.length} videos)</h3>
+                        ${playlist.items.map(item => `
+                            <div class="playlist-item">
+                                <h4>${escapeHtml(item.title || 'Video')}</h4>
+                                <p>${escapeHtml(item.channelTitle || 'Unknown channel')} • ${formatDuration(item.durationSec || 0)}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            drawerContentEl.innerHTML = `
+                <div class="session-info">
+                    <h3>Query</h3>
+                    <p>${escapeHtml(currentSession.queryText)}</p>
+                </div>
+                
+                <div class="session-info">
+                    <h3>Created</h3>
+                    <p>${new Date(currentSession.createdAt).toLocaleString()}</p>
+                </div>
+                
+                <div class="session-info">
+                    <h3>Duration</h3>
+                    <p>${formatDuration(currentSession.durationMs ? currentSession.durationMs / 1000 : 0)}</p>
+                </div>
+                
+                ${playlistHtml}
+                
+                <div class="action-buttons">
+                    <button class="action-btn rerun-btn" id="rerun-btn">
+                        Re-run Query
+                    </button>
+                    <button class="action-btn share-btn" id="share-btn">
+                        Copy Share Link
+                    </button>
+                </div>
+            `;
+            
+            // Add event listeners
+            document.getElementById('rerun-btn').addEventListener('click', rerunQuery);
+            document.getElementById('share-btn').addEventListener('click', copyShareLink);
+        }
+        
+        // Re-run query
+        async function rerunQuery() {
+            if (!currentSession) return;
+            
+            const btn = document.getElementById('rerun-btn');
+            btn.disabled = true;
+            btn.textContent = 'Running...';
+            
+            console.log('rerun_clicked', { id: currentSession.id, queryText: currentSession.queryText });
+            
+            try {
+                // Try to use existing agent endpoint
+                const agentResponse = await fetch(`${API_BASE}/v1/agent/chat`, {
+                    method: 'POST',
+                    headers: {
+                        ...AUTH_HEADER,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: currentSession.queryText })
+                });
+                
+                if (agentResponse.ok) {
+                    const result = await agentResponse.json();
+                    
+                    // Save new session
+                    await fetch(`${API_BASE}/api/history`, {
+                        method: 'POST',
+                        headers: {
+                            ...AUTH_HEADER,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            queryText: currentSession.queryText,
+                            intent: result.playlistContext || {},
+                            playlist: result.playlist || {},
+                            durationMs: (result.playlistContext?.duration || 600) * 1000
+                        })
+                    });
+                    
+                    btn.textContent = 'Re-run Query';
+                    btn.disabled = false;
+                    
+                    // Reload sessions
+                    closeDrawer();
+                    loadSessions();
+                    
+                    showSuccess('Query re-run successfully!');
+                } else {
+                    throw new Error('Agent endpoint not available');
+                }
+            } catch (error) {
+                // Fallback: just duplicate the session
+                console.log('Agent not available, duplicating session');
+                
+                await fetch(`${API_BASE}/api/history`, {
+                    method: 'POST',
+                    headers: {
+                        ...AUTH_HEADER,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        queryText: currentSession.queryText,
+                        intent: currentSession.intent || {},
+                        playlist: currentSession.playlist || {},
+                        durationMs: currentSession.durationMs || 600000
+                    })
+                });
+                
+                btn.textContent = 'Re-run Query';
+                btn.disabled = false;
+                
+                closeDrawer();
+                loadSessions();
+                showSuccess('Session duplicated successfully!');
+            }
+        }
+        
+        // Copy share link
+        async function copyShareLink() {
+            if (!currentSession) return;
+            
+            const btn = document.getElementById('share-btn');
+            btn.disabled = true;
+            
+            console.log('share_copied', { id: currentSession.id, queryText: currentSession.queryText });
+            
+            try {
+                const shareToken = currentSession.shareToken;
+                const shareUrl = `${window.location.origin}/s/${shareToken}`;
+                
+                await navigator.clipboard.writeText(shareUrl);
+                
+                btn.textContent = 'Copied! ✓';
+                
+                setTimeout(() => {
+                    btn.textContent = 'Copy Share Link';
+                    btn.disabled = false;
+                }, 2000);
+            } catch (error) {
+                btn.textContent = 'Failed to copy';
+                btn.disabled = false;
+                console.error('Copy error:', error);
+            }
+        }
+        
+        // Drawer controls
+        function openDrawer() {
+            drawerEl.classList.add('open');
+            overlayEl.classList.add('show');
+        }
+        
+        function closeDrawer() {
+            drawerEl.classList.remove('open');
+            overlayEl.classList.remove('show');
+        }
+        
+        // UI helpers
+        function showLoading() {
+            loadingEl.style.display = 'block';
+            tableEl.style.display = 'none';
+            emptyStateEl.style.display = 'none';
+        }
+        
+        function hideLoading() {
+            loadingEl.style.display = 'none';
+        }
+        
+        function showError(message) {
+            errorContainer.innerHTML = `<div class="error">${escapeHtml(message)}</div>`;
+        }
+        
+        function clearError() {
+            errorContainer.innerHTML = '';
+        }
+        
+        function showSuccess(message) {
+            errorContainer.innerHTML = `<div class="error" style="background: #e6f4ea; color: #1e8e3e;">${escapeHtml(message)}</div>`;
+            setTimeout(() => clearError(), 3000);
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function formatDuration(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        // Event listeners
+        searchBox.addEventListener('input', debounce(loadSessions, 500));
+        filterDropdown.addEventListener('change', loadSessions);
+        closeDrawerBtn.addEventListener('click', closeDrawer);
+        overlayEl.addEventListener('click', closeDrawer);
+        
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+        
+        // Make showDetails globally accessible
+        window.showDetails = showDetails;
+        
+        // Initial load
+        loadSessions();
+    </script>
+</body>
+</html>

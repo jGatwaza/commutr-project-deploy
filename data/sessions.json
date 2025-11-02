@@ -1,0 +1,28 @@
+[
+  {
+    "id": "cmhhy14lipa5zdhls7c",
+    "createdAt": "2025-11-02T16:46:34.374Z",
+    "queryText": "persistent query",
+    "intentJSON": {
+      "data": "test"
+    },
+    "playlistJSON": {
+      "items": [
+        1,
+        2,
+        3
+      ]
+    },
+    "durationMs": 7500,
+    "shareToken": "b4ipxg4os4waduc74lvvxr"
+  },
+  {
+    "id": "cmhhy14ljofrtit56fea",
+    "createdAt": "2025-11-02T16:46:34.375Z",
+    "queryText": "second query",
+    "intentJSON": {},
+    "playlistJSON": {},
+    "durationMs": 1000,
+    "shareToken": "t9zlhhyx7nkseejkqdug"
+  }
+]

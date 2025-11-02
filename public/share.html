@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commutr - Shared Playlist</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8f9fa;
+            min-height: 100vh;
+            color: #031926;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo {
+            font-size: 32px;
+            font-weight: 300;
+            color: #468189;
+            margin-bottom: 12px;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            color: #5f6368;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+        
+        .query-section {
+            margin-bottom: 32px;
+        }
+        
+        .query-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #5f6368;
+            margin-bottom: 8px;
+        }
+        
+        .query-text {
+            font-size: 24px;
+            font-weight: 400;
+            color: #031926;
+        }
+        
+        .playlist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e8eaed;
+        }
+        
+        .playlist-title {
+            font-size: 20px;
+            font-weight: 500;
+            color: #031926;
+        }
+        
+        .playlist-count {
+            font-size: 14px;
+            color: #5f6368;
+        }
+        
+        .video-item {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            border: 1px solid #e8eaed;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            transition: box-shadow 0.2s;
+        }
+        
+        .video-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .video-thumbnail {
+            flex-shrink: 0;
+            width: 160px;
+            height: 90px;
+            background: #e8eaed;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .video-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .video-duration {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .video-info {
+            flex: 1;
+        }
+        
+        .video-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #031926;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        
+        .video-channel {
+            font-size: 14px;
+            color: #5f6368;
+            margin-bottom: 8px;
+        }
+        
+        .video-meta {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .level-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .level-beginner {
+            background: #e6f4ea;
+            color: #1e8e3e;
+        }
+        
+        .level-intermediate {
+            background: #fef7e0;
+            color: #ea8600;
+        }
+        
+        .level-advanced {
+            background: #fce8e6;
+            color: #c5221f;
+        }
+        
+        .watch-btn {
+            padding: 8px 20px;
+            background: #468189;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .watch-btn:hover {
+            background: #3a6a71;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #5f6368;
+        }
+        
+        .error-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .error-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .error-title {
+            font-size: 24px;
+            font-weight: 400;
+            color: #031926;
+            margin-bottom: 12px;
+        }
+        
+        .error-text {
+            font-size: 16px;
+            color: #5f6368;
+            margin-bottom: 24px;
+        }
+        
+        .home-btn {
+            display: inline-block;
+            padding: 12px 32px;
+            background: #468189;
+            color: white;
+            border-radius: 24px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        
+        .home-btn:hover {
+            background: #3a6a71;
+        }
+        
+        .summary {
+            display: flex;
+            gap: 24px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+        
+        .summary-item {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .summary-value {
+            font-size: 24px;
+            font-weight: 500;
+            color: #468189;
+            margin-bottom: 4px;
+        }
+        
+        .summary-label {
+            font-size: 13px;
+            color: #5f6368;
+        }
+        
+        @media (max-width: 768px) {
+            .video-item {
+                flex-direction: column;
+            }
+            
+            .video-thumbnail {
+                width: 100%;
+                height: 200px;
+            }
+            
+            .summary {
+                flex-direction: column;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Commutr</div>
+            <div class="subtitle">Shared Learning Playlist</div>
+        </div>
+        
+        <div id="loading" class="loading">
+            Loading playlist...
+        </div>
+        
+        <div id="error-state" class="error-state" style="display: none;">
+            <div class="error-icon">🔍</div>
+            <h1 class="error-title">Playlist Not Found</h1>
+            <p class="error-text">
+                This share link is invalid or has expired.<br>
+                Please check the link and try again.
+            </p>
+            <a href="/" class="home-btn">Go to Home</a>
+        </div>
+        
+        <div id="content" style="display: none;">
+            <div class="card">
+                <div class="query-section">
+                    <div class="query-label">Original Query</div>
+                    <div class="query-text" id="query-text"></div>
+                </div>
+                
+                <div id="summary" class="summary" style="display: none;">
+                    <div class="summary-item">
+                        <div class="summary-value" id="video-count">0</div>
+                        <div class="summary-label">Videos</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value" id="total-duration">0:00</div>
+                        <div class="summary-label">Total Duration</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="playlist-header">
+                    <h2 class="playlist-title">Playlist</h2>
+                    <span class="playlist-count" id="playlist-count"></span>
+                </div>
+                
+                <div id="playlist-container">
+                    <!-- Playlist items will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        
+        // Get token from query string
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('t');
+        
+        const loadingEl = document.getElementById('loading');
+        const errorStateEl = document.getElementById('error-state');
+        const contentEl = document.getElementById('content');
+        const queryTextEl = document.getElementById('query-text');
+        const playlistContainerEl = document.getElementById('playlist-container');
+        const playlistCountEl = document.getElementById('playlist-count');
+        const summaryEl = document.getElementById('summary');
+        const videoCountEl = document.getElementById('video-count');
+        const totalDurationEl = document.getElementById('total-duration');
+        
+        async function loadSharedPlaylist() {
+            if (!token) {
+                showError();
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/share/${token}`);
+                
+                if (!response.ok) {
+                    showError();
+                    return;
+                }
+                
+                const data = await response.json();
+                renderPlaylist(data);
+            } catch (error) {
+                console.error('Load shared playlist error:', error);
+                showError();
+            }
+        }
+        
+        function renderPlaylist(data) {
+            loadingEl.style.display = 'none';
+            contentEl.style.display = 'block';
+            
+            // Set query text
+            queryTextEl.textContent = data.queryText || 'N/A';
+            
+            // Render playlist
+            const playlist = data.playlist;
+            
+            if (!playlist || !playlist.items || playlist.items.length === 0) {
+                playlistContainerEl.innerHTML = '<p style="color: #5f6368;">No videos in this playlist.</p>';
+                return;
+            }
+            
+            const items = playlist.items;
+            playlistCountEl.textContent = `${items.length} video${items.length !== 1 ? 's' : ''}`;
+            
+            // Show summary
+            summaryEl.style.display = 'flex';
+            videoCountEl.textContent = items.length;
+            
+            const totalSec = playlist.totalDurationSec || items.reduce((sum, item) => sum + (item.durationSec || 0), 0);
+            totalDurationEl.textContent = formatDuration(totalSec);
+            
+            // Render videos
+            playlistContainerEl.innerHTML = items.map((item, index) => {
+                const videoId = item.videoId || '';
+                const title = item.title || `Video ${index + 1}`;
+                const channel = item.channelTitle || 'Unknown Channel';
+                const duration = item.durationSec || 0;
+                const level = item.level || 'intermediate';
+                
+                return `
+                    <div class="video-item">
+                        <div class="video-thumbnail">
+                            <img src="https://i.ytimg.com/vi/${escapeHtml(videoId)}/mqdefault.jpg" 
+                                 alt="${escapeHtml(title)}"
+                                 onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22160%22 height=%2290%22><rect fill=%22%23e8eaed%22 width=%22160%22 height=%2290%22/></svg>'">
+                            <div class="video-duration">${formatDuration(duration)}</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">${escapeHtml(title)}</div>
+                            <div class="video-channel">${escapeHtml(channel)}</div>
+                            <div class="video-meta">
+                                <span class="level-badge level-${escapeHtml(level)}">${escapeHtml(level)}</span>
+                                <a href="https://www.youtube.com/watch?v=${escapeHtml(videoId)}" 
+                                   target="_blank" 
+                                   class="watch-btn">
+                                    Watch on YouTube
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function showError() {
+            loadingEl.style.display = 'none';
+            errorStateEl.style.display = 'block';
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = String(text);
+            return div.innerHTML;
+        }
+        
+        function formatDuration(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            if (mins > 0) {
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+            return `0:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        // Load on page load
+        loadSharedPlaylist();
+    </script>
+</body>
+</html>
