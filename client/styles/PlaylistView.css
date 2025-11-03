@@ -270,17 +270,30 @@
 
 /* Mobile responsive */
 @media (max-width: 768px) {
-  .summary-card {
+  .playlist-view-page .video-card {
     grid-template-columns: 1fr;
+    min-height: auto;
   }
 
-  .video-card {
-    grid-template-columns: 1fr;
+  .playlist-view-page .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    position: relative;
+    padding-top: 56px;
   }
 
-  .video-thumbnail {
-    width: 100%;
-    height: auto;
+  .playlist-view-page .back-btn {
+    position: absolute;
+    top: 12px;
+    right: 0;
+    margin: 0;
+    padding: 10px 18px;
+    border-radius: 6px;
+  }
+
+  .playlist-view-page .video-thumbnail {
+    max-height: 200px;
   }
 
   .playlist-view-page .header h1 {

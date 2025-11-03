@@ -30,6 +30,21 @@
   border-color: #F4E9CD;
 }
 
+@media (max-width: 640px) {
+  .history-header {
+    padding-top: 56px;
+  }
+
+  .back-btn {
+    top: 12px;
+    right: 20px;
+    left: auto;
+    margin: 0;
+    padding: 10px 18px;
+    border-radius: 6px;
+  }
+}
+
 .history-header h1 {
   color: #F4E9CD;
   font-size: 42px;
