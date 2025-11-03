@@ -10,6 +10,7 @@ export type Candidate = {
   publishedAt?: string;
   title?: string; 
   channelTitle?: string;
+  thumbnail?: string;
 };
 
 /**
