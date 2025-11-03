@@ -93,44 +93,82 @@ export function selectVideos(options: SelectVideosOptions): SelectVideosResult {
     return { items: [], totalSec: 0, strategy: 'no-matches' };
   }
 
-  // Try two greedy strategies: longest-first and shortest-first
-  const longestFirst = greedyFill(
+  // Try multiple greedy strategies
+  const candidateResults: SelectVideosResult[] = [];
+  
+  // Strategy 1: Longest-first
+  candidateResults.push(greedyFill(
     [...filtered].sort((a, b) => b.durationSec - a.durationSec),
-    maxDuration
-  );
-  const shortestFirst = greedyFill(
+    maxDuration,
+    'longest-first'
+  ));
+  
+  // Strategy 2: Shortest-first
+  candidateResults.push(greedyFill(
     [...filtered].sort((a, b) => a.durationSec - b.durationSec),
-    maxDuration
-  );
+    maxDuration,
+    'shortest-first'
+  ));
+  
+  // Strategy 3: Sort by creator diversity (different creators first)
+  candidateResults.push(greedyFill(
+    [...filtered].sort((a, b) => {
+      // Prioritize videos with creatorIds
+      const aHasCreator = a.creatorId ? 1 : 0;
+      const bHasCreator = b.creatorId ? 1 : 0;
+      if (aHasCreator !== bHasCreator) return bHasCreator - aHasCreator;
+      // Then by duration descending
+      return b.durationSec - a.durationSec;
+    }),
+    maxDuration,
+    'creator-aware'
+  ));
+  
+  // Strategy 4: Sort by recency (newer first)
+  candidateResults.push(greedyFill(
+    [...filtered].sort((a, b) => {
+      const aTime = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+      const bTime = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+      if (aTime !== bTime) return bTime - aTime;
+      return b.durationSec - a.durationSec;
+    }),
+    maxDuration,
+    'recency-first'
+  ));
 
-  // Pick the better fill
-  let bestSelection = longestFirst;
-  let strategy = 'longest-first';
+  // Pick the best selection using tie-breakers
+  return selectBest(candidateResults);
+}
 
-  if (shortestFirst.totalSec > longestFirst.totalSec) {
-    bestSelection = shortestFirst;
-    strategy = 'shortest-first';
-  } else if (shortestFirst.totalSec === longestFirst.totalSec) {
-    // Tie-breaker: prefer more creator diversity
-    const longestCreators = countUniqueCreators(longestFirst.items);
-    const shortestCreators = countUniqueCreators(shortestFirst.items);
-
-    if (shortestCreators > longestCreators) {
-      bestSelection = shortestFirst;
-      strategy = 'shortest-first-diversity';
-    } else if (shortestCreators === longestCreators) {
-      // Tie-breaker: prefer newer content
-      const longestRecency = averageRecency(longestFirst.items);
-      const shortestRecency = averageRecency(shortestFirst.items);
-
-      if (shortestRecency > longestRecency) {
-        bestSelection = shortestFirst;
-        strategy = 'shortest-first-recency';
-      }
-    }
+/**
+ * Select best result from candidates using tie-breakers
+ */
+function selectBest(candidates: SelectVideosResult[]): SelectVideosResult {
+  if (candidates.length === 0) {
+    return { items: [], totalSec: 0, strategy: 'empty' };
   }
-
-  return bestSelection;
+  
+  // Sort by: 1) total duration (desc), 2) creator diversity (desc), 3) recency (desc)
+  const sorted = [...candidates].sort((a, b) => {
+    // Primary: maximize total duration
+    if (a.totalSec !== b.totalSec) {
+      return b.totalSec - a.totalSec;
+    }
+    
+    // Tie-breaker 1: maximize creator diversity
+    const aCreators = countUniqueCreators(a.items);
+    const bCreators = countUniqueCreators(b.items);
+    if (aCreators !== bCreators) {
+      return bCreators - aCreators;
+    }
+    
+    // Tie-breaker 2: maximize recency
+    const aRecency = averageRecency(a.items);
+    const bRecency = averageRecency(b.items);
+    return bRecency - aRecency;
+  });
+  
+  return sorted[0]!;
 }
 
 /**
@@ -138,7 +176,8 @@ export function selectVideos(options: SelectVideosOptions): SelectVideosResult {
  */
 function greedyFill(
   sortedVideos: Video[],
-  maxDuration: number
+  maxDuration: number,
+  strategy: string
 ): SelectVideosResult {
   const items: Video[] = [];
   let totalSec = 0;
@@ -153,7 +192,7 @@ function greedyFill(
   return {
     items,
     totalSec,
-    strategy: 'greedy',
+    strategy,
   };
 }
 
