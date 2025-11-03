@@ -14,10 +14,20 @@ export interface AgentResponse {
   playlistRequest?: PlaylistRequest;
 }
 
+export interface ConversationMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 /**
  * Process user message with AI agent to extract playlist request
+ * @param userMessage - The current user message
+ * @param conversationHistory - Previous messages in the conversation
  */
-export async function processMessage(userMessage: string): Promise<AgentResponse> {
+export async function processMessage(
+  userMessage: string, 
+  conversationHistory: ConversationMessage[] = []
+): Promise<AgentResponse> {
   try {
     const systemPrompt = `You are a helpful AI assistant for Commutr, a playlist generation app for commuters.
 Your job is to:
@@ -48,19 +58,38 @@ Response: {"message": "Awesome! I'll put together a cooking playlist perfect for
 User: "What can you do?"
 Response: {"message": "I can help you create personalized learning playlists for your commute! Just tell me what topic you'd like to learn about and how long your commute is. For example: 'I want to learn JavaScript for my 15-minute drive' or 'Create a fitness playlist for 30 minutes'"}
 
+IMPORTANT: You have access to the conversation history. Use it to maintain context!
+- If the user previously mentioned a topic or duration, remember it
+- If they say "10 minutes" after asking about Python, create a Python playlist for 10 minutes
+- If they say "cooking" after mentioning 20 minutes, create a cooking playlist for 20 minutes
+- Build on the conversation naturally
+
 Always respond ONLY with valid JSON. Be conversational but extract the information accurately.`;
 
+    // Build messages array with conversation history
+    const messages: Array<{role: 'system' | 'user' | 'assistant', content: string}> = [
+      {
+        role: 'system',
+        content: systemPrompt
+      }
+    ];
+
+    // Add conversation history
+    for (const msg of conversationHistory) {
+      messages.push({
+        role: msg.role,
+        content: msg.content
+      });
+    }
+
+    // Add current user message
+    messages.push({
+      role: 'user',
+      content: userMessage
+    });
+
     const completion = await groq.chat.completions.create({
-      messages: [
-        {
-          role: 'system',
-          content: systemPrompt
-        },
-        {
-          role: 'user',
-          content: userMessage
-        }
-      ],
+      messages: messages,
       model: 'llama-3.3-70b-versatile',
       temperature: 0.7,
       max_tokens: 500,
