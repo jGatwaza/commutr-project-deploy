@@ -55,6 +55,25 @@
   box-shadow: 0 6px 14px rgba(3, 25, 38, 0.25);
 }
 
+.clear-btn {
+  color: #5f6368;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  transition: all 0.2s;
+  font-weight: 500;
+  font-size: 14px;
+  background: transparent;
+  border: 1px solid #dadce0;
+  cursor: pointer;
+}
+
+.clear-btn:hover {
+  background: #f8f9fa;
+  color: #031926;
+  border-color: #468189;
+}
+
 /* Welcome state */
 .welcome-state {
   display: flex;

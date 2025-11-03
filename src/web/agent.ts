@@ -9,7 +9,11 @@ import { getWatchedVideoIds } from '../history/watchHistory.js';
 const router = Router();
 
 const chatSchema = z.object({
-  message: z.string().min(1, "Message is required")
+  message: z.string().min(1, "Message is required"),
+  conversationHistory: z.array(z.object({
+    role: z.enum(['user', 'assistant']),
+    content: z.string()
+  })).optional().default([])
 });
 
 /**
@@ -28,11 +32,11 @@ router.post('/v1/agent/chat', async (req, res) => {
     return res.status(400).json({ error: 'Invalid request body' });
   }
 
-  const { message } = parsed.data;
+  const { message, conversationHistory } = parsed.data;
 
   try {
-    // Process message with AI agent
-    const agentResponse = await processMessage(message);
+    // Process message with AI agent, including conversation history
+    const agentResponse = await processMessage(message, conversationHistory);
 
     // If agent extracted a playlist request, generate the playlist
     if (agentResponse.playlistRequest) {

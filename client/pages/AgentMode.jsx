@@ -1,5 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { 
+  addUserMessage, 
+  addAssistantMessage, 
+  clearConversation,
+  initializeSession,
+  selectMessages,
+  selectConversationHistory 
+} from '../store/conversationSlice';
 import ChatMessage from '../components/ChatMessage';
 import VoiceButton from '../components/VoiceButton';
 import PlaylistModal from '../components/PlaylistModal';
@@ -10,10 +19,12 @@ const API_BASE = 'http://localhost:3000';
 const AUTH_TOKEN = 'Bearer TEST';
 
 function AgentMode() {
-  const [messages, setMessages] = useState([]);
+  const dispatch = useDispatch();
+  const messages = useSelector(selectMessages);
+  const conversationHistory = useSelector(selectConversationHistory);
+  
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(true);
   const [playlistData, setPlaylistData] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState('');
@@ -23,16 +34,19 @@ function AgentMode() {
   const isSubmittingRef = useRef(false);
   const navigate = useNavigate();
 
+  // Initialize session on mount
+  useEffect(() => {
+    dispatch(initializeSession());
+  }, [dispatch]);
+
+  const showWelcome = messages.length === 0;
+
   useEffect(() => {
     // Scroll to bottom when messages change
     if (chatMessagesRef.current) {
       chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
     }
   }, [messages, isTyping]);
-
-  const addMessage = (content, isUser = false) => {
-    setMessages(prev => [...prev, { content, isUser, id: Date.now() }]);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,11 +57,8 @@ function AgentMode() {
     // Set submitting flag
     isSubmittingRef.current = true;
 
-    // Hide welcome state on first message
-    setShowWelcome(false);
-
-    // Add user message
-    addMessage(message, true);
+    // Add user message to Redux store
+    dispatch(addUserMessage(message));
     setInputValue('');
     setIsTyping(true);
 
@@ -58,7 +69,10 @@ function AgentMode() {
           'Content-Type': 'application/json',
           'Authorization': AUTH_TOKEN
         },
-        body: JSON.stringify({ message })
+        body: JSON.stringify({ 
+          message,
+          conversationHistory 
+        })
       });
 
       setIsTyping(false);
@@ -69,8 +83,8 @@ function AgentMode() {
 
       const data = await response.json();
 
-      // Add agent response
-      addMessage(data.message);
+      // Add agent response to Redux store
+      dispatch(addAssistantMessage(data.message));
 
       // If playlist was generated, redirect to playlist view
       if (data.playlist) {
@@ -87,7 +101,7 @@ function AgentMode() {
     } catch (error) {
       console.error('Error:', error);
       setIsTyping(false);
-      addMessage('Sorry, I encountered an error. Please make sure the server is running and try again.');
+      dispatch(addAssistantMessage('Sorry, I encountered an error. Please make sure the server is running and try again.'));
     } finally {
       isSubmittingRef.current = false;
       inputRef.current?.focus();
@@ -124,12 +138,12 @@ function AgentMode() {
           // Trigger submit with the current value
           const message = currentValue.trim();
           
-          // Hide welcome state on first message
-          setShowWelcome(false);
-          
-          // Add user message
-          addMessage(message, true);
+          // Add user message to Redux store
+          dispatch(addUserMessage(message));
           setIsTyping(true);
+          
+          // Get current conversation history before adding new message
+          const currentHistory = conversationHistory;
           
           // Make API call
           fetch(`${API_BASE}/v1/agent/chat`, {
@@ -138,7 +152,10 @@ function AgentMode() {
               'Content-Type': 'application/json',
               'Authorization': AUTH_TOKEN
             },
-            body: JSON.stringify({ message })
+            body: JSON.stringify({ 
+              message,
+              conversationHistory: currentHistory 
+            })
           })
             .then(response => {
               setIsTyping(false);
@@ -148,7 +165,7 @@ function AgentMode() {
               return response.json();
             })
             .then(data => {
-              addMessage(data.message);
+              dispatch(addAssistantMessage(data.message));
               if (data.playlist) {
                 setTimeout(() => {
                   navigate('/playlist', {
@@ -163,7 +180,7 @@ function AgentMode() {
             .catch(error => {
               console.error('Error:', error);
               setIsTyping(false);
-              addMessage('Sorry, I encountered an error. Please make sure the server is running and try again.');
+              dispatch(addAssistantMessage('Sorry, I encountered an error. Please make sure the server is running and try again.'));
             })
             .finally(() => {
               isSubmittingRef.current = false;
@@ -189,18 +206,33 @@ function AgentMode() {
             </svg>
             Commutr Assistant
           </h1>
-          <button onClick={() => navigate('/home')} className="back-btn">← Back</button>
+          <div className="header-actions">
+            {messages.length > 0 && (
+              <button 
+                onClick={() => {
+                  if (window.confirm('Clear conversation history?')) {
+                    dispatch(clearConversation());
+                  }
+                }} 
+                className="clear-btn"
+                title="Clear conversation"
+              >
+                Clear
+              </button>
+            )}
+            <button onClick={() => navigate('/home')} className="back-btn">← Back</button>
+          </div>
         </div>
 
         <div className="chat-container">
           <div className="chat-messages" ref={chatMessagesRef}>
             {showWelcome && <WelcomeState />}
             
-            {messages.map((message) => (
+            {messages.map((message, index) => (
               <ChatMessage
-                key={message.id}
+                key={message.timestamp || index}
                 content={message.content}
-                isUser={message.isUser}
+                isUser={message.role === 'user'}
               />
             ))}
 
