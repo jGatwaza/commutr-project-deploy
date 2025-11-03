@@ -46,6 +46,8 @@ function ImmersivePlayer() {
       setRemainingTimeSec(remaining);
 
       if (remaining === 0 && !showCompletion) {
+        // Save commute to history before showing completion
+        saveCommuteToHistory();
         setShowCompletion(true);
         endCommute();
       }
@@ -186,6 +188,44 @@ function ImmersivePlayer() {
     }
   };
 
+  const saveCommuteToHistory = async () => {
+    try {
+      const watchedVideos = playlist.items
+        .filter(video => contextWatchedIds.includes(video.videoId))
+        .map(video => ({
+          videoId: video.videoId,
+          title: video.title,
+          thumbnail: video.thumbnail || `https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`,
+          channelTitle: video.channelTitle,
+          durationSec: video.durationSec
+        }));
+
+      const commuteSession = {
+        id: `commute-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        topics: topicsLearned,
+        durationSec: totalDuration,
+        videosWatched: watchedVideos
+      };
+
+      await fetch(`${API_BASE}/api/commute-history`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': AUTH_TOKEN
+        },
+        body: JSON.stringify({
+          userId: 'demoUser', // Replace with actual user ID from auth
+          session: commuteSession
+        })
+      });
+
+      console.log('Commute saved to history');
+    } catch (error) {
+      console.error('Failed to save commute to history:', error);
+    }
+  };
+
   const handleVideoEnd = () => {
     markVideoWatched(currentVideo.videoId);
     
@@ -233,6 +273,33 @@ function ImmersivePlayer() {
                   {topicsLearned.map((topic, index) => (
                     <span key={index} className="topic-chip">{topic}</span>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {contextWatchedIds.length > 0 && (
+              <div className="videos-watched-list">
+                <h3>Videos You Watched:</h3>
+                <div className="video-grid">
+                  {playlist.items
+                    .filter(video => contextWatchedIds.includes(video.videoId))
+                    .map((video) => (
+                      <div 
+                        key={video.videoId} 
+                        className="video-card"
+                        onClick={() => window.open(`https://www.youtube.com/watch?v=${video.videoId}`, '_blank')}
+                      >
+                        <img 
+                          src={video.thumbnail || `https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`}
+                          alt={video.title}
+                          className="video-thumbnail"
+                        />
+                        <div className="video-info">
+                          <h4 className="video-card-title">{video.title}</h4>
+                          <p className="video-card-channel">{video.channelTitle}</p>
+                        </div>
+                      </div>
+                    ))}
                 </div>
               </div>
             )}
