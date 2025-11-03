@@ -1,6 +1,6 @@
 .history-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #031926 0%, #468189 100%);
+  background: #031926;
   padding: 40px 20px;
 }
 
@@ -12,21 +12,22 @@
 
 .back-btn {
   position: absolute;
-  left: 0;
-  top: 0;
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid #9DBEBB;
+  top: 20px;
+  left: 20px;
+  background: transparent;
+  border: 2px solid #F4E9CD;
   color: #F4E9CD;
-  padding: 10px 20px;
+  padding: 12px 24px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 16px;
-  transition: all 0.3s ease;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 .back-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateX(-4px);
+  background: rgba(244, 233, 205, 0.1);
+  border-color: #F4E9CD;
 }
 
 .history-header h1 {
@@ -118,7 +119,7 @@
 }
 
 .history-duration {
-  background: linear-gradient(135deg, #468189 0%, #77ACA2 100%);
+  background: #468189;
   color: white;
   padding: 6px 16px;
   border-radius: 20px;
@@ -197,7 +198,7 @@
 }
 
 .modal-content {
-  background: linear-gradient(135deg, #031926 0%, #468189 100%);
+  background: #031926;
   border-radius: 24px;
   max-width: 900px;
   width: 100%;
@@ -294,7 +295,7 @@
 }
 
 .modal-topic-chip {
-  background: linear-gradient(135deg, #468189 0%, #77ACA2 100%);
+  background: #468189;
   color: white;
   padding: 8px 20px;
   border-radius: 20px;

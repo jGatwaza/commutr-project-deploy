@@ -165,6 +165,7 @@
 
 .chat-message.user {
   flex-direction: row-reverse;
+  justify-content: flex-start;
 }
 
 .message-avatar {

@@ -44,7 +44,14 @@ function ImmersivePlayer() {
     console.log('=== SAVING COMMUTE TO HISTORY ===');
     console.log('Watched videos:', contextWatchedIds);
     console.log('Topics learned:', topicsLearned);
-    
+    const elapsedSeconds = commuteStartTime
+      ? Math.min(
+          totalDuration,
+          Math.max(0, Math.floor((Date.now() - commuteStartTime) / 1000))
+        )
+      : totalDuration;
+    console.log('Elapsed seconds:', elapsedSeconds);
+
     try {
       const watchedVideos = playlist.items
         .filter(video => contextWatchedIds.includes(video.videoId))
@@ -62,7 +69,7 @@ function ImmersivePlayer() {
         id: `commute-${Date.now()}`,
         timestamp: new Date().toISOString(),
         topics: topicsLearned,
-        durationSec: totalDuration,
+        durationSec: elapsedSeconds,
         videosWatched: watchedVideos
       };
 
@@ -92,6 +99,13 @@ function ImmersivePlayer() {
     }
   };
 
+  const handleEndCommuteEarly = async () => {
+    if (showCompletion) return;
+    await saveCommuteToHistory();
+    setShowCompletion(true);
+    endCommute();
+  };
+
   // Update remaining time every second
   useEffect(() => {
     const interval = setInterval(() => {
@@ -99,7 +113,6 @@ function ImmersivePlayer() {
       setRemainingTimeSec(remaining);
 
       if (remaining === 0 && !showCompletion) {
-        // Save commute to history before showing completion
         saveCommuteToHistory();
         setShowCompletion(true);
         endCommute();
@@ -258,6 +271,13 @@ function ImmersivePlayer() {
   };
 
   if (showCompletion) {
+    const elapsedSeconds = commuteStartTime
+      ? Math.min(
+          totalDuration,
+          Math.max(0, Math.floor((Date.now() - commuteStartTime) / 1000))
+        )
+      : totalDuration;
+
     return (
       <div className="immersive-player-page">
         <div className="completion-screen">
@@ -272,7 +292,7 @@ function ImmersivePlayer() {
                 <span className="stat-label">Videos Watched</span>
               </div>
               <div className="stat">
-                <span className="stat-value">{Math.floor(totalDuration / 60)}</span>
+                <span className="stat-value">{Math.floor(elapsedSeconds / 60)}</span>
                 <span className="stat-label">Minutes Learned</span>
               </div>
               <div className="stat">
@@ -368,6 +388,7 @@ function ImmersivePlayer() {
             endCommute(); // Clear timer when going home
             navigate('/home');
           }}
+          onEndCommuteEarly={handleEndCommuteEarly}
           currentTopic={context.topic}
           isLoading={isLoading}
           nextVideo={playlist.items[currentIndex + 1]}

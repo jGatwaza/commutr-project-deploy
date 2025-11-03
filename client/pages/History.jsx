@@ -86,7 +86,15 @@ function History() {
       </div>
 
       <div className="history-container">
-        {history.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon">🚧</div>
+          <h2>History Feature Coming Soon</h2>
+          <p>We're working on bringing you a complete history of your learning sessions. Stay tuned!</p>
+          <button onClick={() => navigate('/create')} className="btn-primary">
+            Start Learning
+          </button>
+        </div>
+        {false && history.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">📚</div>
             <h2>No History Yet</h2>

@@ -1,7 +1,16 @@
 import { useState } from 'react';
 import '../styles/PlayerControls.css';
 
-function PlayerControls({ onSkip, onChangeTopic, onBackToPlaylist, onBackToHome, currentTopic, isLoading, nextVideo }) {
+function PlayerControls({ 
+  onSkip, 
+  onChangeTopic, 
+  onBackToPlaylist, 
+  onBackToHome, 
+  onEndCommuteEarly,
+  currentTopic, 
+  isLoading, 
+  nextVideo 
+}) {
   const [showTopicInput, setShowTopicInput] = useState(false);
   const [newTopic, setNewTopic] = useState('');
 
@@ -89,6 +98,17 @@ function PlayerControls({ onSkip, onChangeTopic, onBackToPlaylist, onBackToHome,
               <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
             </svg>
             Home
+          </button>
+
+          <button 
+            onClick={onEndCommuteEarly}
+            className="btn-control btn-end"
+            disabled={isLoading}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 18h2V6H6v12zm10-12v12h2V6h-2zm-5 0h2v12h-2V6z"/>
+            </svg>
+            End Commute
           </button>
         </>
       )}

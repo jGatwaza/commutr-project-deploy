@@ -182,9 +182,10 @@ function AgentMode() {
       <div className="container">
         <div className="header">
           <h1>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2C10.9 2 10 2.9 10 4V10C10 11.1 10.9 12 12 12C13.1 12 14 11.1 14 10V4C14 2.9 13.1 2 12 2Z" fill="#468189"/>
-              <path d="M18 10C18 13.31 15.31 16 12 16C8.69 16 6 13.31 6 10H4C4 13.93 6.94 17.21 10.88 17.88V22H13.13V17.88C17.06 17.21 20 13.93 20 10H18Z" fill="#468189"/>
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="16" cy="16" r="16" fill="#D9EEEE"/>
+              <path d="M16 9C15.17 9 14.5 9.67 14.5 10.5V14.5C14.5 15.33 15.17 16 16 16C16.83 16 17.5 15.33 17.5 14.5V10.5C17.5 9.67 16.83 9 16 9Z" fill="#5F8A8B"/>
+              <path d="M19.5 14.5C19.5 16.43 17.93 18 16 18C14.07 18 12.5 16.43 12.5 14.5H11.5C11.5 16.88 13.35 18.84 15.67 19.15V22H16.33V19.15C18.65 18.84 20.5 16.88 20.5 14.5H19.5Z" fill="#5F8A8B"/>
             </svg>
             Commutr Assistant
           </h1>
@@ -206,11 +207,10 @@ function AgentMode() {
             {isTyping && (
               <div className="message agent">
                 <div className="message-avatar">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="8" r="4" fill="#468189"/>
-                    <path d="M12 13C8.13 13 5 14.57 5 16.5V18H19V16.5C19 14.57 15.87 13 12 13Z" fill="#468189"/>
-                    <path d="M17 10C17 11.66 15.66 13 14 13V15C16.76 15 19 12.76 19 10H17Z" fill="#468189"/>
-                    <path d="M7 10H5C5 12.76 7.24 15 10 15V13C8.34 13 7 11.66 7 10Z" fill="#468189"/>
+                  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="24" cy="24" r="24" fill="#D9EEEE"/>
+                    <path d="M24 14C22.35 14 21 15.35 21 17V23C21 24.65 22.35 26 24 26C25.65 26 27 24.65 27 23V17C27 15.35 25.65 14 24 14Z" fill="#5F8A8B"/>
+                    <path d="M30 23C30 26.31 27.31 29 24 29C20.69 29 18 26.31 18 23H16C16 27.42 19.03 31.11 23 31.83V37H25V31.83C28.97 31.11 32 27.42 32 23H30Z" fill="#5F8A8B"/>
                   </svg>
                 </div>
                 <div className="typing-indicator show">

@@ -2,9 +2,10 @@ function WelcomeState() {
   return (
     <div className="welcome-state">
       <div className="welcome-icon">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2C10.9 2 10 2.9 10 4V10C10 11.1 10.9 12 12 12C13.1 12 14 11.1 14 10V4C14 2.9 13.1 2 12 2Z" fill="#468189"/>
-          <path d="M18 10C18 13.31 15.31 16 12 16C8.69 16 6 13.31 6 10H4C4 13.93 6.94 17.21 10.88 17.88V22H13.13V17.88C17.06 17.21 20 13.93 20 10H18Z" fill="#468189"/>
+        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="60" cy="60" r="60" fill="#D9EEEE"/>
+          <path d="M60 35C57.8 35 56 36.8 56 39V55C56 57.2 57.8 59 60 59C62.2 59 64 57.2 64 55V39C64 36.8 62.2 35 60 35Z" fill="#5F8A8B"/>
+          <path d="M72 55C72 61.63 66.63 67 60 67C53.37 67 48 61.63 48 55H44C44 63.28 50.06 70.14 58 71.72V85H62V71.72C69.94 70.14 76 63.28 76 55H72Z" fill="#5F8A8B"/>
         </svg>
       </div>
       <h2 className="welcome-title">Hi, how can I help?</h2>

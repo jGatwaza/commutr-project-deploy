@@ -99,7 +99,7 @@
 /* Completion Screen */
 .completion-screen {
   min-height: 100vh;
-  background: linear-gradient(135deg, #031926 0%, #468189 100%);
+  background: #031926;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -183,7 +183,7 @@
 }
 
 .topic-chip {
-  background: linear-gradient(135deg, #468189 0%, #77ACA2 100%);
+  background: #468189;
   color: white;
   padding: 8px 20px;
   border-radius: 20px;
@@ -258,7 +258,7 @@
 }
 
 .btn-done {
-  background: linear-gradient(135deg, #468189 0%, #77ACA2 100%);
+  background: #468189;
   color: white;
   border: none;
   padding: 16px 48px;

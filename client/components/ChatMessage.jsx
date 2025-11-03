@@ -1,22 +1,15 @@
 function ChatMessage({ content, isUser }) {
-  const avatarSVG = isUser 
-    ? `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="8" r="4" fill="#5f6368"/>
-        <path d="M12 13C8.13 13 5 14.57 5 16.5V18H19V16.5C19 14.57 15.87 13 12 13Z" fill="#5f6368"/>
-       </svg>`
-    : `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="8" r="4" fill="#468189"/>
-        <path d="M12 13C8.13 13 5 14.57 5 16.5V18H19V16.5C19 14.57 15.87 13 12 13Z" fill="#468189"/>
-        <path d="M17 10C17 11.66 15.66 13 14 13V15C16.76 15 19 12.76 19 10H17Z" fill="#468189"/>
-        <path d="M7 10H5C5 12.76 7.24 15 10 15V13C8.34 13 7 11.66 7 10Z" fill="#468189"/>
-       </svg>`;
-
   return (
     <div className={`message ${isUser ? 'user' : 'agent'}`}>
-      <div 
-        className="message-avatar" 
-        dangerouslySetInnerHTML={{ __html: avatarSVG }}
-      />
+      <div className="message-avatar">
+        {isUser ? '👤' : (
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="24" cy="24" r="24" fill="#D9EEEE"/>
+            <path d="M24 14C22.35 14 21 15.35 21 17V23C21 24.65 22.35 26 24 26C25.65 26 27 24.65 27 23V17C27 15.35 25.65 14 24 14Z" fill="#5F8A8B"/>
+            <path d="M30 23C30 26.31 27.31 29 24 29C20.69 29 18 26.31 18 23H16C16 27.42 19.03 31.11 23 31.83V37H25V31.83C28.97 31.11 32 27.42 32 23H30Z" fill="#5F8A8B"/>
+          </svg>
+        )}
+      </div>
       <div className="message-content">{content}</div>
     </div>
   );

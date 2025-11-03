@@ -29,7 +29,7 @@
 }
 
 .btn-skip {
-  background: linear-gradient(135deg, #468189 0%, #77ACA2 100%);
+  background: #468189;
   color: white;
 }
 
@@ -39,7 +39,7 @@
 }
 
 .btn-change-topic {
-  background: linear-gradient(135deg, #9DBEBB 0%, #77ACA2 100%);
+  background: #9DBEBB;
   color: #031926;
 }
 
@@ -56,6 +56,18 @@
 
 .btn-back:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.btn-end {
+  background: #C94C4C;
+  color: #FDF7F2;
+  border: 1px solid rgba(201, 76, 76, 0.4);
+}
+
+.btn-end:hover:not(:disabled) {
+  background: #b24242;
+  box-shadow: 0 6px 16px rgba(201, 76, 76, 0.35);
   transform: translateY(-2px);
 }
 
