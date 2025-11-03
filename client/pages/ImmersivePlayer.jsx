@@ -39,6 +39,45 @@ function ImmersivePlayer() {
   const [videoStartTime] = useState(Date.now());
   const [initialPosition] = useState(() => getVideoPosition(currentVideo?.videoId));
 
+  // Save commute to history function
+  const saveCommuteToHistory = async () => {
+    try {
+      const watchedVideos = playlist.items
+        .filter(video => contextWatchedIds.includes(video.videoId))
+        .map(video => ({
+          videoId: video.videoId,
+          title: video.title,
+          thumbnail: video.thumbnail || `https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`,
+          channelTitle: video.channelTitle,
+          durationSec: video.durationSec
+        }));
+
+      const commuteSession = {
+        id: `commute-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        topics: topicsLearned,
+        durationSec: totalDuration,
+        videosWatched: watchedVideos
+      };
+
+      await fetch(`${API_BASE}/api/commute-history`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': AUTH_TOKEN
+        },
+        body: JSON.stringify({
+          userId: 'demoUser',
+          session: commuteSession
+        })
+      });
+
+      console.log('Commute saved to history:', commuteSession);
+    } catch (error) {
+      console.error('Failed to save commute to history:', error);
+    }
+  };
+
   // Update remaining time every second
   useEffect(() => {
     const interval = setInterval(() => {
@@ -185,44 +224,6 @@ function ImmersivePlayer() {
       alert(`Failed to fetch more videos: ${error.message}`);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const saveCommuteToHistory = async () => {
-    try {
-      const watchedVideos = playlist.items
-        .filter(video => contextWatchedIds.includes(video.videoId))
-        .map(video => ({
-          videoId: video.videoId,
-          title: video.title,
-          thumbnail: video.thumbnail || `https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`,
-          channelTitle: video.channelTitle,
-          durationSec: video.durationSec
-        }));
-
-      const commuteSession = {
-        id: `commute-${Date.now()}`,
-        timestamp: new Date().toISOString(),
-        topics: topicsLearned,
-        durationSec: totalDuration,
-        videosWatched: watchedVideos
-      };
-
-      await fetch(`${API_BASE}/api/commute-history`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': AUTH_TOKEN
-        },
-        body: JSON.stringify({
-          userId: 'demoUser', // Replace with actual user ID from auth
-          session: commuteSession
-        })
-      });
-
-      console.log('Commute saved to history');
-    } catch (error) {
-      console.error('Failed to save commute to history:', error);
     }
   };
 
