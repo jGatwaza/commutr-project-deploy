@@ -1,0 +1,192 @@
+.player-controls {
+  margin-top: 24px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-control {
+  flex: 1;
+  min-width: 200px;
+  padding: 16px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.btn-control:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-skip {
+  background: linear-gradient(135deg, #468189 0%, #77ACA2 100%);
+  color: white;
+}
+
+.btn-skip:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(70, 129, 137, 0.5);
+}
+
+.btn-change-topic {
+  background: linear-gradient(135deg, #9DBEBB 0%, #77ACA2 100%);
+  color: #031926;
+}
+
+.btn-change-topic:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(157, 190, 187, 0.5);
+}
+
+.btn-back {
+  background: rgba(255, 255, 255, 0.1);
+  color: #F4E9CD;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-back:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Topic Change Form */
+.topic-change-form {
+  flex: 1;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.topic-input {
+  flex: 1;
+  min-width: 250px;
+  padding: 14px 20px;
+  border: 2px solid #468189;
+  border-radius: 8px;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #F4E9CD;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.topic-input::placeholder {
+  color: #9DBEBB;
+}
+
+.topic-input:focus {
+  border-color: #77ACA2;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.topic-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-submit,
+.btn-cancel {
+  padding: 14px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-submit {
+  background: #468189;
+  color: white;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: #77ACA2;
+  transform: translateY(-2px);
+}
+
+.btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-cancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: #F4E9CD;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Next Video Preview */
+.next-video-preview {
+  flex: 1 1 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.next-label {
+  color: #9DBEBB;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.next-title {
+  color: #F4E9CD;
+  font-size: 14px;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .player-controls {
+    flex-direction: column;
+  }
+
+  .btn-control {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .topic-change-form {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .topic-input {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .topic-buttons {
+    width: 100%;
+  }
+
+  .btn-submit,
+  .btn-cancel {
+    flex: 1;
+  }
+}

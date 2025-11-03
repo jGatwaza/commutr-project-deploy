@@ -1,0 +1,310 @@
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useCommute } from '../context/CommuteContext';
+import CommuteTimer from '../components/CommuteTimer';
+import PlayerControls from '../components/PlayerControls';
+import '../styles/ImmersivePlayer.css';
+
+const API_BASE = 'http://localhost:3000';
+const AUTH_TOKEN = 'Bearer TEST';
+
+function ImmersivePlayer() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { playlist: initialPlaylist, context, startIndex = 0 } = location.state || {};
+  const { commuteStartTime, totalDuration, watchedVideoIds: contextWatchedIds, topicsLearned, startCommute, addWatchedVideo, getRemainingTime, saveVideoPosition, getVideoPosition, endCommute } = useCommute();
+
+  const [playlist, setPlaylist] = useState(initialPlaylist);
+  const [currentIndex, setCurrentIndex] = useState(startIndex);
+  const [remainingTimeSec, setRemainingTimeSec] = useState(getRemainingTime());
+  const [isLoading, setIsLoading] = useState(false);
+  const [showCompletion, setShowCompletion] = useState(false);
+
+  const playerRef = useRef(null);
+
+  if (!playlist || !context) {
+    return (
+      <div className="immersive-player-page">
+        <div className="error-container">
+          <h2>No Playlist Found</h2>
+          <button onClick={() => navigate('/agent-mode')} className="btn-back">
+            Go to Agent Mode
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const currentVideo = playlist.items[currentIndex];
+  const [videoStartTime] = useState(Date.now());
+  const [initialPosition] = useState(() => getVideoPosition(currentVideo?.videoId));
+
+  // Update remaining time every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const remaining = getRemainingTime();
+      setRemainingTimeSec(remaining);
+
+      if (remaining === 0 && !showCompletion) {
+        setShowCompletion(true);
+        endCommute();
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [getRemainingTime, showCompletion, endCommute]);
+
+  // Save video position periodically and check if video ended
+  useEffect(() => {
+    const saveInterval = setInterval(() => {
+      const elapsedSinceStart = Math.floor((Date.now() - videoStartTime) / 1000);
+      const estimatedPosition = initialPosition + elapsedSinceStart;
+      saveVideoPosition(currentVideo.videoId, estimatedPosition);
+
+      // Check if video has ended (with 5 second buffer)
+      if (estimatedPosition >= currentVideo.durationSec - 5) {
+        handleVideoEnd();
+      }
+    }, 5000); // Check every 5 seconds
+
+    return () => clearInterval(saveInterval);
+  }, [currentVideo.videoId, currentVideo.durationSec, videoStartTime, initialPosition, saveVideoPosition]);
+
+  // Track watched video
+  const markVideoWatched = (videoId) => {
+    if (!contextWatchedIds.includes(videoId)) {
+      addWatchedVideo(videoId);
+      
+      // Send to backend to track in history
+      fetch(`${API_BASE}/api/session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': AUTH_TOKEN
+        },
+        body: JSON.stringify({
+          topic: context.topic,
+          minutes: Math.floor(currentVideo.durationSec / 60)
+        })
+      }).catch(err => console.error('Failed to track session:', err));
+    }
+  };
+
+  const handleSkip = async () => {
+    // Mark current video as watched
+    markVideoWatched(currentVideo.videoId);
+
+    // Check if we're at the last video
+    if (currentIndex >= playlist.items.length - 1) {
+      // Fetch more videos
+      await fetchMoreVideos('skip');
+    } else {
+      // Move to next video
+      setCurrentIndex(prev => prev + 1);
+    }
+  };
+
+  const handleChangeTopic = async (newTopic) => {
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch(`${API_BASE}/v1/agent/adjust-playlist`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': AUTH_TOKEN
+        },
+        body: JSON.stringify({
+          remainingTimeSec,
+          currentTopic: context.topic,
+          newTopic,
+          watchedVideoIds: contextWatchedIds,
+          action: 'change_topic'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Change topic response:', data);
+
+      if (data.success && data.playlist) {
+        setPlaylist(data.playlist);
+        setCurrentIndex(0);
+        context.topic = newTopic;
+        // Add new topic to the learned topics list
+        startCommute(remainingTimeSec, newTopic, false);
+      } else {
+        alert(data.message || 'Failed to change topic');
+      }
+    } catch (error) {
+      console.error('Error changing topic:', error);
+      alert(`Failed to change topic: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchMoreVideos = async (action = 'continue') => {
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`${API_BASE}/v1/agent/adjust-playlist`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': AUTH_TOKEN
+        },
+        body: JSON.stringify({
+          remainingTimeSec,
+          currentTopic: context.topic,
+          watchedVideoIds: contextWatchedIds,
+          action
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Fetch more videos response:', data);
+
+      if (data.success && data.playlist) {
+        setPlaylist(data.playlist);
+        setCurrentIndex(0);
+      } else {
+        alert(data.message || 'No more videos available');
+      }
+    } catch (error) {
+      console.error('Error fetching more videos:', error);
+      alert(`Failed to fetch more videos: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVideoEnd = () => {
+    markVideoWatched(currentVideo.videoId);
+    
+    // Auto-advance to next video
+    if (currentIndex < playlist.items.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+    } else {
+      // Fetch more videos if time remaining
+      if (remainingTimeSec > 120) { // More than 2 minutes left
+        fetchMoreVideos('continue');
+      } else {
+        setShowCompletion(true);
+      }
+    }
+  };
+
+  if (showCompletion) {
+    return (
+      <div className="immersive-player-page">
+        <div className="completion-screen">
+          <div className="completion-content">
+            <div className="completion-icon">🎉</div>
+            <h1>Commute Complete!</h1>
+            <p>Great job learning today!</p>
+            
+            <div className="completion-stats">
+              <div className="stat">
+                <span className="stat-value">{contextWatchedIds.length}</span>
+                <span className="stat-label">Videos Watched</span>
+              </div>
+              <div className="stat">
+                <span className="stat-value">{Math.floor(totalDuration / 60)}</span>
+                <span className="stat-label">Minutes Learned</span>
+              </div>
+              <div className="stat">
+                <span className="stat-value">{topicsLearned.length}</span>
+                <span className="stat-label">Topics Explored</span>
+              </div>
+            </div>
+
+            {topicsLearned.length > 0 && (
+              <div className="topics-list">
+                <h3>Topics You Learned:</h3>
+                <div className="topic-chips">
+                  {topicsLearned.map((topic, index) => (
+                    <span key={index} className="topic-chip">{topic}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button onClick={() => {
+                endCommute();
+                navigate('/home');
+              }} className="btn-done">
+                Go Home
+              </button>
+              <button onClick={() => {
+                endCommute();
+                navigate('/create');
+              }} className="btn-done">
+                Create New Playlist
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="immersive-player-page">
+      <CommuteTimer remainingTimeSec={remainingTimeSec} />
+
+      <div className="player-container">
+        <div className="video-header">
+          <h2 className="video-title">{currentVideo.title}</h2>
+          <p className="video-channel">{currentVideo.channelTitle}</p>
+        </div>
+
+        <div className="video-wrapper">
+          <iframe
+            ref={playerRef}
+            src={`https://www.youtube.com/embed/${currentVideo.videoId}?autoplay=1&rel=0${initialPosition > 0 ? `&start=${Math.floor(initialPosition)}` : ''}`}
+            title={currentVideo.title}
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          ></iframe>
+          {initialPosition > 0 && (
+            <div className="resume-notice">
+              Resuming from {Math.floor(initialPosition / 60)}:{(Math.floor(initialPosition) % 60).toString().padStart(2, '0')}
+            </div>
+          )}
+        </div>
+
+        <PlayerControls
+          onSkip={handleSkip}
+          onChangeTopic={handleChangeTopic}
+          onBackToPlaylist={() => navigate('/playlist', { state: { playlist, context, fromPlayer: true } })}
+          onBackToHome={() => {
+            endCommute(); // Clear timer when going home
+            navigate('/home');
+          }}
+          currentTopic={context.topic}
+          isLoading={isLoading}
+          nextVideo={playlist.items[currentIndex + 1]}
+        />
+
+        {isLoading && (
+          <div className="loading-overlay">
+            <div className="spinner"></div>
+            <p>Finding more videos...</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default ImmersivePlayer;

@@ -72,12 +72,16 @@ function AgentMode() {
       // Add agent response
       addMessage(data.message);
 
-      // If playlist was generated, show modal
+      // If playlist was generated, redirect to playlist view
       if (data.playlist) {
         setTimeout(() => {
-          setPlaylistData({ playlist: data.playlist, context: data.playlistContext });
-          setShowModal(true);
-        }, 500);
+          navigate('/playlist', {
+            state: {
+              playlist: data.playlist,
+              context: data.playlistContext
+            }
+          });
+        }, 1000);
       }
 
     } catch (error) {
@@ -147,9 +151,13 @@ function AgentMode() {
               addMessage(data.message);
               if (data.playlist) {
                 setTimeout(() => {
-                  setPlaylistData({ playlist: data.playlist, context: data.playlistContext });
-                  setShowModal(true);
-                }, 500);
+                  navigate('/playlist', {
+                    state: {
+                      playlist: data.playlist,
+                      context: data.playlistContext
+                    }
+                  });
+                }, 1000);
               }
             })
             .catch(error => {

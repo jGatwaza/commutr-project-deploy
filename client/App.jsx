@@ -1,14 +1,19 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { CommuteProvider } from './context/CommuteContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import AgentMode from './pages/AgentMode';
 import Home from './pages/Home';
+import QuickPlaylist from './pages/QuickPlaylist';
+import PlaylistView from './pages/PlaylistView';
+import ImmersivePlayer from './pages/ImmersivePlayer';
 
 function App() {
   return (
     <AuthProvider>
-      <Routes>
+      <CommuteProvider>
+        <Routes>
         <Route path="/login" element={<Login />} />
         <Route 
           path="/home" 
@@ -26,8 +31,33 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        <Route 
+          path="/create" 
+          element={
+            <ProtectedRoute>
+              <QuickPlaylist />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/playlist" 
+          element={
+            <ProtectedRoute>
+              <PlaylistView />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/player" 
+          element={
+            <ProtectedRoute>
+              <ImmersivePlayer />
+            </ProtectedRoute>
+          } 
+        />
         <Route path="/" element={<Navigate to="/home" replace />} />
       </Routes>
+      </CommuteProvider>
     </AuthProvider>
   );
 }

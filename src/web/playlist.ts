@@ -53,7 +53,8 @@ router.get('/v1/playlist', async (req, res) => {
         durationSec: item.durationSec,
         title: candidate?.title || `${topic} Tutorial`,
         channelTitle: candidate?.channelTitle || 'YouTube',
-        level: candidate?.level || 'intermediate'
+        level: candidate?.level || 'intermediate',
+        thumbnail: candidate?.thumbnail || `https://img.youtube.com/vi/${item.videoId}/mqdefault.jpg`
       };
     }),
     totalDurationSec: out.totalDurationSec,
