@@ -34,23 +34,25 @@
   gap: 12px;
 }
 
-.back-btn {
-  color: #468189;
+.agent-mode-page .back-btn {
+  color: #FFFFFF;
   text-decoration: none;
   padding: 12px 24px;
   border-radius: 8px;
   font-size: 15px;
   font-weight: 500;
   transition: all 0.2s;
-  background: transparent;
-  border: 2px solid #468189;
+  background: #031926;
+  border: 2px solid #031926;
   cursor: pointer;
   margin: 20px 0 0 20px;
+  box-shadow: 0 4px 12px rgba(3, 25, 38, 0.15);
 }
 
-.back-btn:hover {
-  background: rgba(70, 129, 137, 0.1);
-  border-color: #5F8A8B;
+.agent-mode-page .back-btn:hover {
+  background: #02131d;
+  border-color: #02131d;
+  box-shadow: 0 6px 14px rgba(3, 25, 38, 0.25);
 }
 
 /* Welcome state */
