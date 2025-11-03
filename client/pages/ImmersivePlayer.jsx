@@ -41,6 +41,10 @@ function ImmersivePlayer() {
 
   // Save commute to history function
   const saveCommuteToHistory = async () => {
+    console.log('=== SAVING COMMUTE TO HISTORY ===');
+    console.log('Watched videos:', contextWatchedIds);
+    console.log('Topics learned:', topicsLearned);
+    
     try {
       const watchedVideos = playlist.items
         .filter(video => contextWatchedIds.includes(video.videoId))
@@ -52,6 +56,8 @@ function ImmersivePlayer() {
           durationSec: video.durationSec
         }));
 
+      console.log('Filtered watched videos:', watchedVideos);
+
       const commuteSession = {
         id: `commute-${Date.now()}`,
         timestamp: new Date().toISOString(),
@@ -60,7 +66,9 @@ function ImmersivePlayer() {
         videosWatched: watchedVideos
       };
 
-      await fetch(`${API_BASE}/api/commute-history`, {
+      console.log('Commute session to save:', commuteSession);
+
+      const response = await fetch(`${API_BASE}/api/commute-history`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,9 +80,15 @@ function ImmersivePlayer() {
         })
       });
 
-      console.log('Commute saved to history:', commuteSession);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Commute saved successfully:', result);
     } catch (error) {
-      console.error('Failed to save commute to history:', error);
+      console.error('❌ Failed to save commute to history:', error);
+      alert(`Failed to save history: ${error.message}`);
     }
   };
 
@@ -102,11 +116,11 @@ function ImmersivePlayer() {
       const estimatedPosition = initialPosition + elapsedSinceStart;
       saveVideoPosition(currentVideo.videoId, estimatedPosition);
 
-      // Check if video has ended (with 5 second buffer)
-      if (estimatedPosition >= currentVideo.durationSec - 5) {
+      // Check if video has ended (only when actually complete, no early skip)
+      if (estimatedPosition >= currentVideo.durationSec) {
         handleVideoEnd();
       }
-    }, 5000); // Check every 5 seconds
+    }, 10000); // Check every 10 seconds
 
     return () => clearInterval(saveInterval);
   }, [currentVideo.videoId, currentVideo.durationSec, videoStartTime, initialPosition, saveVideoPosition]);
