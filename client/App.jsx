@@ -1,7 +1,8 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CommuteProvider } from './context/CommuteContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import FloatingChat from './components/FloatingChat';
 import Login from './pages/Login';
 import AgentMode from './pages/AgentMode';
 import Home from './pages/Home';
@@ -9,11 +10,45 @@ import QuickPlaylist from './pages/QuickPlaylist';
 import PlaylistView from './pages/PlaylistView';
 import ImmersivePlayer from './pages/ImmersivePlayer';
 
-function App() {
+function AppContent() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleChatAction = (action) => {
+    console.log('Chat action:', action);
+    
+    switch (action.type) {
+      case 'skip_video':
+        // Trigger skip via event or callback
+        window.dispatchEvent(new CustomEvent('chat-skip-video'));
+        break;
+      case 'change_topic':
+        window.dispatchEvent(new CustomEvent('chat-change-topic', { detail: action.topic }));
+        break;
+      case 'navigate':
+        if (action.playlist && action.context) {
+          // Navigate with playlist data
+          navigate(action.path, { 
+            state: { 
+              playlist: action.playlist, 
+              context: action.context 
+            } 
+          });
+        } else {
+          navigate(action.path);
+        }
+        break;
+      default:
+        console.log('Unknown action:', action);
+    }
+  };
+
+  // Only show chat when logged in
+  const showChat = location.pathname !== '/login';
+
   return (
-    <AuthProvider>
-      <CommuteProvider>
-        <Routes>
+    <>
+      <Routes>
         <Route path="/login" element={<Login />} />
         <Route 
           path="/home" 
@@ -57,6 +92,17 @@ function App() {
         />
         <Route path="/" element={<Navigate to="/home" replace />} />
       </Routes>
+      
+      {showChat && <FloatingChat onAction={handleChatAction} />}
+    </>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <CommuteProvider>
+        <AppContent />
       </CommuteProvider>
     </AuthProvider>
   );

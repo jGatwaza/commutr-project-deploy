@@ -262,11 +262,6 @@ function ImmersivePlayer() {
       <CommuteTimer remainingTimeSec={remainingTimeSec} />
 
       <div className="player-container">
-        <div className="video-header">
-          <h2 className="video-title">{currentVideo.title}</h2>
-          <p className="video-channel">{currentVideo.channelTitle}</p>
-        </div>
-
         <div className="video-wrapper">
           <iframe
             ref={playerRef}

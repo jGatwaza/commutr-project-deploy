@@ -1,9 +1,10 @@
 .immersive-player-page {
-  min-height: 100vh;
+  height: 100vh;
   background: #000;
   display: flex;
   flex-direction: column;
   position: relative;
+  overflow: hidden;
 }
 
 .player-container {
@@ -13,37 +14,26 @@
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
-  padding: 20px;
+  padding: 12px;
+  overflow: hidden;
 }
 
-.video-header {
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.video-title {
-  color: #FFFFFF;
-  font-size: 26px;
-  margin: 0 0 8px 0;
-  font-weight: 800;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.6);
-  letter-spacing: 0.5px;
-}
-
-.video-channel {
-  color: #9DBEBB;
-  font-size: 16px;
-  margin: 0;
-}
 
 .video-wrapper {
   position: relative;
   width: 100%;
-  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  flex: 1;
   background: #000;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  max-height: calc(100vh - 200px);
+}
+
+.video-wrapper::before {
+  content: '';
+  display: block;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
 }
 
 .video-wrapper iframe {
