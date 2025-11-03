@@ -17,7 +17,7 @@ export interface Video {
 }
 
 // Import the function we'll implement
-import { selectVideos } from './durationFit.js';
+import { selectVideos } from '../durationFit.js';
 
 describe('selectVideos - Duration Fit & De-duplication', () => {
   // Realistic test fixtures
@@ -569,14 +569,17 @@ describe('selectVideos - Duration Fit & De-duplication', () => {
 
   describe('Edge cases', () => {
     it('should handle single candidate', () => {
+      const firstFixture = fixtures[0];
+      if (!firstFixture) throw new Error('No fixtures available');
+      
       const result = selectVideos({
-        candidates: [fixtures[0]],
+        candidates: [firstFixture],
         remainingSeconds: 500,
       });
 
       expect(result.items.length).toBeLessThanOrEqual(1);
       if (result.items.length === 1) {
-        expect(result.items[0]!.id).toBe(fixtures[0].id);
+        expect(result.items[0]!.id).toBe(firstFixture.id);
       }
     });
 
