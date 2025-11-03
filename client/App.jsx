@@ -9,6 +9,7 @@ import Home from './pages/Home';
 import QuickPlaylist from './pages/QuickPlaylist';
 import PlaylistView from './pages/PlaylistView';
 import ImmersivePlayer from './pages/ImmersivePlayer';
+import History from './pages/History';
 
 function AppContent() {
   const navigate = useNavigate();
@@ -87,6 +88,14 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <ImmersivePlayer />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/history" 
+          element={
+            <ProtectedRoute>
+              <History />
             </ProtectedRoute>
           } 
         />
