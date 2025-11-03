@@ -54,7 +54,6 @@
   border-color: #02131d;
   box-shadow: 0 6px 14px rgba(3, 25, 38, 0.25);
 }
-
 .clear-btn {
   color: #5f6368;
   text-decoration: none;
@@ -72,6 +71,27 @@
   background: #f8f9fa;
   color: #031926;
   border-color: #468189;
+}
+
+@media (max-width: 640px) {
+  .agent-mode-page .header {
+    padding: 16px 20px 48px;
+    position: relative;
+  }
+
+  .agent-mode-page .header h1 {
+    font-size: 18px;
+    padding-right: 108px;
+  }
+
+  .agent-mode-page .back-btn {
+    position: absolute;
+    top: 12px;
+    right: 20px;
+    margin: 0;
+    padding: 10px 18px;
+    border-radius: 6px;
+  }
 }
 
 /* Welcome state */

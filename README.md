@@ -3,6 +3,12 @@ Commutr is a app and web based application that helps users use thier commute ti
 
 ## API Endpoints
 
+### Deployment Notes
+
+- Vercel now serves the Vite SPA build (previously running on port 5173) as the default site.
+- The legacy static pages that were formerly hosted on port 3000 are still available under the `/legacy` path (e.g. `/legacy/index.html`, `/legacy/share.html`).
+- Local development continues to use Vite on port 5173 with API proxying to the Express server on port 3000.
+
 ### Mastery & Streak Service (CTR-200)
 
 **POST /api/session** - Log a learning session

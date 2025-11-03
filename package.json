@@ -7,7 +7,7 @@
   "scripts": {
     "start": "tsx src/server.ts",
     "dev": "concurrently -n \"API,REACT\" -c \"cyan,magenta\" \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:server": "tsx src/server.ts",
+    "dev:server": "PORT=5173 tsx src/server.ts",
     "dev:client": "vite",
     "build": "vite build",
     "preview": "vite preview",
