@@ -103,5 +103,67 @@ Example response:
 http://localhost:3000/s/SHARE_TOKEN
 ```
 
+### Achievements API & UI (HW9 CTR-C4)
+
+**GET /api/achievements** - Get user's badges and accomplishments
+```bash
+curl -H "Authorization: Bearer TEST" "http://localhost:3000/api/achievements"
+```
+
+Example response:
+```json
+{
+  "summary": {
+    "totalMinutes": 150,
+    "totalSessions": 12,
+    "longestStreak": 5,
+    "currentStreak": 3
+  },
+  "badges": [
+    {
+      "id": "minutes-30",
+      "title": "30 Minutes Listened",
+      "description": "Complete 30 minutes of learning",
+      "icon": "⏱️",
+      "earned": true,
+      "earnedAt": "2025-11-02T16:46:34.374Z",
+      "progressCurrent": 150,
+      "progressTarget": 30
+    },
+    {
+      "id": "minutes-100",
+      "title": "100 Minutes Listened",
+      "description": "Complete 100 minutes of learning",
+      "icon": "🎧",
+      "earned": true,
+      "earnedAt": "2025-11-02T17:30:00.000Z",
+      "progressCurrent": 150,
+      "progressTarget": 100
+    },
+    {
+      "id": "streak-3",
+      "title": "3-Day Streak",
+      "description": "Learn for 3 consecutive days",
+      "icon": "🔥",
+      "earned": false,
+      "progressCurrent": 2,
+      "progressTarget": 3
+    }
+  ]
+}
+```
+
+**Achievements Page**
+- Navigate to `/achievements` in the React app
+- Click "View Achievements" button on the home screen
+- Displays stats cards (total minutes, sessions, streaks)
+- Shows badge grid with earned/locked badges and progress bars
+
+**Available Badges**
+- **Minutes**: 30, 100, 300 minutes
+- **Sessions**: First playlist, 10 sessions
+- **Streaks**: 3-day, 7-day streaks
+- **Sharing**: First share
+
 ### Drive link
 https://drive.google.com/drive/folders/1w17W1tEhD0DlaJoDO4mZE8NYu_HI0Lir
