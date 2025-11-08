@@ -145,6 +145,32 @@
   color: #77ACA2;
 }
 
+.action-btn.tertiary {
+  background: transparent;
+  color: #9DBEBB;
+  border: 1px solid #9DBEBB;
+}
+
+.action-btn.tertiary:hover {
+  background: rgba(157, 190, 187, 0.1);
+  border-color: #77ACA2;
+  color: #77ACA2;
+}
+
+/* HW9 CTR-C4: Achievement button styling */
+.action-btn.achievement {
+  background: linear-gradient(135deg, #468189 0%, #77ACA2 100%);
+  color: #F4E9CD;
+  border: none;
+  box-shadow: 0 4px 12px rgba(70, 129, 137, 0.3);
+}
+
+.action-btn.achievement:hover {
+  background: linear-gradient(135deg, #3d6f76 0%, #6b9b93 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(70, 129, 137, 0.4);
+}
+
 @media (max-width: 600px) {
   .home-page h1 {
     font-size: 48px;

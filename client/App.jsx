@@ -10,6 +10,7 @@ import QuickPlaylist from './pages/QuickPlaylist';
 import PlaylistView from './pages/PlaylistView';
 import ImmersivePlayer from './pages/ImmersivePlayer';
 import History from './pages/History';
+import AchievementsPage from './pages/AchievementsPage'; // HW9 CTR-C4
 
 function AppContent() {
   const navigate = useNavigate();
@@ -96,6 +97,14 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <History />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/achievements" 
+          element={
+            <ProtectedRoute>
+              <AchievementsPage />
             </ProtectedRoute>
           } 
         />

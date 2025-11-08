@@ -7,6 +7,7 @@ import streakRouter from './web/streak.js';
 import playbackRouter from './web/playback.js';
 import agentRouter from './web/agent.js';
 import historyRouter from './web/history.js';
+import achievementsRouter from './web/achievements.js'; // HW9 CTR-C4
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,6 +26,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use(playlistRouter);
 app.use('/api', streakRouter);
 app.use('/api', historyRouter);
+app.use('/api', achievementsRouter); // HW9 CTR-C4
 app.use(playbackRouter);
 app.use(agentRouter);
 
