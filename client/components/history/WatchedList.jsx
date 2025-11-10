@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import '../../styles/WatchedList.css';
 
@@ -7,6 +8,10 @@ const AUTH_TOKEN = 'Bearer TEST';
 
 function WatchedList() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const topicFilter = searchParams.get('topic');
+  
   const [items, setItems] = useState([]);
   const [nextCursor, setNextCursor] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -55,10 +60,15 @@ function WatchedList() {
     }
   };
 
-  // Initial fetch and refetch on search change
+  // Initial fetch and refetch on search change or topic filter
   useEffect(() => {
     fetchWatched();
-  }, [user, searchDebounce]);
+  }, [user, searchDebounce, topicFilter]);
+  
+  // Filter items by topic if topic filter is active
+  const filteredItems = topicFilter 
+    ? items.filter(item => item.topicTags?.includes(topicFilter))
+    : items;
 
   const handleLoadMore = () => {
     if (nextCursor && !loading) {
@@ -84,6 +94,26 @@ function WatchedList() {
     if (days < 7) return `${days} days ago`;
     return date.toLocaleDateString();
   };
+  
+  const handleWatchAgain = (item) => {
+    // Create a single-video playlist and navigate to player
+    const playlist = {
+      items: [{
+        videoId: item.videoId,
+        title: item.title,
+        thumbnail: `https://img.youtube.com/vi/${item.videoId}/mqdefault.jpg`,
+        durationSec: item.durationSec,
+        channelTitle: item.channelTitle || 'Unknown'
+      }]
+    };
+    
+    const context = {
+      topic: item.topicTags?.[0] || 'general',
+      duration: item.durationSec
+    };
+    
+    navigate('/player', { state: { playlist, context, startIndex: 0 } });
+  };
 
   if (loading && items.length === 0) {
     return <div className="watched-loading">Loading...</div>;
@@ -92,7 +122,7 @@ function WatchedList() {
   return (
     <div className="watched-list">
       <div className="watched-header">
-        <h2>Watched Videos</h2>
+        <h2>Watched Videos {topicFilter && `- ${topicFilter}`}</h2>
         <input
           type="text"
           placeholder="Search by title..."
@@ -101,18 +131,25 @@ function WatchedList() {
           className="watched-search"
         />
       </div>
+      
+      {topicFilter && (
+        <div className="watched-filter-badge">
+          Filtering by topic: <strong>{topicFilter}</strong>
+          <button onClick={() => navigate('/history')} className="clear-filter-btn">✕ Clear</button>
+        </div>
+      )}
 
       {error && <div className="watched-error">Error: {error}</div>}
 
-      {items.length === 0 && !loading && (
+      {filteredItems.length === 0 && !loading && (
         <div className="watched-empty">
-          <p>No watched videos yet.</p>
+          <p>No watched videos yet{topicFilter ? ` for "${topicFilter}"` : ''}.</p>
           <p className="watched-empty-hint">Complete a video to see it here!</p>
         </div>
       )}
 
       <div className="watched-items">
-        {items.map((item) => (
+        {filteredItems.map((item) => (
           <div key={item.id} className="watched-item">
             <div className="watched-item-main">
               <h3>{item.title}</h3>
@@ -132,6 +169,13 @@ function WatchedList() {
                 </div>
               )}
             </div>
+            <button 
+              onClick={() => handleWatchAgain(item)}
+              className="watch-again-btn"
+              title="Watch this video again"
+            >
+              ▶ Watch Again
+            </button>
           </div>
         ))}
       </div>

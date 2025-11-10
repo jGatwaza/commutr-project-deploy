@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import '../../styles/AnalyticsTab.css';
 
@@ -7,6 +8,7 @@ const AUTH_TOKEN = 'Bearer TEST';
 
 function AnalyticsTab() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [analytics, setAnalytics] = useState(null);
   const [timeframe, setTimeframe] = useState('month');
   const [loading, setLoading] = useState(true);
@@ -121,7 +123,12 @@ function AnalyticsTab() {
           <h3 className="section-title">📚 Top Topics</h3>
           <div className="topic-list">
             {analytics.byTopic.slice(0, 5).map((item, idx) => (
-              <div key={idx} className="topic-item">
+              <div 
+                key={idx} 
+                className="topic-item clickable"
+                onClick={() => navigate(`/history?topic=${encodeURIComponent(item.topic)}`)}
+                title={`Click to view ${item.topic} videos`}
+              >
                 <div className="topic-info">
                   <div className="topic-name">{item.topic}</div>
                   <div className="topic-meta">

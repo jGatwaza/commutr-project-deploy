@@ -157,7 +157,17 @@
   padding: 12px;
   background: #f9f9f9;
   border-radius: 8px;
-  transition: background 0.2s;
+  transition: all 0.2s;
+}
+
+.topic-item.clickable {
+  cursor: pointer;
+}
+
+.topic-item.clickable:hover {
+  background: #e8f4f5;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(70, 129, 137, 0.15);
 }
 
 .topic-item:hover {
