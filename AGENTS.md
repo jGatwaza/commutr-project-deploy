@@ -396,33 +396,7 @@ See `docs/CONTRIBUTING.md` for detailed TDD policy.
 
 ## Continuous Integration
 
-**No CI/CD currently configured.**
-
-### Recommended CI Setup
-Consider implementing:
-- **GitHub Actions** or **GitLab CI** for automated testing
-- Run `npm test` on every pull request
-- Run `npm run build` to verify builds succeed
-- Type checking with `tsc --noEmit`
-- Code coverage reports
-- Automated deployment to Vercel/Netlify
-
-### Example GitHub Actions Workflow
-```yaml
-name: CI
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - run: npm install
-      - run: npm test
-      - run: npm run build
-```
+**No CI/CD currently configured yet. Will be implemented soon**
 
 ## API Endpoints
 
