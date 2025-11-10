@@ -9,7 +9,7 @@ import playbackRouter from './web/playback.js';
 import agentRouter from './web/agent.js';
 import historyRouter from './web/history.js';
 import recommendRouter from './web/recommend.js';
-import achievementsRouter from './web/achievements.js'; // HW9 CTR-C4
+import watchHistoryRouter from './web/watchHistory.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -45,6 +45,7 @@ app.use('/legacy', express.static(legacyDir));
 app.use(playlistRouter);
 app.use('/api', streakRouter);
 app.use('/api', historyRouter);
+app.use('/api', watchHistoryRouter);
 app.use('/api', recommendRouter);
 app.use('/api', achievementsRouter); // HW9 CTR-C4
 app.use(playbackRouter);
