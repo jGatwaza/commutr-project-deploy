@@ -1,0 +1,68 @@
+.commute-timer {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 3px solid;
+  border-radius: 16px;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 100;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.timer-icon {
+  font-size: 28px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.timer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timer-value {
+  font-size: 32px;
+  font-weight: bold;
+  font-family: 'Courier New', monospace;
+  line-height: 1;
+}
+
+.timer-label {
+  font-size: 12px;
+  color: #9DBEBB;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .commute-timer {
+    top: 10px;
+    right: 10px;
+    padding: 12px 16px;
+  }
+
+  .timer-icon {
+    font-size: 24px;
+  }
+
+  .timer-value {
+    font-size: 24px;
+  }
+
+  .timer-label {
+    font-size: 10px;
+  }
+}

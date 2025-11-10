@@ -47,6 +47,10 @@ function generateId(): string {
  * This ensures resilience against corrupted JSON.
  */
 function loadWatched(): WatchedStore {
+const WATCH_HISTORY_FILE = join(DATA_DIR, 'watchHistory.json');
+
+// Helper: Load watch history from file
+function loadWatchHistory(): WatchRecord[] {
   if (!existsSync(DATA_DIR)) {
     mkdirSync(DATA_DIR, { recursive: true });
   }

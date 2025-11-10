@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Playlist - Commutr</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #031926 0%, #468189 100%);
+      min-height: 100vh;
+      color: #F4E9CD;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 48px;
+      margin: 0 0 16px 0;
+    }
+
+    .header p {
+      font-size: 18px;
+      color: #9DBEBB;
+      margin: 0;
+    }
+
+    .form-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      color: #031926;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #9DBEBB;
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #468189;
+    }
+
+    .hint {
+      font-size: 14px;
+      color: #666;
+      margin-top: 8px;
+    }
+
+    .btn {
+      width: 100%;
+      background: linear-gradient(135deg, #468189 0%, #77ACA2 100%);
+      color: white;
+      border: none;
+      padding: 18px 32px;
+      border-radius: 12px;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(70, 129, 137, 0.6);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .error {
+      background: #fee;
+      border: 2px solid #f88;
+      color: #c00;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .error.show {
+      display: block;
+    }
+
+    .info-card {
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 24px;
+    }
+
+    .info-card h3 {
+      margin: 0 0 16px 0;
+    }
+
+    .info-card ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .info-card li {
+      padding: 8px 0;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎬 Create Your Playlist</h1>
+      <p>Build a personalized learning playlist for your commute</p>
+    </div>
+
+    <div class="form-card">
+      <form id="playlistForm">
+        <div class="form-group">
+          <label for="topic">What do you want to learn?</label>
+          <input 
+            type="text" 
+            id="topic" 
+            placeholder="e.g., python, cooking, fitness"
+            value="python"
+            required
+          >
+          <p class="hint">Try: python, javascript, cooking, fitness, spanish, photography</p>
+        </div>
+
+        <div class="form-group">
+          <label for="duration">How long is your commute?</label>
+          <select id="duration">
+            <option value="5">5 minutes</option>
+            <option value="10">10 minutes</option>
+            <option value="15" selected>15 minutes</option>
+            <option value="20">20 minutes</option>
+            <option value="30">30 minutes</option>
+            <option value="45">45 minutes</option>
+            <option value="60">60 minutes</option>
+          </select>
+        </div>
+
+        <div id="error" class="error"></div>
+
+        <button type="submit" class="btn" id="submitBtn">
+          🎬 Create Playlist
+        </button>
+      </form>
+    </div>
+
+    <div class="info-card">
+      <h3>✨ What happens next?</h3>
+      <ul>
+        <li>📋 View your personalized playlist with thumbnails</li>
+        <li>🎥 Watch videos in immersive full-screen mode</li>
+        <li>⏱️ Track your remaining commute time</li>
+        <li>⏭️ Skip videos you don't like</li>
+        <li>🔄 Change topics mid-commute</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('playlistForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const errorDiv = document.getElementById('error');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const topic = document.getElementById('topic').value.trim();
+      const duration = parseInt(document.getElementById('duration').value);
+
+      if (!topic) {
+        showError('Please enter a topic');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating Playlist...';
+      errorDiv.classList.remove('show');
+
+      try {
+        const durationSec = duration * 60;
+        const response = await fetch(
+          `/v1/playlist?topic=${encodeURIComponent(topic)}&durationSec=${durationSec}`,
+          {
+            headers: {
+              'Authorization': 'Bearer TEST'
+            }
+          }
+        );
+
+        if (response.status === 204) {
+          showError(`No videos found for "${topic}". Try: python, cooking, javascript, fitness`);
+          submitBtn.disabled = false;
+          submitBtn.textContent = '🎬 Create Playlist';
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status}`);
+        }
+
+        const playlist = await response.json();
+
+        // Store in sessionStorage and redirect
+        sessionStorage.setItem('currentPlaylist', JSON.stringify(playlist));
+        sessionStorage.setItem('currentContext', JSON.stringify({
+          topic,
+          duration: durationSec
+        }));
+
+        window.location.href = '/playlist-view.html';
+
+      } catch (error) {
+        console.error('Error:', error);
+        showError('Failed to create playlist. Please try again.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = '🎬 Create Playlist';
+      }
+    });
+
+    function showError(message) {
+      errorDiv.textContent = message;
+      errorDiv.classList.add('show');
+    }
+  </script>
+</body>
+</html>

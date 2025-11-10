@@ -57,7 +57,8 @@ export async function searchYouTubeVideos(topic: string, maxResults: number = 50
             level: determineDifficulty(video.snippet.title, video.snippet.description),
             title: video.snippet.title,
             channelTitle: video.snippet.channelTitle,
-            publishedAt: video.snippet.publishedAt
+            publishedAt: video.snippet.publishedAt,
+            thumbnail: video.snippet.thumbnails?.medium?.url || video.snippet.thumbnails?.default?.url || `https://img.youtube.com/vi/${video.id}/mqdefault.jpg`
           };
         }).filter((candidate: Candidate) => {
           // Very basic filtering - just exclude very short or very long videos

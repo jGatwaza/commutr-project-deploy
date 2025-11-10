@@ -1,14 +1,15 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { CommuteProvider } from './context/CommuteContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import FloatingChat from './components/FloatingChat';
 import Login from './pages/Login';
 import AgentMode from './pages/AgentMode';
 import Home from './pages/Home';
 import History from './pages/History';
 
-function App() {
   return (
-    <AuthProvider>
+    <>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route 
@@ -37,6 +38,18 @@ function App() {
         />
         <Route path="/" element={<Navigate to="/home" replace />} />
       </Routes>
+      
+      {showChat && <FloatingChat onAction={handleChatAction} />}
+    </>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <CommuteProvider>
+        <AppContent />
+      </CommuteProvider>
     </AuthProvider>
   );
 }
