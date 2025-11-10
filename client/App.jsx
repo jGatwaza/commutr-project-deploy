@@ -19,10 +19,8 @@ function AppContent() {
 
   const handleChatAction = (action) => {
     console.log('Chat action:', action);
-    
     switch (action.type) {
       case 'skip_video':
-        // Trigger skip via event or callback
         window.dispatchEvent(new CustomEvent('chat-skip-video'));
         break;
       case 'change_topic':
@@ -30,12 +28,11 @@ function AppContent() {
         break;
       case 'navigate':
         if (action.playlist && action.context) {
-          // Navigate with playlist data
-          navigate(action.path, { 
-            state: { 
-              playlist: action.playlist, 
-              context: action.context 
-            } 
+          navigate(action.path, {
+            state: {
+              playlist: action.playlist,
+              context: action.context,
+            }
           });
         } else {
           navigate(action.path);
@@ -46,28 +43,27 @@ function AppContent() {
     }
   };
 
-  // Only show chat when logged in
   const showChat = location.pathname !== '/login';
 
   return (
     <>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route 
-          path="/home" 
+        <Route
+          path="/home"
           element={
             <ProtectedRoute>
               <Home />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/agent" 
+        <Route
+          path="/agent"
           element={
             <ProtectedRoute>
               <AgentMode />
             </ProtectedRoute>
-          } 
+          }
         />
         <Route 
           path="/conversation" 
@@ -83,43 +79,43 @@ function AppContent() {
             <ProtectedRoute>
               <QuickPlaylist />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/playlist" 
+        <Route
+          path="/playlist"
           element={
             <ProtectedRoute>
               <PlaylistView />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/player" 
+        <Route
+          path="/player"
           element={
             <ProtectedRoute>
               <ImmersivePlayer />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/history" 
+        <Route
+          path="/history"
           element={
             <ProtectedRoute>
               <History />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/achievements" 
+        <Route
+          path="/achievements"
           element={
             <ProtectedRoute>
               <AchievementsPage />
             </ProtectedRoute>
-          } 
+          }
         />
         <Route path="/" element={<Navigate to="/home" replace />} />
       </Routes>
-      
+
       {showChat && <FloatingChat onAction={handleChatAction} />}
     </>
   );
