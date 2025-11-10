@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { upsertWatched, listWatched } from '../history/watchHistory.js';
+import { upsertWatched, listWatched, getWatchAnalytics } from '../history/watchHistory.js';
 
 const router = Router();
 
@@ -104,6 +104,44 @@ router.get('/history/watch', requireAuth, (req, res) => {
   } catch (error) {
     console.error('Error listing watched entries:', error);
     return res.status(500).json({ error: 'Failed to list watched entries' });
+  }
+});
+
+/**
+ * Validation schema for GET /api/history/analytics query params
+ */
+const analyticsSchema = z.object({
+  userId: z.string().min(1, 'userId is required'),
+  timeframe: z.enum(['week', 'month', 'all']).optional().default('month')
+});
+
+/**
+ * GET /api/history/analytics
+ * Get aggregated analytics for a user's watch history.
+ * 
+ * Query params:
+ * - userId: required, filter to specific user
+ * - timeframe: optional, 'week' | 'month' | 'all' (default 'month')
+ */
+router.get('/history/analytics', requireAuth, (req, res) => {
+  const parsed = analyticsSchema.safeParse(req.query);
+  
+  if (!parsed.success) {
+    const issues = parsed.error.issues.map(issue => ({
+      field: issue.path.join('.'),
+      message: issue.message
+    }));
+    return res.status(400).json({ error: 'Invalid query parameters', issues });
+  }
+  
+  const { userId, timeframe } = parsed.data;
+  
+  try {
+    const analytics = getWatchAnalytics(userId, timeframe);
+    return res.status(200).json(analytics);
+  } catch (error) {
+    console.error('Error getting analytics:', error);
+    return res.status(500).json({ error: 'Failed to get analytics' });
   }
 });
 

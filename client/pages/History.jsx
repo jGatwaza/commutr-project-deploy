@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import WatchedList from '../components/history/WatchedList';
+import AnalyticsTab from '../components/history/AnalyticsTab';
 import '../styles/History.css';
 
 function History() {
@@ -22,11 +23,17 @@ function History() {
           >
             Watched
           </button>
-          {/* Future tabs can be added here, e.g., Sessions, Playlists */}
+          <button
+            className={`history-tab ${activeTab === 'analytics' ? 'active' : ''}`}
+            onClick={() => setActiveTab('analytics')}
+          >
+            Analytics
+          </button>
         </div>
 
         <div className="history-content">
           {activeTab === 'watched' && <WatchedList />}
+          {activeTab === 'analytics' && <AnalyticsTab />}
         </div>
       </div>
     </div>

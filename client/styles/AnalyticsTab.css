@@ -1,0 +1,322 @@
+.analytics-container {
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.analytics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 20px;
+}
+
+.analytics-header h2 {
+  margin: 0;
+  color: #468189;
+  font-size: 24px;
+}
+
+.timeframe-selector {
+  display: flex;
+  gap: 8px;
+  background: #f5f5f5;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.timeframe-btn {
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.timeframe-btn:hover {
+  background: #e0e0e0;
+}
+
+.timeframe-btn.active {
+  background: #468189;
+  color: white;
+}
+
+.analytics-loading,
+.analytics-error,
+.analytics-empty {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 16px;
+}
+
+.analytics-error {
+  background: #fee;
+  color: #c33;
+  border-radius: 8px;
+}
+
+.analytics-empty-hint {
+  font-size: 14px;
+  color: #999;
+  margin-top: 8px;
+}
+
+/* Summary Cards */
+.analytics-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.summary-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: box-shadow 0.2s;
+}
+
+.summary-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.summary-card.streak {
+  border-left: 4px solid #ff6b6b;
+}
+
+.summary-card.completion {
+  border-left: 4px solid #4caf50;
+}
+
+.card-icon {
+  font-size: 32px;
+}
+
+.card-content {
+  flex: 1;
+}
+
+.card-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: #333;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.card-label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.card-subtitle {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* Sections */
+.analytics-section {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  margin: 0 0 16px 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Topic List */
+.topic-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.topic-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.topic-item:hover {
+  background: #f0f0f0;
+}
+
+.topic-info {
+  flex: 1;
+}
+
+.topic-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.topic-meta {
+  font-size: 13px;
+  color: #666;
+}
+
+.topic-completion {
+  padding: 6px 12px;
+  background: #e8f4f5;
+  color: #468189;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Commute Length List */
+.commute-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.commute-item {
+  padding: 16px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  text-align: center;
+  transition: background 0.2s;
+}
+
+.commute-item:hover {
+  background: #f0f0f0;
+}
+
+.commute-length {
+  font-size: 20px;
+  font-weight: bold;
+  color: #468189;
+  margin-bottom: 8px;
+}
+
+.commute-stats {
+  font-size: 13px;
+  color: #666;
+}
+
+.commute-stats div {
+  margin: 4px 0;
+}
+
+/* Time of Day List */
+.timeofday-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.timeofday-item {
+  padding: 16px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  text-align: center;
+  transition: background 0.2s;
+}
+
+.timeofday-item:hover {
+  background: #f0f0f0;
+}
+
+.timeofday-period {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.timeofday-stats {
+  font-size: 13px;
+  color: #666;
+}
+
+.timeofday-stats div {
+  margin: 4px 0;
+}
+
+/* Weekly Trend List */
+.weekly-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.weekly-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: #f9f9f9;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.weekly-item:hover {
+  background: #f0f0f0;
+}
+
+.weekly-week {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  min-width: 80px;
+}
+
+.weekly-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: #666;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .analytics-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .timeframe-selector {
+    justify-content: center;
+  }
+  
+  .analytics-summary {
+    grid-template-columns: 1fr;
+  }
+  
+  .commute-list,
+  .timeofday-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .weekly-stats {
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+  }
+}

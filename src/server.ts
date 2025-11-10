@@ -44,10 +44,10 @@ if (hasDist) {
 app.use('/legacy', express.static(legacyDir));
 app.use(playlistRouter);
 app.use('/api', streakRouter);
+app.use('/api', watchHistoryRouter); // Mount before historyRouter to avoid route conflicts
 app.use('/api', historyRouter);
-app.use('/api', watchHistoryRouter);
 app.use('/api', recommendRouter);
-app.use('/api', achievementsRouter); // HW9 CTR-C4
+// app.use('/api', achievementsRouter); // HW9 CTR-C4 - TODO: Import achievementsRouter
 app.use(playbackRouter);
 app.use(agentRouter);
 
