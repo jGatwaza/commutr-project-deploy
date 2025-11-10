@@ -10,6 +10,7 @@ import agentRouter from './web/agent.js';
 import historyRouter from './web/history.js';
 import recommendRouter from './web/recommend.js';
 import watchHistoryRouter from './web/watchHistory.js';
+import achievementsRouter from './web/achievements.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,7 +48,7 @@ app.use('/api', streakRouter);
 app.use('/api', watchHistoryRouter); // Mount before historyRouter to avoid route conflicts
 app.use('/api', historyRouter);
 app.use('/api', recommendRouter);
-// app.use('/api', achievementsRouter); // HW9 CTR-C4 - TODO: Import achievementsRouter
+app.use('/api', achievementsRouter); // HW9 CTR-C4
 app.use(playbackRouter);
 app.use(agentRouter);
 
