@@ -303,6 +303,26 @@
   cursor: not-allowed;
 }
 
+.conversation-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(119, 172, 162, 0.1);
+  border: 2px solid #77ACA2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.conversation-btn:hover {
+  background: rgba(119, 172, 162, 0.3);
+  border-color: #9DBEBB;
+  transform: translateX(-3px);
+}
+
 .voice-btn {
   width: 56px;
   height: 56px;

@@ -1,1 +1,13 @@
-{}
+{
+  "demoUser": [
+    {
+      "id": "commute-1762810678777",
+      "timestamp": "2025-11-10T21:37:58.777Z",
+      "topics": [
+        "fishing"
+      ],
+      "durationSec": 13,
+      "videosWatched": []
+    }
+  ]
+}

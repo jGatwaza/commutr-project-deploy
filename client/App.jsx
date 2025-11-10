@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import FloatingChat from './components/FloatingChat';
 import Login from './pages/Login';
 import AgentMode from './pages/AgentMode';
+import ConversationMode from './pages/ConversationMode';
 import Home from './pages/Home';
 import QuickPlaylist from './pages/QuickPlaylist';
 import PlaylistView from './pages/PlaylistView';
@@ -65,6 +66,14 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <AgentMode />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/conversation" 
+          element={
+            <ProtectedRoute>
+              <ConversationMode />
             </ProtectedRoute>
           } 
         />
