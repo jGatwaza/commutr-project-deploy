@@ -1,6 +1,6 @@
 import request from 'supertest';
-import app from '../src/server';
-import { resetSessions, calculateStreak } from '../src/web/streak';
+import app from '../src/server.js';
+import { resetSessions, calculateStreak } from '../src/web/streak.js';
 
 const AUTH = { Authorization: 'Bearer TEST' };
 

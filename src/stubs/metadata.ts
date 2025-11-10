@@ -1,5 +1,5 @@
 import type { Level } from './mastery.js';
-import { searchYouTubeVideos } from '../services/youtube.js';
+import { searchYouTubeVideos, YouTubeQuotaExceededError } from '../services/youtube.js';
 
 export type Candidate = {
   videoId: string; 
@@ -29,14 +29,17 @@ export async function getCandidates(topic: string): Promise<Candidate[]> {
     if (youtubeResults.length > 0) {
       console.log(`✅ YouTube API returned ${youtubeResults.length} videos for "${topic}"`);
       return youtubeResults;
-    } else {
-      console.log(`❌ YouTube API found no videos for "${topic}"`);
-      // Return empty array - frontend will show "No videos found" message
-      return [];
     }
+    console.log(`❌ YouTube API found no videos for "${topic}"`);
   } catch (error) {
+    if (error instanceof YouTubeQuotaExceededError) {
+      console.error(`⛔ YouTube quota exceeded while fetching "${topic}"`);
+      throw error;
+    }
+
     console.error(`❌ YouTube API error for "${topic}":`, error);
-    // Return empty array - frontend will show "No videos found" message
-    return [];
   }
+
+  console.log(`⚠️ No candidates available for "${topic}" from YouTube.`);
+  return [];
 }
