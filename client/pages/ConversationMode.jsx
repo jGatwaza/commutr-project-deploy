@@ -150,11 +150,11 @@ function ConversationMode() {
         setStatus('Starting to listen...');
         
         if (autoListen) {
-          console.log('Auto-listening triggered, calling startListening in 800ms');
+          console.log('Auto-listening triggered, calling startListening in 200ms');
           setTimeout(() => {
             console.log('Executing startListening now, isSubmitting:', isSubmittingRef.current);
             startListening();
-          }, 800);
+          }, 200);
         } else {
           setStatus('Tap to speak');
         }
@@ -299,7 +299,7 @@ function ConversationMode() {
         setIsListening(false);
         setStatus('Could not start listening. Please try again.');
       }
-    }, 400);
+    }, 100);
   };
 
   const handleStopSpeaking = () => {
