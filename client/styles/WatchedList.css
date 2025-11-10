@@ -8,7 +8,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   gap: 20px;
 }
 
@@ -16,6 +16,12 @@
   margin: 0;
   color: #468189;
   font-size: 24px;
+}
+
+.watched-header-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 .watched-search {
@@ -208,6 +214,85 @@
 
 .watch-again-btn:active {
   transform: translateY(0);
+}
+
+.watched-thumbnail {
+  width: 180px;
+  height: 101px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.filter-toggle-btn {
+  padding: 10px 16px;
+  background: #468189;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.filter-toggle-btn:hover {
+  background: #3a6a72;
+}
+
+.watched-filters {
+  background: #f9f9f9;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-group label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #468189;
+}
+
+.clear-all-filters-btn {
+  padding: 8px 16px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.clear-all-filters-btn:hover {
+  background: #d32f2f;
 }
 
 @media (max-width: 768px) {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import VideoModal from '../VideoModal';
 import '../../styles/WatchedList.css';
 
 const API_BASE = 'http://localhost:3000';
@@ -18,6 +19,10 @@ function WatchedList() {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchDebounce, setSearchDebounce] = useState('');
+  const [modalVideo, setModalVideo] = useState(null);
+  const [filterTopic, setFilterTopic] = useState('');
+  const [filterSource, setFilterSource] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
 
   // Debounce search input
   useEffect(() => {
@@ -66,9 +71,21 @@ function WatchedList() {
   }, [user, searchDebounce, topicFilter]);
   
   // Filter items by topic if topic filter is active
-  const filteredItems = topicFilter 
+  let filteredItems = topicFilter 
     ? items.filter(item => item.topicTags?.includes(topicFilter))
     : items;
+  
+  // Apply additional filters
+  if (filterTopic) {
+    filteredItems = filteredItems.filter(item => item.topicTags?.includes(filterTopic));
+  }
+  if (filterSource) {
+    filteredItems = filteredItems.filter(item => item.source === filterSource);
+  }
+  
+  // Get unique topics and sources for filter dropdowns
+  const uniqueTopics = [...new Set(items.flatMap(item => item.topicTags || []))].sort();
+  const uniqueSources = [...new Set(items.map(item => item.source).filter(Boolean))].sort();
 
   const handleLoadMore = () => {
     if (nextCursor && !loading) {
@@ -96,8 +113,11 @@ function WatchedList() {
   };
   
   const handleWatchAgain = (item) => {
-    // Open video directly in YouTube in new tab
-    window.open(`https://www.youtube.com/watch?v=${item.videoId}`, '_blank');
+    // Open video in modal
+    setModalVideo({
+      videoId: item.videoId,
+      title: item.title
+    });
   };
 
   if (loading && items.length === 0) {
@@ -108,14 +128,62 @@ function WatchedList() {
     <div className="watched-list">
       <div className="watched-header">
         <h2>Watched Videos {topicFilter && `- ${topicFilter}`}</h2>
-        <input
-          type="text"
-          placeholder="Search by title..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="watched-search"
-        />
+        <div className="watched-header-controls">
+          <input
+            type="text"
+            placeholder="Search by title..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="watched-search"
+          />
+          <button 
+            onClick={() => setShowFilters(!showFilters)}
+            className="filter-toggle-btn"
+            title="Toggle filters"
+          >
+            🔍 Filters {(filterTopic || filterSource) && `(${[filterTopic, filterSource].filter(Boolean).length})`}
+          </button>
+        </div>
       </div>
+      
+      {showFilters && (
+        <div className="watched-filters">
+          <div className="filter-group">
+            <label>Topic:</label>
+            <select 
+              value={filterTopic} 
+              onChange={(e) => setFilterTopic(e.target.value)}
+              className="filter-select"
+            >
+              <option value="">All Topics</option>
+              {uniqueTopics.map(topic => (
+                <option key={topic} value={topic}>{topic}</option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-group">
+            <label>Source:</label>
+            <select 
+              value={filterSource} 
+              onChange={(e) => setFilterSource(e.target.value)}
+              className="filter-select"
+            >
+              <option value="">All Sources</option>
+              {uniqueSources.map(source => (
+                <option key={source} value={source}>{source}</option>
+              ))}
+            </select>
+          </div>
+          {(filterTopic || filterSource) && (
+            <button 
+              onClick={() => { setFilterTopic(''); setFilterSource(''); }}
+              className="clear-all-filters-btn"
+            >
+              Clear All Filters
+            </button>
+          )}
+        </div>
+      )}
       
       {topicFilter && (
         <div className="watched-filter-badge">
@@ -136,6 +204,11 @@ function WatchedList() {
       <div className="watched-items">
         {filteredItems.map((item) => (
           <div key={item.id} className="watched-item">
+            <img 
+              src={`https://img.youtube.com/vi/${item.videoId}/mqdefault.jpg`}
+              alt={item.title}
+              className="watched-thumbnail"
+            />
             <div className="watched-item-main">
               <h3>{item.title}</h3>
               <div className="watched-item-meta">
@@ -173,6 +246,14 @@ function WatchedList() {
         >
           {loading ? 'Loading...' : 'Load More'}
         </button>
+      )}
+      
+      {modalVideo && (
+        <VideoModal
+          videoId={modalVideo.videoId}
+          title={modalVideo.title}
+          onClose={() => setModalVideo(null)}
+        />
       )}
     </div>
   );

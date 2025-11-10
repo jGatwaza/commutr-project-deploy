@@ -141,6 +141,67 @@
   color: #333;
   font-size: 18px;
   font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.view-all-btn {
+  background: transparent;
+  color: #468189;
+  border: 1px solid #468189;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-all-btn:hover {
+  background: #468189;
+  color: white;
+}
+
+/* Commute List */
+.commute-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.commute-item {
+  padding: 16px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  text-align: center;
+  transition: background 0.2s;
+}
+
+.commute-item.clickable {
+  cursor: pointer;
+}
+
+.commute-item.clickable:hover {
+  background: #e8f4f5;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(70, 129, 137, 0.15);
+}
+
+.commute-length {
+  font-size: 20px;
+  font-weight: bold;
+  color: #468189;
+  margin-bottom: 8px;
+}
+
+.commute-stats {
+  font-size: 13px;
+  color: #666;
+}
+
+.commute-stats div {
+  margin: 4px 0;
 }
 
 /* Topic List */
@@ -236,8 +297,8 @@
 
 /* Time of Day List */
 .timeofday-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 12px;
 }
 
@@ -246,17 +307,12 @@
   background: #f9f9f9;
   border-radius: 8px;
   text-align: center;
-  transition: background 0.2s;
-}
-
-.timeofday-item:hover {
-  background: #f0f0f0;
 }
 
 .timeofday-period {
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: #468189;
   margin-bottom: 8px;
 }
 
@@ -267,6 +323,77 @@
 
 .timeofday-stats div {
   margin: 4px 0;
+}
+
+/* Enhanced Time of Day */
+.timeofday-item-enhanced {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.timeofday-item-enhanced.clickable {
+  cursor: pointer;
+}
+
+.timeofday-item-enhanced.clickable:hover {
+  background: #e8f4f5;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(70, 129, 137, 0.15);
+}
+
+.timeofday-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 150px;
+}
+
+.timeofday-emoji {
+  font-size: 24px;
+}
+
+.timeofday-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.timeofday-stats-enhanced {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.timeofday-count {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.timeofday-duration {
+  font-size: 13px;
+  color: #666;
+}
+
+.learning-insight {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: #e8f4f5;
+  border-left: 4px solid #468189;
+  border-radius: 6px;
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.learning-insight strong {
+  color: #468189;
 }
 
 /* Weekly Trend List */
@@ -302,6 +429,256 @@
   gap: 16px;
   font-size: 13px;
   color: #666;
+}
+
+.section-description {
+  margin: -8px 0 0 0;
+  font-size: 14px;
+  color: #666;
+}
+
+/* Drill-down View */
+.drill-down-header {
+  margin-bottom: 24px;
+}
+
+.back-btn-analytics {
+  background: transparent;
+  color: #468189;
+  border: none;
+  padding: 8px 0;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: color 0.2s;
+}
+
+.back-btn-analytics:hover {
+  color: #3a6a72;
+}
+
+.drill-down-header h2 {
+  margin: 0;
+  color: #468189;
+  font-size: 24px;
+}
+
+.drill-down-videos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.drill-down-empty {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 16px;
+}
+
+.drill-down-video-item {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.2s;
+}
+
+.drill-down-video-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-color: #468189;
+}
+
+.drill-down-video-main {
+  flex: 1;
+}
+
+.drill-down-video-main h3 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.drill-down-video-meta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #666;
+}
+
+.drill-down-date {
+  color: #468189;
+  font-weight: 500;
+}
+
+.drill-down-duration,
+.drill-down-source {
+  padding: 2px 8px;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.drill-down-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.drill-down-tag {
+  padding: 4px 10px;
+  background: #e8f4f5;
+  color: #468189;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.drill-down-watch-btn {
+  padding: 10px 20px;
+  background: #468189;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.drill-down-watch-btn:hover {
+  background: #3a6a72;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(70, 129, 137, 0.3);
+}
+
+.drill-down-watch-btn:active {
+  transform: translateY(0);
+}
+
+.drill-down-thumbnail {
+  width: 180px;
+  height: 101px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+/* Progress Bars */
+.progress-bar-container {
+  width: 100%;
+  height: 6px;
+  background: #E0E0E0;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #4CAF50;
+  transition: width 0.3s ease;
+  border-radius: 3px;
+}
+
+/* Commute Stats Full */
+.commute-stats-full {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.commute-count {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.commute-duration {
+  font-size: 13px;
+  color: #666;
+}
+
+/* Recent Videos List */
+.recent-videos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recent-video-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.recent-video-item:hover {
+  background: #e8f4f5;
+  transform: translateX(4px);
+}
+
+.recent-video-number {
+  width: 28px;
+  height: 28px;
+  background: #468189;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.recent-video-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.recent-video-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.recent-video-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #666;
+}
+
+.recent-time-ago {
+  color: #468189;
+  font-weight: 500;
+}
+
+.recent-duration,
+.recent-topic {
+  padding: 2px 6px;
+  background: white;
+  border-radius: 4px;
 }
 
 /* Responsive */

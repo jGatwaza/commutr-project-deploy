@@ -33,7 +33,7 @@ function History() {
 
         <div className="history-content">
           {activeTab === 'watched' && <WatchedList />}
-          {activeTab === 'analytics' && <AnalyticsTab />}
+          {activeTab === 'analytics' && <AnalyticsTab onSwitchToWatched={() => setActiveTab('watched')} />}
         </div>
       </div>
     </div>
