@@ -62,6 +62,16 @@ function AgentMode() {
     setInputValue('');
     setIsTyping(true);
 
+    // Build conversation history including the new user message
+    // This ensures the AI has full context of the conversation
+    const updatedHistory = [
+      ...conversationHistory,
+      {
+        role: 'user',
+        content: message
+      }
+    ];
+
     try {
       const response = await fetch(`${API_BASE}/v1/agent/chat`, {
         method: 'POST',
@@ -71,7 +81,7 @@ function AgentMode() {
         },
         body: JSON.stringify({ 
           message,
-          conversationHistory 
+          conversationHistory: updatedHistory 
         })
       });
 
@@ -142,8 +152,14 @@ function AgentMode() {
           dispatch(addUserMessage(message));
           setIsTyping(true);
           
-          // Get current conversation history before adding new message
-          const currentHistory = conversationHistory;
+          // Build conversation history including the new user message
+          const updatedHistory = [
+            ...conversationHistory,
+            {
+              role: 'user',
+              content: message
+            }
+          ];
           
           // Make API call
           fetch(`${API_BASE}/v1/agent/chat`, {
@@ -154,7 +170,7 @@ function AgentMode() {
             },
             body: JSON.stringify({ 
               message,
-              conversationHistory: currentHistory 
+              conversationHistory: updatedHistory 
             })
           })
             .then(response => {
@@ -266,6 +282,17 @@ function AgentMode() {
                 autoComplete="off"
                 required
               />
+              <button
+                type="button"
+                className="conversation-btn"
+                onClick={() => navigate('/conversation')}
+                title="Voice Conversation Mode"
+              >
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 6H19V15H6V17C6 17.55 6.45 18 7 18H18L22 22V7C22 6.45 21.55 6 21 6Z" fill="#77ACA2"/>
+                  <path d="M17 1H3C2.45 1 2 1.45 2 2V16L6 12H17C17.55 12 18 11.55 18 11V2C18 1.45 17.55 1 17 1ZM13 9H7C6.45 9 6 8.55 6 8C6 7.45 6.45 7 7 7H13C13.55 7 14 7.45 14 8C14 8.55 13.55 9 13 9ZM15 6H7C6.45 6 6 5.55 6 5C6 4.45 6.45 4 7 4H15C15.55 4 16 4.45 16 5C16 5.55 15.55 6 15 6Z" fill="#77ACA2"/>
+                </svg>
+              </button>
               <VoiceButton
                 onTranscript={handleVoiceTranscript}
                 onStatus={handleVoiceStatus}

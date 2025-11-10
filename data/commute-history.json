@@ -1,1 +1,56 @@
-{}
+{
+  "demoUser": [
+    {
+      "id": "commute-1762807234044",
+      "timestamp": "2025-11-10T20:40:34.044Z",
+      "topics": [
+        "Python"
+      ],
+      "durationSec": 7,
+      "videosWatched": []
+    },
+    {
+      "id": "commute-1762806476506",
+      "timestamp": "2025-11-10T20:27:56.506Z",
+      "topics": [
+        "yoga"
+      ],
+      "durationSec": 2,
+      "videosWatched": []
+    },
+    {
+      "id": "commute-1762806046225",
+      "timestamp": "2025-11-10T20:20:46.225Z",
+      "topics": [
+        "cooking"
+      ],
+      "durationSec": 600,
+      "videosWatched": [
+        {
+          "videoId": "cooking-quick-pasta",
+          "title": "10-Minute Weeknight Pasta",
+          "thumbnail": "https://i.ytimg.com/vi/xxxx8/mqdefault.jpg",
+          "channelTitle": "Kitchen Lab",
+          "durationSec": 480
+        }
+      ]
+    },
+    {
+      "id": "commute-1762804676610",
+      "timestamp": "2025-11-10T19:57:56.610Z",
+      "topics": [
+        "yoga"
+      ],
+      "durationSec": 11,
+      "videosWatched": [
+        {
+          "videoId": "yoga-7",
+          "title": "yoga Tutorial 7",
+          "thumbnail": "https://picsum.photos/seed/yoga-6/320/180",
+          "channelTitle": "Expert Guides",
+          "durationSec": 554
+        }
+      ]
+    }
+  ]
+}

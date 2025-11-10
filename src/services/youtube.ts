@@ -1,5 +1,50 @@
 import type { Candidate } from '../stubs/metadata.js';
 
+export class YouTubeQuotaExceededError extends Error {
+  reason?: string;
+
+  constructor(message: string, reason?: string) {
+    super(message);
+    this.name = 'YouTubeQuotaExceededError';
+    this.reason = reason;
+  }
+}
+
+const QUOTA_ERROR_REASONS = new Set([
+  'quotaExceeded',
+  'dailyLimitExceeded',
+  'userRateLimitExceeded',
+  'rateLimitExceeded'
+]);
+
+type YouTubeErrorPayload = {
+  error?: {
+    message?: string;
+    errors?: Array<{ reason?: string; message?: string }>;
+  };
+};
+
+async function handleYouTubeErrorResponse(response: Response): Promise<never> {
+  let payload: YouTubeErrorPayload | null = null;
+
+  try {
+    payload = (await response.json()) as YouTubeErrorPayload;
+  } catch (parseError) {
+    // ignore JSON parsing issues; fall back to status-based messaging below
+  }
+
+  const message = payload?.error?.message || `YouTube API request failed with status ${response.status}`;
+  const quotaError = payload?.error?.errors?.find((errorDetail) => {
+    return Boolean(errorDetail?.reason && QUOTA_ERROR_REASONS.has(errorDetail.reason));
+  });
+
+  if (quotaError?.reason) {
+    throw new YouTubeQuotaExceededError(message, quotaError.reason);
+  }
+
+  throw new Error(message);
+}
+
 // Real YouTube API service - calls actual YouTube Data API v3
 export async function searchYouTubeVideos(topic: string, maxResults: number = 50): Promise<Candidate[]> {
   // Use your actual YouTube API key
@@ -32,39 +77,82 @@ export async function searchYouTubeVideos(topic: string, maxResults: number = 50
     const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(topic + ' tutorial')}&type=video&maxResults=20&key=${API_KEY}`;
     
     const searchResponse = await fetch(searchUrl);
-    const searchData = await searchResponse.json() as any;
+
+    if (!searchResponse.ok) {
+      await handleYouTubeErrorResponse(searchResponse);
+    }
+
+    const searchData = (await searchResponse.json()) as any;
     
     console.log('📊 YouTube search found:', searchData.items?.length || 0, 'videos');
     
     if (searchData.items && searchData.items.length > 0) {
-      // Get video details including duration
+      // Get video details including duration and playback status flags
       const videoIds = searchData.items.map((item: any) => item.id.videoId).join(',');
-      const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${API_KEY}`;
+      const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet,status&id=${videoIds}&key=${API_KEY}`;
       
       const detailsResponse = await fetch(detailsUrl);
-      const detailsData = await detailsResponse.json() as any;
+
+      if (!detailsResponse.ok) {
+        await handleYouTubeErrorResponse(detailsResponse);
+      }
+
+      const detailsData = (await detailsResponse.json()) as any;
       
       if (detailsData.items) {
-        // Convert to Candidate format with real durations
-        const candidates: Candidate[] = detailsData.items.map((video: any) => {
-          const duration = parseDuration(video.contentDetails.duration);
-          
-          return {
-            videoId: video.id,
-            channelId: video.snippet.channelId,
-            durationSec: duration,
-            topic: topic.toLowerCase(),
-            level: determineDifficulty(video.snippet.title, video.snippet.description),
-            title: video.snippet.title,
-            channelTitle: video.snippet.channelTitle,
-            publishedAt: video.snippet.publishedAt,
-            thumbnail: video.snippet.thumbnails?.medium?.url || video.snippet.thumbnails?.default?.url || `https://img.youtube.com/vi/${video.id}/mqdefault.jpg`
-          };
-        }).filter((candidate: Candidate) => {
-          // Very basic filtering - just exclude very short or very long videos
-          return candidate.durationSec >= 60 && candidate.durationSec <= 7200; // 1 minute to 2 hours
-        });
-        
+        const candidates: Candidate[] = detailsData.items
+          .filter((video: any) => {
+            if (!video?.id || !video?.snippet) {
+              return false;
+            }
+
+            // Skip videos that cannot be embedded in iframes
+            if (video.status && video.status.embeddable === false) {
+              console.warn(`🚫 Skipping non-embeddable video ${video.id}`);
+              return false;
+            }
+
+            const regionRestriction = video.contentDetails?.regionRestriction;
+            if (regionRestriction) {
+              const blocked: string[] = Array.isArray(regionRestriction.blocked) ? regionRestriction.blocked : [];
+              if (blocked.includes('US')) {
+                console.warn(`🚫 Skipping region-restricted video ${video.id} (blocked in US)`);
+                return false;
+              }
+
+              const allowed: string[] = Array.isArray(regionRestriction.allowed) ? regionRestriction.allowed : [];
+              if (allowed.length > 0 && !allowed.includes('US')) {
+                console.warn(`🚫 Skipping region-restricted video ${video.id} (US not allowed)`);
+                return false;
+              }
+            }
+
+            return true;
+          })
+          .map((video: any) => {
+            const duration = parseDuration(video.contentDetails.duration);
+
+            return {
+              videoId: video.id,
+              channelId: video.snippet.channelId,
+              durationSec: duration,
+              topic: topic.toLowerCase(),
+              level: determineDifficulty(video.snippet.title, video.snippet.description),
+              title: video.snippet.title,
+              channelTitle: video.snippet.channelTitle,
+              publishedAt: video.snippet.publishedAt,
+              thumbnail: video.snippet.thumbnails?.medium?.url || video.snippet.thumbnails?.default?.url || `https://img.youtube.com/vi/${video.id}/mqdefault.jpg`
+            };
+          })
+          .filter((candidate: Candidate) => {
+            // Exclude very short or very long videos and ensure we have a valid videoId
+            return (
+              Boolean(candidate.videoId) &&
+              candidate.durationSec >= 60 &&
+              candidate.durationSec <= 7200
+            );
+          });
+
         allCandidates.push(...candidates);
       }
     }
@@ -78,6 +166,11 @@ export async function searchYouTubeVideos(topic: string, maxResults: number = 50
     return uniqueCandidates.slice(0, maxResults);
     
   } catch (error) {
+    if (error instanceof YouTubeQuotaExceededError) {
+      console.error('YouTube API quota reached:', error.message);
+      throw error;
+    }
+
     console.error('YouTube API error:', error);
     return [];
   }

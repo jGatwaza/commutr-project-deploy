@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 
 // Load the manual mock for 'groq-sdk' (moduleNameMapper in jest.config.js)
-const groqMockModule: any = await import('groq-sdk');
+const groqMockModule: any = await import('groq-sdk/index.mjs');
 const __mockGroqCreate = groqMockModule.__mockGroqCreate as jest.Mock;
 const mockGroqCreate = __mockGroqCreate;
 

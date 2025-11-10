@@ -1,5 +1,5 @@
-import { buildPack } from './builder';
-import type { Candidate } from '../stubs/metadata';
+import { buildPack } from './builder.js';
+import type { Candidate } from '../stubs/metadata.js';
 
 function candidates(topic='python'): Candidate[] {
   return [

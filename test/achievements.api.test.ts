@@ -1,7 +1,7 @@
 // HW9 CTR-C4: Achievements API Tests
 import request from 'supertest';
-import app from '../src/server';
-import { clearSessions, saveSession } from '../src/history/store';
+import app from '../src/server.js';
+import { clearSessions, saveSession } from '../src/history/store.js';
 
 const AUTH = { Authorization: 'Bearer TEST' };
 

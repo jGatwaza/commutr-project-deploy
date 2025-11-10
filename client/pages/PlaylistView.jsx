@@ -6,9 +6,47 @@ import '../styles/PlaylistView.css';
 function PlaylistView() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { playlist, context } = location.state || {};
+  const [persistentPlaylist, setPersistentPlaylist] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem('wizardPlaylist');
+      return stored ? JSON.parse(stored) : null;
+    } catch (error) {
+      console.error('Failed to parse stored playlist:', error);
+      return null;
+    }
+  });
+
+  const [persistentContext, setPersistentContext] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem('wizardPlaylistContext');
+      return stored ? JSON.parse(stored) : null;
+    } catch (error) {
+      console.error('Failed to parse stored playlist context:', error);
+      return null;
+    }
+  });
+
+  const { playlist: statePlaylist, context: stateContext } = location.state || {};
+  const playlist = statePlaylist || persistentPlaylist;
+  const context = stateContext || persistentContext;
   const { startCommute, isActive } = useCommute();
 
+  useEffect(() => {
+    if (statePlaylist) {
+      try {
+        sessionStorage.setItem('wizardPlaylist', JSON.stringify(statePlaylist));
+      } catch (error) {
+        console.error('Failed to persist playlist to storage:', error);
+      }
+    }
+    if (stateContext) {
+      try {
+        sessionStorage.setItem('wizardPlaylistContext', JSON.stringify(stateContext));
+      } catch (error) {
+        console.error('Failed to persist playlist context to storage:', error);
+      }
+    }
+  }, [statePlaylist, stateContext]);
   // Start commute timer when playlist is loaded
   useEffect(() => {
     if (context) {
@@ -40,6 +78,7 @@ function PlaylistView() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const playlistItems = playlist.items ?? playlist.videos ?? [];
   const totalMinutes = Math.floor(playlist.totalDurationSec / 60);
   const commuteDuration = Math.floor(context.duration / 60);
 
@@ -76,7 +115,7 @@ function PlaylistView() {
           <div className="summary-card">
             <div className="summary-item">
               <span className="summary-label">Videos</span>
-              <span className="summary-value">{playlist.items.length}</span>
+              <span className="summary-value">{playlistItems.length}</span>
             </div>
             <div className="summary-item">
               <span className="summary-label">Total Duration</span>
@@ -100,7 +139,7 @@ function PlaylistView() {
         </div>
 
         <div className="video-list">
-          {playlist.items.map((video, index) => (
+          {playlistItems.map((video, index) => (
             <div key={video.videoId} className="video-card" onClick={() => startPlaylist(index)}>
               <div className="video-thumbnail">
                 <img 
