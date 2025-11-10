@@ -6,7 +6,6 @@ import {
   addAssistantMessage, 
   clearConversation,
   initializeSession,
-  selectMessages,
   selectConversationHistory 
 } from '../store/conversationSlice';
 import { speak, stopSpeaking } from '../services/ttsService';
@@ -17,7 +16,6 @@ const AUTH_TOKEN = 'Bearer TEST';
 
 function ConversationMode() {
   const dispatch = useDispatch();
-  const messages = useSelector(selectMessages);
   const conversationHistory = useSelector(selectConversationHistory);
   const navigate = useNavigate();
 
@@ -138,31 +136,52 @@ function ConversationMode() {
 
   const speakText = async (text, autoListen = true) => {
     stopSpeaking();
+    setIsSpeaking(false);
 
     return new Promise(async (resolve) => {
+      let hasEnded = false;
+      
+      const handleEnd = () => {
+        if (hasEnded) return;
+        hasEnded = true;
+        
+        console.log('Speech ended');
+        setIsSpeaking(false);
+        setStatus('Starting to listen...');
+        
+        if (autoListen) {
+          console.log('Auto-listening triggered, calling startListening in 800ms');
+          setTimeout(() => {
+            console.log('Executing startListening now, isSubmitting:', isSubmittingRef.current);
+            startListening();
+          }, 800);
+        } else {
+          setStatus('Tap to speak');
+        }
+        
+        resolve();
+      };
+
+      const estimatedDuration = (text.length / 15) * 1000;
+      const maxTimeout = Math.max(estimatedDuration + 2000, 10000);
+      
+      const timeoutId = setTimeout(() => {
+        console.log('Speech timeout - forcing end');
+        handleEnd();
+      }, maxTimeout);
+
       const audio = await speak(text, {
         onStart: () => {
           setIsSpeaking(true);
           setStatus('AI is speaking...');
         },
         onEnd: () => {
-          setIsSpeaking(false);
-          
-          if (autoListen) {
-            setTimeout(() => {
-              console.log('Auto-listening triggered');
-              if (!isSubmittingRef.current) {
-                startListening();
-              }
-            }, 300);
-          } else {
-            setStatus('Tap to speak');
-          }
-          
-          resolve();
+          clearTimeout(timeoutId);
+          handleEnd();
         },
         onError: (event) => {
           console.error('Speech synthesis error:', event);
+          clearTimeout(timeoutId);
           setIsSpeaking(false);
           setStatus('Speech error. Tap to continue.');
           resolve();
@@ -217,6 +236,8 @@ function ConversationMode() {
 
       dispatch(addAssistantMessage(data.message));
 
+      isSubmittingRef.current = false;
+
       if (data.playlist) {
         const playlistMessage = "Great! I've created your playlist. Let me take you there now!";
         
@@ -235,56 +256,50 @@ function ConversationMode() {
     } catch (error) {
       console.error('Error:', error);
       setIsProcessing(false);
+      isSubmittingRef.current = false;
       const errorMsg = 'Sorry, I encountered an error. Please make sure the server is running and try again.';
       dispatch(addAssistantMessage(errorMsg));
       speakText(errorMsg);
-    } finally {
-      isSubmittingRef.current = false;
     }
   };
 
   const startListening = () => {
     console.log('startListening called', { 
       hasRecognition: !!recognitionRef.current, 
-      isListening
+      isListening,
+      isSpeaking
     });
 
     if (!recognitionRef.current) {
       console.log('No recognition ref');
+      setStatus('Voice recognition not available');
       return;
     }
 
-    if (isListening) {
-      console.log('Already listening');
-      return;
-    }
-
+    console.log('Proceeding with startListening (forcing restart)');
+    
+    stopSpeaking();
+    setIsSpeaking(false);
+    setIsListening(false);
+    finalTranscriptRef.current = '';
+    
     try {
-      stopSpeaking();
-      
-      finalTranscriptRef.current = '';
-      
-      try {
-        recognitionRef.current.abort();
-      } catch (e) {
-      }
-      
-      setTimeout(() => {
-        try {
-          console.log('Starting recognition...');
-          recognitionRef.current.start();
-        } catch (startError) {
-          console.error('Failed to start recognition:', startError);
-          setIsListening(false);
-          setStatus('Could not start listening. Please try again.');
-        }
-      }, 100);
-      
-    } catch (error) {
-      console.error('Recognition error:', error);
-      setIsListening(false);
-      setStatus('Could not start listening. Please try again.');
+      recognitionRef.current.abort();
+    } catch (e) {
+      console.log('Abort error (ok)');
     }
+    
+    setTimeout(() => {
+      try {
+        console.log('About to call recognition.start()');
+        recognitionRef.current.start();
+        console.log('recognition.start() called successfully');
+      } catch (startError) {
+        console.error('Failed to start recognition:', startError);
+        setIsListening(false);
+        setStatus('Could not start listening. Please try again.');
+      }
+    }, 400);
   };
 
   const handleStopSpeaking = () => {
@@ -311,50 +326,6 @@ function ConversationMode() {
         </div>
 
         <div className="conversation-content">
-          <div className="messages-display">
-            {messages.map((message, index) => (
-              <div 
-                key={message.timestamp || index} 
-                className={`conversation-message ${message.role === 'user' ? 'user' : 'assistant'}`}
-              >
-                <div className="message-avatar">
-                  {message.role === 'user' ? (
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="12" cy="12" r="10" fill="#468189"/>
-                      <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="#F4E9CD"/>
-                    </svg>
-                  ) : (
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="12" cy="12" r="10" fill="#77ACA2"/>
-                      <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V11H13V17ZM13 9H11V7H13V9Z" fill="#031926"/>
-                    </svg>
-                  )}
-                </div>
-                <div className="message-bubble">
-                  {message.content}
-                </div>
-              </div>
-            ))}
-            
-            {isProcessing && (
-              <div className="conversation-message assistant">
-                <div className="message-avatar">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="12" r="10" fill="#77ACA2"/>
-                    <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V11H13V17ZM13 9H11V7H13V9Z" fill="#031926"/>
-                  </svg>
-                </div>
-                <div className="message-bubble">
-                  <div className="typing-indicator">
-                    <span className="typing-dot"></span>
-                    <span className="typing-dot"></span>
-                    <span className="typing-dot"></span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
           <div className="voice-control-area">
             <div className="status-text">{status}</div>
             
