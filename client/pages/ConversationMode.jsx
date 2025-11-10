@@ -81,19 +81,16 @@ function ConversationMode() {
     };
 
     recognition.onend = () => {
-      console.log('Speech recognition ended');
       setIsListening(false);
       
       const finalTranscript = finalTranscriptRef.current.trim();
       
       if (finalTranscript) {
-        console.log('Processing transcript:', finalTranscript);
         if (handleUserInputRef.current) {
           handleUserInputRef.current(finalTranscript);
         }
         finalTranscriptRef.current = '';
       } else {
-        console.log('No final transcript detected');
         setStatus('No speech detected. Please try again.');
         setTimeout(() => {
           setStatus('Tap to speak');
@@ -102,7 +99,6 @@ function ConversationMode() {
     };
 
     recognition.onerror = (event) => {
-      console.log('Speech recognition error:', event.error);
       setIsListening(false);
       
       finalTranscriptRef.current = '';
@@ -145,16 +141,10 @@ function ConversationMode() {
         if (hasEnded) return;
         hasEnded = true;
         
-        console.log('Speech ended');
         setIsSpeaking(false);
-        setStatus('Starting to listen...');
         
         if (autoListen) {
-          console.log('Auto-listening triggered, calling startListening in 200ms');
-          setTimeout(() => {
-            console.log('Executing startListening now, isSubmitting:', isSubmittingRef.current);
-            startListening();
-          }, 200);
+          startListening();
         } else {
           setStatus('Tap to speak');
         }
@@ -166,7 +156,6 @@ function ConversationMode() {
       const maxTimeout = Math.max(estimatedDuration + 2000, 10000);
       
       const timeoutId = setTimeout(() => {
-        console.log('Speech timeout - forcing end');
         handleEnd();
       }, maxTimeout);
 
@@ -193,9 +182,7 @@ function ConversationMode() {
   };
 
   const handleUserInput = async (transcript) => {
-    console.log('handleUserInput called with:', transcript);
     if (isSubmittingRef.current || !transcript) {
-      console.log('Skipping - already submitting or empty transcript');
       return;
     }
 
@@ -264,19 +251,10 @@ function ConversationMode() {
   };
 
   const startListening = () => {
-    console.log('startListening called', { 
-      hasRecognition: !!recognitionRef.current, 
-      isListening,
-      isSpeaking
-    });
-
     if (!recognitionRef.current) {
-      console.log('No recognition ref');
       setStatus('Voice recognition not available');
       return;
     }
-
-    console.log('Proceeding with startListening (forcing restart)');
     
     stopSpeaking();
     setIsSpeaking(false);
@@ -286,20 +264,15 @@ function ConversationMode() {
     try {
       recognitionRef.current.abort();
     } catch (e) {
-      console.log('Abort error (ok)');
     }
     
-    setTimeout(() => {
-      try {
-        console.log('About to call recognition.start()');
-        recognitionRef.current.start();
-        console.log('recognition.start() called successfully');
-      } catch (startError) {
-        console.error('Failed to start recognition:', startError);
-        setIsListening(false);
-        setStatus('Could not start listening. Please try again.');
-      }
-    }, 100);
+    try {
+      recognitionRef.current.start();
+    } catch (startError) {
+      console.error('Failed to start recognition:', startError);
+      setIsListening(false);
+      setStatus('Could not start listening. Please try again.');
+    }
   };
 
   const handleStopSpeaking = () => {
