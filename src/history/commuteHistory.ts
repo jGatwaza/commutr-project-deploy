@@ -102,6 +102,27 @@ export function getUserHistory(userId: string): CommuteSession[] {
   return history[userId] || [];
 }
 
+export function getTopicWatchCount(userId: string, topic: string): number {
+  const history = readHistory();
+  const commutes = history[userId] || [];
+
+  let total = 0;
+  commutes.forEach((session) => {
+    const normalizedTopic = topic.toLowerCase();
+    if (session.topics.some((value) => value.toLowerCase() === normalizedTopic)) {
+      total += 1;
+    }
+
+    session.videosWatched.forEach((video) => {
+      if (video.title.toLowerCase().includes(normalizedTopic)) {
+        total += 1;
+      }
+    });
+  });
+
+  return total;
+}
+
 /**
  * Get a specific commute session by ID
  */

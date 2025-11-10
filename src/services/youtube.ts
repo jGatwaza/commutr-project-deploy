@@ -1,5 +1,50 @@
 import type { Candidate } from '../stubs/metadata.js';
 
+export class YouTubeQuotaExceededError extends Error {
+  reason?: string;
+
+  constructor(message: string, reason?: string) {
+    super(message);
+    this.name = 'YouTubeQuotaExceededError';
+    this.reason = reason;
+  }
+}
+
+const QUOTA_ERROR_REASONS = new Set([
+  'quotaExceeded',
+  'dailyLimitExceeded',
+  'userRateLimitExceeded',
+  'rateLimitExceeded'
+]);
+
+type YouTubeErrorPayload = {
+  error?: {
+    message?: string;
+    errors?: Array<{ reason?: string; message?: string }>;
+  };
+};
+
+async function handleYouTubeErrorResponse(response: Response): Promise<never> {
+  let payload: YouTubeErrorPayload | null = null;
+
+  try {
+    payload = (await response.json()) as YouTubeErrorPayload;
+  } catch (parseError) {
+    // ignore JSON parsing issues; fall back to status-based messaging below
+  }
+
+  const message = payload?.error?.message || `YouTube API request failed with status ${response.status}`;
+  const quotaError = payload?.error?.errors?.find((errorDetail) => {
+    return Boolean(errorDetail?.reason && QUOTA_ERROR_REASONS.has(errorDetail.reason));
+  });
+
+  if (quotaError?.reason) {
+    throw new YouTubeQuotaExceededError(message, quotaError.reason);
+  }
+
+  throw new Error(message);
+}
+
 // Real YouTube API service - calls actual YouTube Data API v3
 export async function searchYouTubeVideos(topic: string, maxResults: number = 50): Promise<Candidate[]> {
   // Use your actual YouTube API key
@@ -32,7 +77,12 @@ export async function searchYouTubeVideos(topic: string, maxResults: number = 50
     const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(topic + ' tutorial')}&type=video&maxResults=20&key=${API_KEY}`;
     
     const searchResponse = await fetch(searchUrl);
-    const searchData = await searchResponse.json() as any;
+
+    if (!searchResponse.ok) {
+      await handleYouTubeErrorResponse(searchResponse);
+    }
+
+    const searchData = (await searchResponse.json()) as any;
     
     console.log('📊 YouTube search found:', searchData.items?.length || 0, 'videos');
     
@@ -42,7 +92,12 @@ export async function searchYouTubeVideos(topic: string, maxResults: number = 50
       const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${videoIds}&key=${API_KEY}`;
       
       const detailsResponse = await fetch(detailsUrl);
-      const detailsData = await detailsResponse.json() as any;
+
+      if (!detailsResponse.ok) {
+        await handleYouTubeErrorResponse(detailsResponse);
+      }
+
+      const detailsData = (await detailsResponse.json()) as any;
       
       if (detailsData.items) {
         // Convert to Candidate format with real durations
@@ -78,6 +133,11 @@ export async function searchYouTubeVideos(topic: string, maxResults: number = 50
     return uniqueCandidates.slice(0, maxResults);
     
   } catch (error) {
+    if (error instanceof YouTubeQuotaExceededError) {
+      console.error('YouTube API quota reached:', error.message);
+      throw error;
+    }
+
     console.error('YouTube API error:', error);
     return [];
   }

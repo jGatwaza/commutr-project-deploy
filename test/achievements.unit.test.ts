@@ -1,6 +1,6 @@
 // HW9 CTR-C4: Achievements Service Unit Tests
-import { computeAchievements } from '../src/achievements/service';
-import { clearSessions, saveSession } from '../src/history/store';
+import { computeAchievements } from '../src/achievements/service.js';
+import { clearSessions, saveSession } from '../src/history/store.js';
 
 // Clear sessions before each test
 beforeEach(() => {
