@@ -556,7 +556,7 @@ router.post('/playlist', async (req, res) => {
       const fetchedCandidates = await getCandidates(topic);
       
       // Process candidates to ensure all required fields are present with proper types
-      candidates = fetchedCandidates.map(candidate => {
+      const processedCandidates = fetchedCandidates.map(candidate => {
         // Ensure all required fields have values
         const processed: Candidate = {
           videoId: candidate.videoId || `fallback-${Math.random().toString(36).substring(2, 9)}`,
@@ -571,6 +571,19 @@ router.post('/playlist', async (req, res) => {
         };
         return processed;
       });
+
+      if (processedCandidates.length > 0) {
+        const deduped = new Map<string, Candidate>();
+        [...previewCandidates, ...processedCandidates].forEach((candidate) => {
+          if (!candidate.videoId) {
+            return;
+          }
+          if (!deduped.has(candidate.videoId)) {
+            deduped.set(candidate.videoId, candidate);
+          }
+        });
+        candidates = Array.from(deduped.values());
+      }
       
       console.log(`Found ${candidates.length} candidates for topic: ${topic}`);
     } catch (error) {
