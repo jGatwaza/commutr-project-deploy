@@ -96,23 +96,8 @@ function WatchedList() {
   };
   
   const handleWatchAgain = (item) => {
-    // Create a single-video playlist and navigate to player
-    const playlist = {
-      items: [{
-        videoId: item.videoId,
-        title: item.title,
-        thumbnail: `https://img.youtube.com/vi/${item.videoId}/mqdefault.jpg`,
-        durationSec: item.durationSec,
-        channelTitle: item.channelTitle || 'Unknown'
-      }]
-    };
-    
-    const context = {
-      topic: item.topicTags?.[0] || 'general',
-      duration: item.durationSec
-    };
-    
-    navigate('/player', { state: { playlist, context, startIndex: 0 } });
+    // Open video directly in YouTube in new tab
+    window.open(`https://www.youtube.com/watch?v=${item.videoId}`, '_blank');
   };
 
   if (loading && items.length === 0) {
