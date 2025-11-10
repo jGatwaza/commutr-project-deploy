@@ -46,7 +46,6 @@ export function getBestBrowserVoice() {
       v.name === preferred
     );
     if (voice) {
-      console.log('Selected voice:', voice.name);
       return voice;
     }
   }
@@ -59,19 +58,16 @@ export function getBestBrowserVoice() {
   );
   
   if (naturalVoice) {
-    console.log('Selected natural voice:', naturalVoice.name);
     return naturalVoice;
   }
 
   // Fallback: any English voice
   const englishVoice = voices.find(v => v.lang.startsWith('en'));
   if (englishVoice) {
-    console.log('Selected English voice:', englishVoice.name);
     return englishVoice;
   }
 
   // Last resort: first available voice
-  console.log('Using default voice:', voices[0]?.name);
   return voices[0];
 }
 
@@ -121,7 +117,6 @@ async function speakWithElevenLabs(text, onStart, onEnd, onError) {
     
     return audio;
   } catch (error) {
-    console.error('ElevenLabs TTS error:', error);
     onError?.(error);
     return null;
   }
@@ -158,7 +153,6 @@ function speakWithBrowser(text, onStart, onEnd, onError) {
   };
 
   utterance.onerror = (event) => {
-    console.error('Speech synthesis error:', event);
     onError?.(event);
   };
 
@@ -182,10 +176,8 @@ export async function speak(text, callbacks = {}) {
 
   // Use ElevenLabs if API key is available, otherwise use browser
   if (USE_ELEVENLABS) {
-    console.log('Using ElevenLabs TTS');
     return await speakWithElevenLabs(text, onStart, onEnd, onError);
   } else {
-    console.log('Using browser TTS with premium voice');
     return speakWithBrowser(text, onStart, onEnd, onError);
   }
 }

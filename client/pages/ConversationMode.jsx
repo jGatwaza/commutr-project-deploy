@@ -21,7 +21,7 @@ function ConversationMode() {
 
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState('Initializing...');
   const [isProcessing, setIsProcessing] = useState(false);
   const [hasGreeted, setHasGreeted] = useState(false);
 
@@ -35,12 +35,10 @@ function ConversationMode() {
     dispatch(initializeSession());
     
     if (!hasGreeted) {
-      setTimeout(() => {
-        const greeting = "Hello! I'm your Commutr assistant. What would you like to learn about today? You can tell me a topic and how long your commute is.";
-        dispatch(addAssistantMessage(greeting));
-        speakText(greeting);
-        setHasGreeted(true);
-      }, 500);
+      const greeting = "Hello! I'm your Commutr assistant. What would you like to learn about today? You can tell me a topic and how long your commute is.";
+      dispatch(addAssistantMessage(greeting));
+      speakText(greeting);
+      setHasGreeted(true);
     }
   }, [dispatch, hasGreeted]);
 
@@ -169,7 +167,6 @@ function ConversationMode() {
           handleEnd();
         },
         onError: (event) => {
-          console.error('Speech synthesis error:', event);
           clearTimeout(timeoutId);
           setIsSpeaking(false);
           setStatus('Speech error. Tap to continue.');
@@ -241,7 +238,6 @@ function ConversationMode() {
       }
 
     } catch (error) {
-      console.error('Error:', error);
       setIsProcessing(false);
       isSubmittingRef.current = false;
       const errorMsg = 'Sorry, I encountered an error. Please make sure the server is running and try again.';
@@ -269,7 +265,6 @@ function ConversationMode() {
     try {
       recognitionRef.current.start();
     } catch (startError) {
-      console.error('Failed to start recognition:', startError);
       setIsListening(false);
       setStatus('Could not start listening. Please try again.');
     }
