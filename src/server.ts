@@ -8,6 +8,7 @@ import playbackRouter from './web/playback.js';
 import agentRouter from './web/agent.js';
 import historyRouter from './web/history.js';
 import recommendRouter from './web/recommend.js';
+import watchHistoryRouter from './web/watchHistory.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,6 +27,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use(playlistRouter);
 app.use('/api', streakRouter);
 app.use('/api', historyRouter);
+app.use('/api', watchHistoryRouter);
 app.use('/api', recommendRouter);
 app.use(playbackRouter);
 app.use(agentRouter);

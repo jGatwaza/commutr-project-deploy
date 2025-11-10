@@ -1,0 +1,85 @@
+.history-page {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding: 20px;
+}
+
+.history-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.history-header h1 {
+  margin: 0;
+  color: #468189;
+  font-size: 32px;
+}
+
+.back-btn {
+  padding: 10px 20px;
+  background: #468189;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.back-btn:hover {
+  background: #3a6a72;
+}
+
+.history-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.history-tab {
+  padding: 12px 24px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-size: 16px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: -2px;
+}
+
+.history-tab:hover {
+  color: #468189;
+}
+
+.history-tab.active {
+  color: #468189;
+  border-bottom-color: #468189;
+}
+
+.history-content {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+  .history-header h1 {
+    font-size: 24px;
+  }
+  
+  .history-tab {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+}

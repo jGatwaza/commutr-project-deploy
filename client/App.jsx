@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import AgentMode from './pages/AgentMode';
 import Home from './pages/Home';
+import History from './pages/History';
 
 function App() {
   return (
@@ -23,6 +24,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AgentMode />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/history" 
+          element={
+            <ProtectedRoute>
+              <History />
             </ProtectedRoute>
           } 
         />
