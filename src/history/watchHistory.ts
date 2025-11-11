@@ -266,3 +266,260 @@ export function getWatchedVideoIds(userId: string): Set<string> {
       .filter(Boolean)
   );
 }
+
+/**
+ * Get list of video IDs watched by a user, optionally filtered by topic.
+ */
+export function getWatchedVideoIds(userId: string, topic?: string): string[] {
+  const store = loadWatched();
+  let entries = store.entries.filter(e => e.userId === userId);
+  
+  // Filter by topic if provided
+  if (topic) {
+    entries = entries.filter(e => 
+      e.topicTags && e.topicTags.some(tag => 
+        tag.toLowerCase() === topic.toLowerCase()
+      )
+    );
+  }
+  
+  return entries.map(e => e.videoId);
+}
+
+/**
+ * Analytics types
+ */
+export type TopicStat = {
+  topic: string;
+  videoCount: number;
+  totalDuration: number;
+  avgCompletion: number;
+};
+
+export type CommuteLengthStat = {
+  commuteLength: string; // '5min', '10min', '15min'
+  videoCount: number;
+  totalDuration: number;
+};
+
+export type TimeOfDayStat = {
+  timePeriod: string; // 'morning', 'afternoon', 'evening'
+  videoCount: number;
+  totalDuration: number;
+};
+
+export type WeeklyTrendStat = {
+  week: string; // ISO date string
+  videoCount: number;
+  totalDuration: number;
+};
+
+export type AnalyticsData = {
+  byTopic: TopicStat[];
+  byCommuteLength: CommuteLengthStat[];
+  byTimeOfDay: TimeOfDayStat[];
+  completionRate: { completionRate: number; totalVideos: number };
+  streak: number;
+  weeklyTrend: WeeklyTrendStat[];
+};
+
+/**
+ * Get analytics for a user's watch history.
+ * Calculates aggregated statistics across multiple dimensions.
+ */
+export function getWatchAnalytics(userId: string, timeframe: 'week' | 'month' | 'all' = 'month'): AnalyticsData {
+  const store = loadWatched();
+  
+  // Filter by userId and timeframe
+  let entries = store.entries.filter(e => e.userId === userId);
+  
+  // Apply timeframe filter
+  const now = new Date();
+  if (timeframe === 'week') {
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    entries = entries.filter(e => {
+      const completedAt = e.completedAt ? new Date(e.completedAt) : new Date(e.updatedAt);
+      return completedAt >= weekAgo;
+    });
+  } else if (timeframe === 'month') {
+    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    entries = entries.filter(e => {
+      const completedAt = e.completedAt ? new Date(e.completedAt) : new Date(e.updatedAt);
+      return completedAt >= monthAgo;
+    });
+  }
+  
+  // 1. By Topic
+  const topicMap = new Map<string, { count: number; duration: number; totalProgress: number }>();
+  entries.forEach(entry => {
+    if (entry.topicTags && entry.topicTags.length > 0) {
+      entry.topicTags.forEach(topic => {
+        const existing = topicMap.get(topic) || { count: 0, duration: 0, totalProgress: 0 };
+        topicMap.set(topic, {
+          count: existing.count + 1,
+          duration: existing.duration + entry.durationSec,
+          totalProgress: existing.totalProgress + (entry.progressPct || 0)
+        });
+      });
+    }
+  });
+  
+  const byTopic: TopicStat[] = Array.from(topicMap.entries())
+    .map(([topic, stats]) => ({
+      topic,
+      videoCount: stats.count,
+      totalDuration: stats.duration,
+      avgCompletion: stats.count > 0 ? stats.totalProgress / stats.count : 0
+    }))
+    .sort((a, b) => b.totalDuration - a.totalDuration);
+  
+  // 2. By Commute Length
+  const commuteLengthMap = new Map<string, { count: number; duration: number }>();
+  entries.forEach(entry => {
+    let bucket: string;
+    if (entry.durationSec <= 300) bucket = '5min';
+    else if (entry.durationSec <= 600) bucket = '10min';
+    else bucket = '15min';
+    
+    const existing = commuteLengthMap.get(bucket) || { count: 0, duration: 0 };
+    commuteLengthMap.set(bucket, {
+      count: existing.count + 1,
+      duration: existing.duration + entry.durationSec
+    });
+  });
+  
+  const byCommuteLength: CommuteLengthStat[] = Array.from(commuteLengthMap.entries())
+    .map(([commuteLength, stats]) => ({
+      commuteLength,
+      videoCount: stats.count,
+      totalDuration: stats.duration
+    }))
+    .sort((a, b) => {
+      const order = { '5min': 1, '10min': 2, '15min': 3 };
+      return order[a.commuteLength as keyof typeof order] - order[b.commuteLength as keyof typeof order];
+    });
+  
+  // 3. By Time of Day
+  const timeOfDayMap = new Map<string, { count: number; duration: number }>();
+  entries.forEach(entry => {
+    const timestamp = entry.completedAt || entry.updatedAt;
+    const date = new Date(timestamp);
+    const hour = date.getHours();
+    
+    let period: string;
+    if (hour < 12) period = 'morning';
+    else if (hour < 18) period = 'afternoon';
+    else period = 'evening';
+    
+    const existing = timeOfDayMap.get(period) || { count: 0, duration: 0 };
+    timeOfDayMap.set(period, {
+      count: existing.count + 1,
+      duration: existing.duration + entry.durationSec
+    });
+  });
+  
+  const byTimeOfDay: TimeOfDayStat[] = Array.from(timeOfDayMap.entries())
+    .map(([timePeriod, stats]) => ({
+      timePeriod,
+      videoCount: stats.count,
+      totalDuration: stats.duration
+    }))
+    .sort((a, b) => {
+      const order = { 'morning': 1, 'afternoon': 2, 'evening': 3 };
+      return order[a.timePeriod as keyof typeof order] - order[b.timePeriod as keyof typeof order];
+    });
+  
+  // 4. Completion Rate
+  const completedCount = entries.filter(e => (e.progressPct || 0) >= 90).length;
+  const totalVideos = entries.length;
+  const completionRate = totalVideos > 0 ? (completedCount / totalVideos) * 100 : 0;
+  
+  // 5. Learning Streak
+  const streak = calculateStreak(userId);
+  
+  // 6. Weekly Trend (last 12 weeks)
+  const weeklyMap = new Map<string, { count: number; duration: number }>();
+  const twelveWeeksAgo = new Date(now.getTime() - 12 * 7 * 24 * 60 * 60 * 1000);
+  
+  store.entries
+    .filter(e => e.userId === userId)
+    .forEach(entry => {
+      const timestamp = entry.completedAt || entry.updatedAt;
+      const date = new Date(timestamp);
+      
+      if (date >= twelveWeeksAgo) {
+        // Get start of week (Sunday)
+        const weekStart = new Date(date);
+        weekStart.setDate(date.getDate() - date.getDay());
+        weekStart.setHours(0, 0, 0, 0);
+        const weekKey = weekStart.toISOString().split('T')[0];
+        
+        const existing = weeklyMap.get(weekKey) || { count: 0, duration: 0 };
+        weeklyMap.set(weekKey, {
+          count: existing.count + 1,
+          duration: existing.duration + entry.durationSec
+        });
+      }
+    });
+  
+  const weeklyTrend: WeeklyTrendStat[] = Array.from(weeklyMap.entries())
+    .map(([week, stats]) => ({
+      week,
+      videoCount: stats.count,
+      totalDuration: stats.duration
+    }))
+    .sort((a, b) => b.week.localeCompare(a.week)); // Most recent first
+  
+  return {
+    byTopic,
+    byCommuteLength,
+    byTimeOfDay,
+    completionRate: { completionRate, totalVideos },
+    streak,
+    weeklyTrend
+  };
+}
+
+/**
+ * Calculate learning streak (consecutive days with watch activity).
+ */
+function calculateStreak(userId: string): number {
+  const store = loadWatched();
+  const entries = store.entries.filter(e => e.userId === userId);
+  
+  if (entries.length === 0) return 0;
+  
+  // Get unique dates (YYYY-MM-DD) sorted descending
+  const dates = Array.from(new Set(
+    entries.map(e => {
+      const timestamp = e.completedAt || e.updatedAt;
+      return new Date(timestamp).toISOString().split('T')[0];
+    })
+  )).sort().reverse();
+  
+  if (dates.length === 0) return 0;
+  
+  // Check if today or yesterday has activity
+  const today = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  
+  if (dates[0] !== today && dates[0] !== yesterday) {
+    return 0; // Streak is broken
+  }
+  
+  // Count consecutive days
+  let streak = 1;
+  for (let i = 1; i < dates.length; i++) {
+    const currentDate = new Date(dates[i - 1]);
+    const prevDate = new Date(dates[i]);
+    const diffDays = Math.floor((currentDate.getTime() - prevDate.getTime()) / (24 * 60 * 60 * 1000));
+    
+    if (diffDays === 1) {
+      streak++;
+    } else {
+      break; // Streak broken
+    }
+  }
+  
+  return streak;
+}

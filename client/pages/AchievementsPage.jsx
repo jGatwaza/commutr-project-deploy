@@ -1,6 +1,7 @@
 // HW9 CTR-C4: Achievements Page Component
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import '../styles/AchievementsPage.css';
 
 const API_BASE = 'http://localhost:3000';
@@ -11,14 +12,19 @@ function AchievementsPage() {
   const [error, setError] = useState(null);
   const [data, setData] = useState(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
-    fetchAchievements();
-  }, []);
+    if (user) {
+      fetchAchievements();
+    }
+  }, [user]);
 
   const fetchAchievements = async () => {
+    if (!user) return;
+    
     try {
-      const response = await fetch(`${API_BASE}/api/achievements`, {
+      const response = await fetch(`${API_BASE}/api/achievements?userId=${user.uid}`, {
         headers: {
           'Authorization': AUTH_TOKEN
         }

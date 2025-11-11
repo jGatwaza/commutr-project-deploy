@@ -11,7 +11,7 @@ import QuickPlaylist from './pages/QuickPlaylist';
 import PlaylistView from './pages/PlaylistView';
 import ImmersivePlayer from './pages/ImmersivePlayer';
 import History from './pages/History';
-import AchievementsPage from './pages/AchievementsPage'; // HW9 CTR-C4
+import AchievementsPage from './pages/AchievementsPage';
 
 function AppContent() {
   const navigate = useNavigate();
@@ -19,6 +19,7 @@ function AppContent() {
 
   const handleChatAction = (action) => {
     console.log('Chat action:', action);
+    
     switch (action.type) {
       case 'skip_video':
         window.dispatchEvent(new CustomEvent('chat-skip-video'));
@@ -79,7 +80,7 @@ function AppContent() {
             <ProtectedRoute>
               <QuickPlaylist />
             </ProtectedRoute>
-          }
+          } 
         />
         <Route
           path="/playlist"

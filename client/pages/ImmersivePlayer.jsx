@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCommute } from '../context/CommuteContext';
+import { useAuth } from '../context/AuthContext';
 import CommuteTimer from '../components/CommuteTimer';
 import PlayerControls from '../components/PlayerControls';
 import '../styles/ImmersivePlayer.css';
@@ -11,6 +12,7 @@ const AUTH_TOKEN = 'Bearer TEST';
 function ImmersivePlayer() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const { playlist: initialPlaylist, context, startIndex = 0 } = location.state || {};
   const { commuteStartTime, totalDuration, watchedVideoIds: contextWatchedIds, topicsLearned, startCommute, addWatchedVideo, getRemainingTime, saveVideoPosition, getVideoPosition, endCommute } = useCommute();
 
@@ -142,6 +144,31 @@ function ImmersivePlayer() {
   const markVideoWatched = (videoId) => {
     if (!contextWatchedIds.includes(videoId)) {
       addWatchedVideo(videoId);
+      
+      // Save to watch history
+      if (user) {
+        fetch(`${API_BASE}/api/history/watch`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': AUTH_TOKEN
+          },
+          body: JSON.stringify({
+            userId: user.uid,
+            videoId: currentVideo.videoId,
+            title: currentVideo.title,
+            durationSec: currentVideo.durationSec,
+            topicTags: [context.topic],
+            completedAt: new Date().toISOString(),
+            progressPct: 100,
+            source: 'youtube'
+          })
+        }).then(res => {
+          if (res.ok) {
+            console.log('✅ Saved to watch history:', currentVideo.title);
+          }
+        }).catch(err => console.error('Failed to save watch history:', err));
+      }
       
       // Send to backend to track in history
       fetch(`${API_BASE}/api/session`, {

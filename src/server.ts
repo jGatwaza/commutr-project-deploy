@@ -15,6 +15,7 @@ import recommendRouter from './web/recommend.js';
 import achievementsRouter from './web/achievements.js';
 import wizardApiRouter from './api/wizard.js';
 import watchHistoryRouter from './web/watchHistory.js';
+import achievementsRouter from './web/achievements.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,8 +66,8 @@ if (hasDist) {
 // API Routes
 app.use('/api', wizardApiRouter); // Wizard API routes
 app.use('/api', streakRouter);
+app.use('/api', watchHistoryRouter); // Mount before historyRouter to avoid route conflicts
 app.use('/api', historyRouter);
-app.use('/api', watchHistoryRouter);
 app.use('/api', recommendRouter);
 app.use('/api', achievementsRouter);
 
