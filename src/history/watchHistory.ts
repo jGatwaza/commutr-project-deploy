@@ -50,11 +50,11 @@ function loadWatched(): WatchedStore {
   if (!existsSync(DATA_DIR)) {
     mkdirSync(DATA_DIR, { recursive: true });
   }
-  
+
   if (!existsSync(WATCHED_FILE)) {
     return { entries: [] };
   }
-  
+
   try {
     const data = readFileSync(WATCHED_FILE, 'utf-8');
     const parsed = JSON.parse(data);
@@ -245,8 +245,26 @@ export function listWatched(options: {
     const nextOffset = offset + validLimit;
     nextCursor = Buffer.from(nextOffset.toString()).toString('base64');
   }
+
+  const result: { items: WatchedEntry[]; nextCursor?: string } = { items };
+  if (nextCursor !== undefined) {
+    result.nextCursor = nextCursor;
+  }
   
-  return { items, nextCursor };
+  return result;
+}
+
+/**
+ * Utility used by the agent endpoint: return set of watched video IDs for a user.
+ */
+export function getWatchedVideoIds(userId: string): Set<string> {
+  const store = loadWatched();
+  return new Set(
+    store.entries
+      .filter((entry) => entry.userId === userId)
+      .map((entry) => entry.videoId)
+      .filter(Boolean)
+  );
 }
 
 /**

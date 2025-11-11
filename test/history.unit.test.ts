@@ -5,7 +5,7 @@ import {
   getShared,
   issueShareToken,
   clearSessions
-} from '../src/history/store';
+} from '../src/history/store.js';
 
 // Clear sessions before each test
 beforeEach(() => {

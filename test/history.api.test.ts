@@ -1,6 +1,6 @@
 import request from 'supertest';
-import app from '../src/server';
-import { clearSessions } from '../src/history/store';
+import app from '../src/server.js';
+import { clearSessions } from '../src/history/store.js';
 
 const AUTH = { Authorization: 'Bearer TEST' };
 

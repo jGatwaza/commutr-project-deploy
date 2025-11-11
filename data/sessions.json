@@ -1,11 +1,11 @@
 [
   {
-    "id": "cmhqlmdc5x8giu3huk9h",
-    "createdAt": "2025-11-08T18:09:06.053Z",
-    "queryText": "test",
+    "id": "cmhtqpytm5equh4my1u9",
+    "createdAt": "2025-11-10T22:55:10.474Z",
+    "queryText": "short session",
     "intentJSON": {},
     "playlistJSON": {},
-    "durationMs": 60000000,
-    "shareToken": "7ddjihel8qwwn6atoa3ns"
+    "durationMs": 1500000,
+    "shareToken": "i41hx4c5shfkr84hdbu1h"
   }
 ]

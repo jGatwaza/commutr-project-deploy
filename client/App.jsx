@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import FloatingChat from './components/FloatingChat';
 import Login from './pages/Login';
 import AgentMode from './pages/AgentMode';
+import ConversationMode from './pages/ConversationMode';
 import Home from './pages/Home';
 import QuickPlaylist from './pages/QuickPlaylist';
 import PlaylistView from './pages/PlaylistView';
@@ -28,11 +29,11 @@ function AppContent() {
         break;
       case 'navigate':
         if (action.playlist && action.context) {
-          navigate(action.path, { 
-            state: { 
-              playlist: action.playlist, 
-              context: action.context 
-            } 
+          navigate(action.path, {
+            state: {
+              playlist: action.playlist,
+              context: action.context,
+            }
           });
         } else {
           navigate(action.path);
@@ -49,19 +50,27 @@ function AppContent() {
     <>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route 
-          path="/home" 
+        <Route
+          path="/home"
           element={
             <ProtectedRoute>
               <Home />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/agent" 
+        <Route
+          path="/agent"
           element={
             <ProtectedRoute>
               <AgentMode />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/conversation" 
+          element={
+            <ProtectedRoute>
+              <ConversationMode />
             </ProtectedRoute>
           } 
         />
@@ -73,41 +82,41 @@ function AppContent() {
             </ProtectedRoute>
           } 
         />
-        <Route 
-          path="/playlist" 
+        <Route
+          path="/playlist"
           element={
             <ProtectedRoute>
               <PlaylistView />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/player" 
+        <Route
+          path="/player"
           element={
             <ProtectedRoute>
               <ImmersivePlayer />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/history" 
+        <Route
+          path="/history"
           element={
             <ProtectedRoute>
               <History />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/achievements" 
+        <Route
+          path="/achievements"
           element={
             <ProtectedRoute>
               <AchievementsPage />
             </ProtectedRoute>
-          } 
+          }
         />
         <Route path="/" element={<Navigate to="/home" replace />} />
       </Routes>
-      
+
       {showChat && <FloatingChat onAction={handleChatAction} />}
     </>
   );
