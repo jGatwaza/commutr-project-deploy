@@ -255,22 +255,10 @@ export function listWatched(options: {
 }
 
 /**
- * Utility used by the agent endpoint: return set of watched video IDs for a user.
- */
-export function getWatchedVideoIds(userId: string): Set<string> {
-  const store = loadWatched();
-  return new Set(
-    store.entries
-      .filter((entry) => entry.userId === userId)
-      .map((entry) => entry.videoId)
-      .filter(Boolean)
-  );
-}
-
-/**
  * Get list of video IDs watched by a user, optionally filtered by topic.
+ * Returns a Set for efficient lookup by the agent endpoint.
  */
-export function getWatchedVideoIds(userId: string, topic?: string): string[] {
+export function getWatchedVideoIds(userId: string, topic?: string): Set<string> {
   const store = loadWatched();
   let entries = store.entries.filter(e => e.userId === userId);
   
@@ -283,7 +271,7 @@ export function getWatchedVideoIds(userId: string, topic?: string): string[] {
     );
   }
   
-  return entries.map(e => e.videoId);
+  return new Set(entries.map(e => e.videoId).filter(Boolean));
 }
 
 /**
