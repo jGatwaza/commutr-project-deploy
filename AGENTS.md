@@ -29,9 +29,12 @@ Users can interact with the Commutr Assistant via:
 
 1. **User Input**: User sends a message via text or voice
 2. **AI Processing**: Message is processed by Groq's Llama 3.3 70B model
-3. **Intent Extraction**: AI extracts topic and duration from natural language
-4. **Playlist Generation**: If intent is detected, the system generates a playlist using existing playlist builder logic
-5. **Response**: Assistant provides friendly feedback and displays the playlist
+3. **Information Gathering**: AI extracts topic, duration, and mood from natural conversation
+4. **Confirmation**: Once topic and duration are known, AI asks user to confirm before creating playlist
+5. **Playlist Generation**: After user confirms, system generates playlist using existing playlist builder logic
+6. **Response**: Assistant provides friendly feedback and displays the playlist
+
+**Key Feature**: The assistant NEVER creates playlists without explicit user confirmation, ensuring users have control over the process.
 
 ### Technical Architecture
 
@@ -71,10 +74,12 @@ Users can interact with the Commutr Assistant via:
 - **Response Format**: Structured JSON
 
 **System Prompt Design**:
-- Friendly, conversational tone
-- Extracts topic and duration from natural language
+- Friendly, conversational, and enthusiastic tone
+- Extracts topic, duration, and mood from natural language
 - Maintains conversation context across turns
-- Returns JSON with message and optional playlist request
+- **Requires explicit user confirmation before creating playlists**
+- Returns JSON with message and optional playlist request (only after confirmation)
+- Never exposes JSON structure to users
 - Provides helpful fallback responses
 
 ### Voice Mode Features
@@ -112,28 +117,54 @@ The assistant maintains context across the conversation using Redux state:
 
 ### Example Interactions
 
-**Simple Request**:
+**Conversational Flow with Confirmation** (CURRENT BEHAVIOR):
 ```
-User: "I want to learn JavaScript for 15 minutes"
-Assistant: "Great! I'll create a JavaScript playlist for your 15-minute commute. Let me gather the best videos for you!"
-[Redirects to playlist with JavaScript videos]
+User: "hi"
+Assistant: "Hello! It's great to meet you! 😊 I can help you create personalized learning playlists for your commute. What would you like to learn about today?"
+
+User: "I am learning about ancient history"
+Assistant: "Ancient history is fascinating! There's so much to explore from ancient civilizations, empires, and cultures. How long is your commute today?"
+
+User: "It's 10 minutes"
+Assistant: "Perfect! So I can create a 10-minute ancient history playlist for you. Would you like me to go ahead and create that?"
+
+User: "yes"
+Assistant: "Awesome! Creating your 10-minute ancient history playlist now. Let me find the best educational content for you!"
+[Redirects to playlist with ancient history videos]
 ```
 
-**Conversational Context**:
+**Quick Request with Confirmation**:
 ```
-User: "I'm interested in learning Python"
-Assistant: "Awesome! Python is a great choice. How long is your commute?"
-User: "About 20 minutes"
-Assistant: "Perfect! I'll create a Python playlist for your 20-minute journey!"
-[Generates playlist]
+User: "I want to learn Python for 15 minutes"
+Assistant: "Python is an excellent choice! It's perfect for beginners and experts alike. Just to confirm - you'd like me to create a 15-minute Python programming playlist for you, right?"
+
+User: "yep"
+Assistant: "Perfect! Creating your Python playlist right now!"
+[Redirects to playlist with Python videos]
 ```
 
-**Voice Input**:
+**Gradual Information Extraction**:
 ```
-User: [Speaks] "Create a cooking playlist for my thirty minute drive"
+User: "Can you make a cooking playlist?"
+Assistant: "I'd love to help you learn cooking! How long is your commute or how much time do you have available?"
+
+User: "30 minutes"
+Assistant: "Great! So you want a 30-minute cooking playlist. Should I go ahead and create that for you?"
+
+User: "sure"
+Assistant: "Awesome! Putting together your cooking playlist now!"
+[Shows playlist]
+```
+
+**Voice Input with Confirmation**:
+```
+User: [Speaks] "Create a fitness playlist for twenty minutes"
 [Text appears in real-time as user speaks]
 [Auto-submits after user finishes]
-Assistant: "I'd love to help you learn cooking! Here's a perfect playlist for your 30-minute drive!"
+Assistant: "Fitness is a great topic! Just to confirm - would you like me to create a 20-minute fitness playlist for you?"
+
+User: "yes please"
+Assistant: "Perfect! Creating your fitness playlist now!"
 [Shows playlist]
 ```
 

@@ -44,7 +44,9 @@ function AppContent() {
     }
   };
 
-  const showChat = location.pathname !== '/login';
+  const showChat = location.pathname !== '/login' && 
+                    location.pathname !== '/agent' && 
+                    location.pathname !== '/conversation';
 
   return (
     <>
