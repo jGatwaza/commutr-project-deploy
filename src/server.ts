@@ -29,7 +29,7 @@ const io = new Server(server, {
 });
 
 const distDir = path.join(__dirname, '../dist');
-const legacyDir = path.join(__dirname, '../public');
+const legacyDir = path.join(__dirname, '../legacy');
 const hasDist = fs.existsSync(distDir);
 
 // Socket.IO connection handling
