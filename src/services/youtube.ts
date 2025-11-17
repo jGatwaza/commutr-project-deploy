@@ -6,7 +6,9 @@ export class YouTubeQuotaExceededError extends Error {
   constructor(message: string, reason?: string) {
     super(message);
     this.name = 'YouTubeQuotaExceededError';
-    this.reason = reason;
+    if (reason !== undefined) {
+      this.reason = reason;
+    }
   }
 }
 
