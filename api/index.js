@@ -1,32 +1,29 @@
 // Vercel serverless function entry point
-import express from 'express';
-
-// Create app inline for testing
-const testApp = express();
-testApp.use(express.json());
-testApp.get('/health-test', (req, res) => {
-  res.json({ status: 'OK from inline', timestamp: new Date().toISOString() });
-});
-
 export default async function handler(req, res) {
-  // Test if inline route works
-  if (req.url === '/health-test' || req.url.startsWith('/health-test?')) {
-    return testApp(req, res);
-  }
-  
   try {
-    // Log for debugging
-    console.log(`Request: ${req.method} ${req.url}`);
+    console.log(`[Vercel] Request: ${req.method} ${req.url}`);
     
-    // Try to import the app
+    // Import the Express app
     const { default: app } = await import('../src/server.js');
     
-    console.log('App imported successfully');
+    console.log(`[Vercel] App imported, type: ${typeof app}`);
+    console.log(`[Vercel] App._router:`, app._router ? 'exists' : 'missing');
+    
+    if (app._router && app._router.stack) {
+      console.log(`[Vercel] Routes registered: ${app._router.stack.length}`);
+      app._router.stack.forEach((layer, i) => {
+        if (layer.route) {
+          console.log(`[Vercel]   ${i}: ${Object.keys(layer.route.methods)} ${layer.route.path}`);
+        } else if (layer.name === 'router') {
+          console.log(`[Vercel]   ${i}: router at ${layer.regexp}`);
+        }
+      });
+    }
     
     // Let Express handle the request
     return app(req, res);
   } catch (error) {
-    console.error('Error in handler:', error);
+    console.error('[Vercel] Error in handler:', error);
     res.status(500).json({ 
       error: 'Internal server error', 
       message: error.message,
