@@ -1,8 +1,11 @@
 // Vercel serverless function entry point
-import express from 'express';
-
-// Import the Express app
 import app from '../src/server.js';
 
-// Export the app as the default handler
-export default app;
+// Wrap the Express app to ensure it handles requests properly
+export default async function handler(req, res) {
+  // Log for debugging
+  console.log(`${req.method} ${req.url}`);
+  
+  // Let Express handle the request
+  return app(req, res);
+}
