@@ -80,18 +80,7 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Serve index.html for SPA routing
-app.get('*', (req, res) => {
-  if (hasDist) {
-    res.sendFile(path.join(distDir, 'index.html'));
-  } else {
-    res.sendFile(path.join(legacyDir, 'index.html'));
-  }
-});
-app.use('/api/wizard', wizardApiRouter);
-app.use(playbackRouter);
-app.use(agentRouter);
-
+// Legacy route
 app.get('/legacy', (_req, res) => {
   const legacyIndex = path.join(legacyDir, 'index.html');
   if (fs.existsSync(legacyIndex)) {
@@ -108,20 +97,27 @@ app.get('/s/:token', (req, res) => {
   res.redirect(target);
 });
 
-if (hasDist) {
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api') || req.path.startsWith('/v1') || req.path.startsWith('/legacy')) {
-      return next();
-    }
+// SPA fallback route - must be last
+app.get('*', (req, res, next) => {
+  // Skip API routes
+  if (req.path.startsWith('/api') || req.path.startsWith('/v1') || req.path.startsWith('/health') || req.path.startsWith('/legacy') || req.path.startsWith('/s/')) {
+    return next();
+  }
 
+  if (hasDist) {
     const indexPath = path.join(distDir, 'index.html');
     if (fs.existsSync(indexPath)) {
       return res.sendFile(indexPath);
     }
+  } else {
+    const indexPath = path.join(legacyDir, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      return res.sendFile(indexPath);
+    }
+  }
 
-    return res.status(404).send('App build not found');
-  });
-}
+  return res.status(404).send('App not found');
+});
 
 const PORT = process.env.PORT || 3000;
 const API_PORT = process.env.API_PORT || 5173;
