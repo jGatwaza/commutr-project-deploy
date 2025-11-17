@@ -1,42 +1,26 @@
 {
   "version": 2,
-  "builds": [
+  "buildCommand": "npm run build",
+  "rewrites": [
     {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
+      "source": "/api/:path*",
+      "destination": "/api/index.js"
     },
     {
-      "src": "api/index.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "source": "/v1/:path*",
+      "destination": "/api/index.js"
     },
     {
-      "src": "/v1/(.*)",
-      "dest": "/api/index.js"
+      "source": "/health",
+      "destination": "/api/index.js"
     },
     {
-      "src": "/health",
-      "dest": "/api/index.js"
+      "source": "/s/:token",
+      "destination": "/api/index.js"
     },
     {
-      "src": "/s/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/legacy",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/dist/$1"
+      "source": "/legacy",
+      "destination": "/api/index.js"
     }
   ]
 }
