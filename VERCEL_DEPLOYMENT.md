@@ -88,7 +88,7 @@ The deployment configuration uses:
 ```
 commutr-project/
 ├── api/
-│   └── index.js           # Serverless function entry point
+│   └── index.ts           # Serverless function entry point (TypeScript)
 ├── dist/                  # Built React app (created during build)
 ├── src/
 │   └── server.ts          # Express server (adapted for serverless)
@@ -96,6 +96,13 @@ commutr-project/
 ├── vercel.json            # Vercel configuration
 └── package.json           # Build scripts
 ```
+
+### Important Notes
+
+- The `api/index.ts` file is a TypeScript serverless function that Vercel automatically compiles
+- All dependencies are automatically installed by Vercel during build
+- The server checks `process.env.VERCEL === '1'` to avoid starting a server in serverless mode
+- TypeScript files in `src/` are imported directly; Vercel handles compilation
 
 ### API Routes
 
@@ -122,14 +129,17 @@ After deployment:
 ### Build Fails
 
 - **Error**: "Cannot find module"
-  - Solution: Make sure all dependencies are in `dependencies`, not `devDependencies`
+  - Solution: Make sure runtime dependencies (express, cors, groq-sdk, etc.) are in `dependencies`, not `devDependencies`
+  - Solution: Build dependencies (tsx, typescript, vite, etc.) can be in `devDependencies`
   - Solution: Run `npm install` locally to verify all packages are installed
+  - Solution: Check that `api/index.ts` exists and exports the Express app
 
 ### API Routes Not Working
 
 - **Error**: 404 on `/api/*` routes
   - Solution: Check `vercel.json` rewrites are correctly configured
-  - Solution: Verify `api/index.js` exists and exports the Express app
+  - Solution: Verify `api/index.ts` exists and exports the Express app
+  - Solution: Check Vercel function logs for errors
 
 ### Environment Variables Not Working
 
