@@ -2,8 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import { useCommute } from '../context/CommuteContext';
 import { useLocation } from 'react-router-dom';
 import '../styles/FloatingChat.css';
+import { buildApiUrl } from '../config/api';
 
-const API_BASE = 'http://localhost:3000';
+const API_BASE = buildApiUrl();
 
 function FloatingChat({ onAction }) {
   const [isOpen, setIsOpen] = useState(false);
