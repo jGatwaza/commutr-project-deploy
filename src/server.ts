@@ -55,14 +55,7 @@ app.options('*', cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files
-if (hasDist) {
-  app.use(express.static(distDir));
-} else {
-  app.use(express.static(legacyDir));
-}
-
-// API Routes
+// API Routes (must come BEFORE static file serving)
 app.use('/api/wizard', wizardApiRouter); // Wizard API routes
 app.use('/api', streakRouter);
 app.use('/api', watchHistoryRouter); // Mount before historyRouter to avoid route conflicts
@@ -88,6 +81,15 @@ app.get('/legacy', (_req, res) => {
   }
   return res.status(404).send('Legacy site not found');
 });
+
+// Serve static files (only for local development, not needed on Vercel)
+if (process.env.VERCEL !== '1') {
+  if (hasDist) {
+    app.use(express.static(distDir));
+  } else {
+    app.use(express.static(legacyDir));
+  }
+}
 
 // Redirect /s/:token to share.html with token query param
 app.get('/s/:token', (req, res) => {
