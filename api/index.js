@@ -3,22 +3,45 @@ export default async function handler(req, res) {
   try {
     console.log(`[Vercel] Request: ${req.method} ${req.url}`);
     
-    // Import the Express app
-    const { default: app } = await import('../src/server.js');
-    
-    console.log(`[Vercel] App imported, type: ${typeof app}`);
-    console.log(`[Vercel] App._router:`, app._router ? 'exists' : 'missing');
-    
-    if (app._router && app._router.stack) {
-      console.log(`[Vercel] Routes registered: ${app._router.stack.length}`);
-      app._router.stack.forEach((layer, i) => {
-        if (layer.route) {
-          console.log(`[Vercel]   ${i}: ${Object.keys(layer.route.methods)} ${layer.route.path}`);
-        } else if (layer.name === 'router') {
-          console.log(`[Vercel]   ${i}: router at ${layer.regexp}`);
-        }
+    // Debug endpoint
+    if (req.url === '/api/debug-routes' || req.url.startsWith('/api/debug-routes?')) {
+      const { default: app } = await import('../src/server.js');
+      
+      const routes = [];
+      if (app._router && app._router.stack) {
+        app._router.stack.forEach((layer, i) => {
+          if (layer.route) {
+            routes.push({
+              index: i,
+              methods: Object.keys(layer.route.methods),
+              path: layer.route.path
+            });
+          } else if (layer.name === 'router') {
+            routes.push({
+              index: i,
+              type: 'router',
+              regexp: layer.regexp.toString()
+            });
+          } else {
+            routes.push({
+              index: i,
+              type: layer.name || 'unknown'
+            });
+          }
+        });
+      }
+      
+      return res.json({
+        status: 'debug',
+        appType: typeof app,
+        hasRouter: !!app._router,
+        routeCount: routes.length,
+        routes: routes
       });
     }
+    
+    // Import the Express app
+    const { default: app } = await import('../src/server.js');
     
     // Let Express handle the request
     return app(req, res);
