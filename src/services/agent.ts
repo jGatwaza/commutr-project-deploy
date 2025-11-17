@@ -1,9 +1,10 @@
 import 'groq-sdk/shims/node';
 import Groq from 'groq-sdk';
 
-const groq = new Groq({
+// Create Groq client instance
+const groq = new (Groq as any)({
   apiKey: process.env.GROQ_API_KEY || ''
-});
+}) as Groq;
 
 export interface PlaylistRequest {
   topic: string;
