@@ -63,7 +63,7 @@ if (hasDist) {
 }
 
 // API Routes
-app.use('/api', wizardApiRouter); // Wizard API routes
+app.use('/api/wizard', wizardApiRouter); // Wizard API routes
 app.use('/api', streakRouter);
 app.use('/api', watchHistoryRouter); // Mount before historyRouter to avoid route conflicts
 app.use('/api', historyRouter);
