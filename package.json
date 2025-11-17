@@ -10,6 +10,7 @@
     "dev:server": "PORT=5173 tsx src/server.ts",
     "dev:client": "VITE_API_BASE_URL=http://localhost:5173 VITE_API_AUTH_TOKEN='Bearer TEST' vite",
     "build": "vite build",
+    "vercel-build": "vite build",
     "preview": "vite preview",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand"
   },

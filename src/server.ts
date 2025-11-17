@@ -15,7 +15,6 @@ import recommendRouter from './web/recommend.js';
 import achievementsRouter from './web/achievements.js';
 import wizardApiRouter from './api/wizard.js';
 import watchHistoryRouter from './web/watchHistory.js';
-import achievementsRouter from './web/achievements.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -127,22 +126,25 @@ if (hasDist) {
 const PORT = process.env.PORT || 3000;
 const API_PORT = process.env.API_PORT || 5173;
 
-// Start the server
-server.listen(API_PORT, () => {
-  console.log(`🚀 API Server running on port ${API_PORT}`);
-  console.log(`🌍 Web Server running on port ${PORT}`);
-  console.log(`📂 Serving from: ${hasDist ? 'dist' : 'public'} directory`);
-  
-  // Log all registered routes
-  console.log('\n📡 Registered Routes:');
-  console.log('  GET    /health');
-  console.log('  POST   /api/wizard/recommendations');
-  console.log('  POST   /api/wizard/playlist');
-  console.log('  GET    /api/streak');
-  console.log('  GET    /api/history');
-  console.log('  GET    /api/recommend');
-  console.log('  GET    /api/achievements');
-  console.log('\n🔌 WebSocket ready at ws://localhost:' + API_PORT);
-});
+// Only start the server if not in serverless environment (Vercel)
+if (process.env.VERCEL !== '1') {
+  // Start the server
+  server.listen(API_PORT, () => {
+    console.log(`🚀 API Server running on port ${API_PORT}`);
+    console.log(`🌍 Web Server running on port ${PORT}`);
+    console.log(`📂 Serving from: ${hasDist ? 'dist' : 'public'} directory`);
+    
+    // Log all registered routes
+    console.log('\n📡 Registered Routes:');
+    console.log('  GET    /health');
+    console.log('  POST   /api/wizard/recommendations');
+    console.log('  POST   /api/wizard/playlist');
+    console.log('  GET    /api/streak');
+    console.log('  GET    /api/history');
+    console.log('  GET    /api/recommend');
+    console.log('  GET    /api/achievements');
+    console.log('\n🔌 WebSocket ready at ws://localhost:' + API_PORT);
+  });
+}
 
 export default app;
