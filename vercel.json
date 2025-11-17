@@ -1,42 +1,42 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "rewrites": [
+  "builds": [
     {
-      "source": "/api/:path*",
-      "destination": "/api"
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     },
     {
-      "source": "/v1/:path*",
-      "destination": "/api"
-    },
-    {
-      "source": "/health",
-      "destination": "/api"
-    },
-    {
-      "source": "/s/:token",
-      "destination": "/api"
-    },
-    {
-      "source": "/legacy",
-      "destination": "/api"
-    },
-    {
-      "source": "/((?!api|v1|health|legacy|s|assets).*)",
-      "destination": "/index.html"
+      "src": "api/index.js",
+      "use": "@vercel/node"
     }
   ],
-  "headers": [
+  "routes": [
     {
-      "source": "/api/:path*",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "s-maxage=0"
-        }
-      ]
+      "src": "/api/(.*)",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/v1/(.*)",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/health",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/s/(.*)",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/legacy",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/dist/$1"
     }
   ]
 }
