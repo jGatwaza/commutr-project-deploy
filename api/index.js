@@ -36,7 +36,11 @@ export default async function handler(req, res) {
         appType: typeof app,
         hasRouter: !!app._router,
         routeCount: routes.length,
-        routes: routes
+        routes: routes,
+        env: {
+          VERCEL: process.env.VERCEL,
+          NODE_ENV: process.env.NODE_ENV
+        }
       });
     }
     
