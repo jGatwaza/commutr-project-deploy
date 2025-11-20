@@ -441,6 +441,7 @@ export function getWatchAnalytics(userId: string, timeframe: 'week' | 'month' | 
         weekStart.setDate(date.getDate() - date.getDay());
         weekStart.setHours(0, 0, 0, 0);
         const weekKey = weekStart.toISOString().split('T')[0];
+        if (!weekKey) return; // Skip if weekKey is undefined
         
         const existing = weeklyMap.get(weekKey) || { count: 0, duration: 0 };
         weeklyMap.set(weekKey, {
@@ -498,8 +499,12 @@ function calculateStreak(userId: string): number {
   // Count consecutive days
   let streak = 1;
   for (let i = 1; i < dates.length; i++) {
-    const currentDate = new Date(dates[i - 1]);
-    const prevDate = new Date(dates[i]);
+    const currentDateStr = dates[i - 1];
+    const prevDateStr = dates[i];
+    if (!currentDateStr || !prevDateStr) break;
+    
+    const currentDate = new Date(currentDateStr);
+    const prevDate = new Date(prevDateStr);
     const diffDays = Math.floor((currentDate.getTime() - prevDate.getTime()) / (24 * 60 * 60 * 1000));
     
     if (diffDays === 1) {

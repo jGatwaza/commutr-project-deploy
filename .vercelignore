@@ -1,0 +1,14 @@
+node_modules
+.git
+.env.local
+.env.development
+.DS_Store
+test
+__tests__
+*.test.ts
+*.test.js
+coverage
+.vscode
+.idea
+*.log
+legacy

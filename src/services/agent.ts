@@ -1,6 +1,8 @@
 import 'groq-sdk/shims/node';
 import Groq from 'groq-sdk';
 
+// Create Groq client instance
+// @ts-ignore - Groq SDK has type inference issues with ES modules
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY || ''
 });

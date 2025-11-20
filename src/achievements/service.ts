@@ -174,8 +174,12 @@ function calculateStreakFromSessions(sessions: SessionRec[]): {
   let tempStreak = 1;
 
   for (let i = 1; i < sortedDays.length; i++) {
-    const prevDate = new Date(sortedDays[i - 1]);
-    const currDate = new Date(sortedDays[i]);
+    const prevDay = sortedDays[i - 1];
+    const currDay = sortedDays[i];
+    if (!prevDay || !currDay) continue;
+    
+    const prevDate = new Date(prevDay);
+    const currDate = new Date(currDay);
     const diffDays = Math.floor((currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
 
     if (diffDays === 1) {
@@ -260,12 +264,18 @@ export async function computeAchievements(userId?: string): Promise<Achievements
       } else if (def.type === 'session') {
         // Earned when we reached that many sessions
         if (sessions.length >= def.threshold) {
-          earnedAt = sessions[def.threshold - 1].createdAt;
+          const session = sessions[def.threshold - 1];
+          if (session) {
+            earnedAt = session.createdAt;
+          }
         }
       } else if (def.type === 'share') {
         const sharedSessions = sessions.filter(s => s.shareToken);
         if (sharedSessions.length >= def.threshold) {
-          earnedAt = sharedSessions[def.threshold - 1].createdAt;
+          const session = sharedSessions[def.threshold - 1];
+          if (session) {
+            earnedAt = session.createdAt;
+          }
         }
       } else if (def.type === 'streak') {
         // For streaks, use the most recent session timestamp
@@ -279,7 +289,7 @@ export async function computeAchievements(userId?: string): Promise<Achievements
       description: def.description,
       icon: def.icon,
       earned,
-      earnedAt,
+      ...(earnedAt ? { earnedAt } : {}),
       progressCurrent,
       progressTarget
     };

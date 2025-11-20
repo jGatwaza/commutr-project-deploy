@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import VideoModal from '../VideoModal';
 import '../../styles/AnalyticsTab.css';
+import { buildApiUrl, AUTH_TOKEN } from '../../config/api';
 
-const API_BASE = 'http://localhost:3000';
-const AUTH_TOKEN = 'Bearer TEST';
+const API_BASE = buildApiUrl();
 
 function AnalyticsTab({ onSwitchToWatched }) {
   const { user } = useAuth();

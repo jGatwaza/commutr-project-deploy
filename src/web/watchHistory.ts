@@ -59,7 +59,20 @@ router.post('/history/watch', requireAuth, (req, res) => {
   }
   
   try {
-    const entry = upsertWatched(parsed.data);
+    // Remove undefined optional properties before calling upsertWatched
+    const data = parsed.data;
+    const input = {
+      userId: data.userId,
+      videoId: data.videoId,
+      title: data.title,
+      durationSec: data.durationSec,
+      ...(data.topicTags ? { topicTags: data.topicTags } : {}),
+      ...(data.startedAt ? { startedAt: data.startedAt } : {}),
+      ...(data.completedAt ? { completedAt: data.completedAt } : {}),
+      ...(data.progressPct !== undefined ? { progressPct: data.progressPct } : {}),
+      ...(data.source ? { source: data.source } : {})
+    };
+    const entry = upsertWatched(input as any);
     return res.status(201).json(entry);
   } catch (error) {
     console.error('Error upserting watched entry:', error);
@@ -99,7 +112,12 @@ router.get('/history/watch', requireAuth, (req, res) => {
   }
   
   try {
-    const result = listWatched({ userId, limit, cursor, q });
+    // Build options object with only defined properties
+    const options: any = { userId, limit };
+    if (cursor !== undefined) options.cursor = cursor;
+    if (q !== undefined) options.q = q;
+    
+    const result = listWatched(options);
     return res.status(200).json(result);
   } catch (error) {
     console.error('Error listing watched entries:', error);

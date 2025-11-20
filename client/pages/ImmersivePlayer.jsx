@@ -5,9 +5,9 @@ import { useAuth } from '../context/AuthContext';
 import CommuteTimer from '../components/CommuteTimer';
 import PlayerControls from '../components/PlayerControls';
 import '../styles/ImmersivePlayer.css';
+import { buildApiUrl, AUTH_TOKEN } from '../config/api';
 
-const API_BASE = 'http://localhost:3000';
-const AUTH_TOKEN = 'Bearer TEST';
+const API_BASE = buildApiUrl();
 
 function ImmersivePlayer() {
   const navigate = useNavigate();

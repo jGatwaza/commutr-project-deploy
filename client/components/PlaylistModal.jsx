@@ -1,7 +1,7 @@
 import { useAuth } from '../context/AuthContext';
+import { buildApiUrl, AUTH_TOKEN } from '../config/api';
 
-const API_BASE = 'http://localhost:3000';
-const AUTH_TOKEN = 'Bearer TEST';
+const API_BASE = buildApiUrl();
 
 function PlaylistModal({ playlist, context, onClose }) {
   const { user } = useAuth();

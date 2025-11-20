@@ -14,9 +14,9 @@ import VoiceButton from '../components/VoiceButton';
 import PlaylistModal from '../components/PlaylistModal';
 import WelcomeState from '../components/WelcomeState';
 import '../styles/AgentMode.css';
+import { buildApiUrl, AUTH_TOKEN } from '../config/api';
 
-const API_BASE = 'http://localhost:3000';
-const AUTH_TOKEN = 'Bearer TEST';
+const API_BASE = buildApiUrl();
 
 function AgentMode() {
   const dispatch = useDispatch();
