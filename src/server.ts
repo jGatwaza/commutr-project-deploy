@@ -83,12 +83,15 @@ app.get('/legacy', (_req, res) => {
 });
 
 // Serve static files (only for local development, not needed on Vercel)
-if (process.env.VERCEL !== '1') {
+if (!process.env.VERCEL) {
+  console.log('[Server] Registering static file middleware');
   if (hasDist) {
     app.use(express.static(distDir));
   } else {
     app.use(express.static(legacyDir));
   }
+} else {
+  console.log('[Server] Skipping static middleware on Vercel');
 }
 
 // Redirect /s/:token to share.html with token query param
