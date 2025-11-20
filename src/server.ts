@@ -82,17 +82,15 @@ app.get('/legacy', (_req, res) => {
   return res.status(404).send('Legacy site not found');
 });
 
-// Serve static files (only for local development, not needed on Vercel)
-if (!process.env.VERCEL) {
-  console.log('[Server] Registering static file middleware');
-  if (hasDist) {
-    app.use(express.static(distDir));
-  } else {
-    app.use(express.static(legacyDir));
-  }
-} else {
-  console.log('[Server] Skipping static middleware on Vercel');
-}
+// Serve static files (disabled on Vercel - static files served by Vercel's CDN)
+// Only enable for local development
+// if (!process.env.VERCEL) {
+//   if (hasDist) {
+//     app.use(express.static(distDir));
+//   } else {
+//     app.use(express.static(legacyDir));
+//   }
+// }
 
 // Redirect /s/:token to share.html with token query param
 app.get('/s/:token', (req, res) => {
