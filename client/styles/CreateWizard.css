@@ -17,30 +17,66 @@
 
 .wizard-top-bar {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: 1fr auto;
   align-items: center;
   gap: clamp(1rem, 3vw, 1.75rem);
   margin-bottom: clamp(0.65rem, 2.2vw, 1.1rem);
 }
 
+@media (max-width: 720px) {
+  .wizard-top-bar {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    position: relative;
+  }
+}
+
 .back-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1.2rem;
-  border-radius: 999px;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
   border: 1px solid rgba(148, 163, 184, 0.28);
   background: rgba(15, 35, 50, 0.65);
   color: #8fd5ff;
-  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  justify-self: end;
+  backdrop-filter: blur(8px);
+}
+
+@media (max-width: 720px) {
+  .back-link {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    z-index: 10;
+  }
+  
+  .back-link svg {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .wizard-top-copy {
+    padding-right: 50px;
+  }
 }
 
 .back-link:hover {
   color: #e2f3ff;
   border-color: rgba(143, 213, 255, 0.6);
-  transform: translateY(-1px);
+  background: rgba(15, 35, 50, 0.85);
+  transform: scale(1.05);
+}
+
+.back-link:active {
+  transform: scale(0.95);
 }
 
 .wizard-top-copy h1 {
@@ -99,16 +135,20 @@
   gap: 0.75rem;
   color: rgba(226, 236, 248, 0.6);
   transition: transform 0.2s ease, border 0.2s ease, color 0.2s ease;
+  min-width: 0;
+  overflow: visible;
 }
 
 .wizard-step-number {
   width: 2rem;
   height: 2rem;
+  min-width: 2rem;
   border-radius: 999px;
   display: grid;
   place-items: center;
   background: rgba(255, 255, 255, 0.15);
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .wizard-step.active {
@@ -378,15 +418,17 @@
 }
 
 .summary-label {
-  color: rgba(255, 255, 255, 0.6);
+  color: #77ACA2;
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  font-weight: 600;
 }
 
 .summary-value {
   font-size: 1.2rem;
   font-weight: 700;
+  color: #F4E9CD;
 }
 
 .summary-history {
@@ -504,6 +546,55 @@ button.secondary:disabled {
 @media (max-width: 720px) {
   .wizard-shell {
     padding: 1.5rem;
+  }
+
+  .wizard-card h2,
+  .wizard-card p,
+  .wizard-subtitle {
+    text-align: center;
+  }
+
+  .duration-options,
+  .difficulty-group,
+  .vibe-suggestions {
+    justify-content: center;
+  }
+
+  .vibe-card .vibe-title,
+  .vibe-card .vibe-tagline,
+  .vibe-card .vibe-description {
+    text-align: center;
+  }
+
+  .wizard-stepper {
+    grid-template-columns: 1fr;
+    gap: 0;
+    justify-items: center;
+  }
+
+  /* Hide all steps except current on mobile */
+  .wizard-step:not([data-current="true"]) {
+    display: none;
+  }
+
+  .wizard-step {
+    padding: 0.75rem 1.2rem;
+    gap: 0.65rem;
+    font-size: 0.95rem;
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
+  }
+
+  .wizard-step-number {
+    width: 2rem;
+    height: 2rem;
+    min-width: 2rem;
+    font-size: 1rem;
+  }
+
+  .wizard-step-label {
+    font-size: 1rem;
   }
 
   .wizard-navigation {
