@@ -105,14 +105,16 @@ function PlaylistView() {
     <div className="playlist-view-page">
       <div className="container">
         <div className="header">
-          <button onClick={() => navigate('/create')} className="back-btn">
-            ← Back
+          <button onClick={() => navigate('/create')} className="back-btn" aria-label="Back to wizard">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </button>
-          <h1>Your {context.topic} Playlist</h1>
+          <h1>Your Customized Playlist</h1>
         </div>
 
         <div className="playlist-summary">
-          <div className="summary-card">
+          <div className="summary-card" style={{ background: 'transparent', padding: 0, border: 'none', borderRadius: 0, boxShadow: 'none' }}>
             <div className="summary-item">
               <span className="summary-label">Videos</span>
               <span className="summary-value">{playlistItems.length}</span>
