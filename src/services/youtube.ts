@@ -74,7 +74,7 @@ export async function searchYouTubeVideos(topic: string, maxResults: number = 50
     
     // Try multiple search queries to get diverse, educational content
     for (const query of searchQueries.slice(0, 2)) { // Use first 2 queries to save quota
-      const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=15&videoCategoryId=27&key=${API_KEY}`;
+      const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=15&key=${API_KEY}`;
       
       const searchResponse = await fetch(searchUrl);
 
@@ -84,7 +84,7 @@ export async function searchYouTubeVideos(topic: string, maxResults: number = 50
 
     const searchData = (await searchResponse.json()) as any;
     
-    console.log('📊 YouTube search found:', searchData.items?.length || 0, 'videos');
+    console.log(`📊 YouTube search for "${query}" found:`, searchData.items?.length || 0, 'videos');
     
     if (searchData.items && searchData.items.length > 0) {
       // Get video details including duration and playback status flags
@@ -145,10 +145,11 @@ export async function searchYouTubeVideos(topic: string, maxResults: number = 50
             };
           })
           .filter((candidate: Candidate) => {
-            // Exclude very short or very long videos and ensure we have a valid videoId
+            // Exclude shorts (<=60s), very long videos, and ensure valid videoId
+            // Shorts are typically 60 seconds or less
             return (
               Boolean(candidate.videoId) &&
-              candidate.durationSec >= 60 &&
+              candidate.durationSec > 60 &&
               candidate.durationSec <= 7200
             );
           });
@@ -163,7 +164,8 @@ export async function searchYouTubeVideos(topic: string, maxResults: number = 50
       index === self.findIndex(c => c.videoId === candidate.videoId)
     ).sort((a, b) => a.durationSec - b.durationSec);
     
-    console.log(`✅ Found ${uniqueCandidates.length} videos for "${topic}"`);
+    console.log(`✅ Found ${uniqueCandidates.length} videos for "${topic}" (after filtering shorts and duplicates)`);
+    console.log(`   Video durations:`, uniqueCandidates.map(v => `${Math.floor(v.durationSec/60)}m`).join(', '));
     return uniqueCandidates.slice(0, maxResults);
     
   } catch (error) {

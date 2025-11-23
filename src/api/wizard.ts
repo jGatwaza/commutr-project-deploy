@@ -610,15 +610,10 @@ router.post('/playlist', async (req, res) => {
       });
     }
     
-    // Filter candidates by difficulty if specified
-    const filteredCandidates = selectedDifficulty 
-      ? candidates.filter((c: { level: string }) => c.level === selectedDifficulty)
-      : candidates;
-    
-    console.log(`Filtered to ${filteredCandidates.length} candidates for difficulty: ${selectedDifficulty}`);
-    
-    // If no candidates match the difficulty, use any difficulty
-    const finalCandidates = filteredCandidates.length > 0 ? filteredCandidates : candidates;
+    // Don't filter by difficulty - use all videos to maximize playlist fill
+    // Difficulty filtering was causing severe underfilling by rejecting too many videos
+    console.log(`Using all ${candidates.length} candidates (difficulty filtering disabled for better fill)`);
+    const finalCandidates = candidates;
     
     // Build playlist based on duration and difficulty
     const playlist = await buildPlaylist({
