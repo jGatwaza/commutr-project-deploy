@@ -1,4 +1,4 @@
-name: Mirror to personal repo
+name: Mirror to deployment repo
 on:
   push:
     branches: [ main ]
@@ -25,7 +25,7 @@ jobs:
           MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
         run: |
           echo "Testing API access to target repo..."
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token ${MIRROR_TOKEN}" https://api.github.com/repos/jGatwaza/commutr-project)
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token ${MIRROR_TOKEN}" https://api.github.com/repos/jGatwaza/commutr-project-deploy)
           echo "API returned HTTP $HTTP_CODE"
           if [ "$HTTP_CODE" = "200" ]; then
             echo "✓ API access works"
@@ -42,17 +42,17 @@ jobs:
           echo "https://jGatwaza:${MIRROR_TOKEN}@github.com" > ~/.git-credentials
           chmod 600 ~/.git-credentials
 
-      - name: "Sanity check: can we read the fork?"
+      - name: "Sanity check: can we read the deploy repo?"
         run: |
           set -e
-          TARGET_REPO="jGatwaza/commutr-project"
+          TARGET_REPO="jGatwaza/commutr-project-deploy"
           git ls-remote https://github.com/${TARGET_REPO}.git | head -n 2 || (echo "Cannot read target repo"; exit 1)
           echo "Read OK"
 
       - name: "Add remote & dry-run push"
         run: |
           set -e
-          TARGET_REPO="jGatwaza/commutr-project"
+          TARGET_REPO="jGatwaza/commutr-project-deploy"
           git remote add mirror https://github.com/${TARGET_REPO}.git
           git push --dry-run mirror main:main
           echo "Write (dry-run) OK"
