@@ -1,7 +1,9 @@
 name: Mirror to personal repo
+
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -26,19 +28,26 @@ jobs:
         run: |
           set -e
           TARGET_REPO="github.com/jGatwaza/commutr-project.git"
-          git ls-remote https://${MIRROR_TOKEN}@${TARGET_REPO} | head -n 2 || (echo "Cannot read target repo"; exit 1)
-          echo "Read OK"
+          echo "Checking read access to https://${TARGET_REPO} ..."
+          git ls-remote https://${MIRROR_TOKEN}@${TARGET_REPO} | head -n 2 || (echo "❌ Cannot read target repo"; exit 1)
+          echo "✅ Read access OK."
 
-      - name: Add remote & dry-run push
+      - name: Add remote and dry-run push
         env:
           MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
         run: |
           set -e
           TARGET_REPO="github.com/jGatwaza/commutr-project.git"
           git remote add mirror https://${MIRROR_TOKEN}@${TARGET_REPO}
-          git push --dry-run mirror main:main
-          echo "Write (dry-run) OK"
+          echo "Checking write access with dry-run..."
+          git push --dry-run mirror main:main && echo "✅ Dry-run push OK."
 
-      - name: Push main
+      - name: Push main to personal repo
+        env:
+          MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
         run: |
-          git push mirror main:main
+          set -e
+          TARGET_REPO="github.com/jGatwaza/commutr-project.git"
+          git remote add mirror https://${MIRROR_TOKEN}@${TARGET_REPO} || true
+          git push mirror +main:main --force
+          echo "🚀 Successfully mirrored main to personal repo."
