@@ -34,28 +34,30 @@ jobs:
             exit 1
           fi
 
-      - name: "Sanity check: can we read the fork?"
+      - name: Configure git credentials
         env:
           MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
         run: |
+          git config --global credential.helper store
+          echo "https://jGatwaza:${MIRROR_TOKEN}@github.com" > ~/.git-credentials
+          chmod 600 ~/.git-credentials
+
+      - name: "Sanity check: can we read the fork?"
+        run: |
           set -e
-          TARGET_REPO="github.com/jGatwaza/commutr-project.git"
-          git ls-remote https://${MIRROR_TOKEN}@${TARGET_REPO} | head -n 2 || (echo "Cannot read target repo"; exit 1)
+          TARGET_REPO="jGatwaza/commutr-project"
+          git ls-remote https://github.com/${TARGET_REPO}.git | head -n 2 || (echo "Cannot read target repo"; exit 1)
           echo "Read OK"
 
       - name: "Add remote & dry-run push"
-        env:
-          MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
         run: |
           set -e
-          TARGET_REPO="github.com/jGatwaza/commutr-project.git"
-          git remote add mirror https://${MIRROR_TOKEN}@${TARGET_REPO}
+          TARGET_REPO="jGatwaza/commutr-project"
+          git remote add mirror https://github.com/${TARGET_REPO}.git
           git push --dry-run mirror main:main
           echo "Write (dry-run) OK"
 
       - name: Push main
-        env:
-          MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
         run: |
           set -e
           git push mirror main:main
