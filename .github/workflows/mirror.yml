@@ -1,7 +1,8 @@
-name: Mirror to personal repo for deployment
+name: Mirror to personal repo
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -14,15 +15,30 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Configure git
+      - name: Configure git identity
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Push to personal deployment repo
+      - name: Sanity check: can we read the fork?
         env:
           MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
         run: |
-          git remote add mirror https://${MIRROR_TOKEN}@github.com/jGatwaza/commutr-project.git
+          set -e
+          TARGET_REPO="github.com/jGatwaza/commutr-project.git"
+          git ls-remote https://${MIRROR_TOKEN}@${TARGET_REPO} | head -n 2 || (echo "Cannot read target repo"; exit 1)
+          echo "Read OK"
 
-          git push mirror +main:main --force
+      - name: Add remote & dry-run push
+        env:
+          MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
+        run: |
+          set -e
+          TARGET_REPO="github.com/jGatwaza/commutr-project.git"
+          git remote add mirror https://${MIRROR_TOKEN}@${TARGET_REPO}
+          git push --dry-run mirror main:main
+          echo "Write (dry-run) OK"
+
+      - name: Push main
+        run: |
+          git push mirror main:main
