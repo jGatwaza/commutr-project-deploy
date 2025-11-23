@@ -20,6 +20,20 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+      - name: Debug - Check token via API
+        env:
+          MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
+        run: |
+          echo "Testing API access to target repo..."
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token ${MIRROR_TOKEN}" https://api.github.com/repos/jGatwaza/commutr-project)
+          echo "API returned HTTP $HTTP_CODE"
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✓ API access works"
+          else
+            echo "✗ API access failed with code $HTTP_CODE"
+            exit 1
+          fi
+
       - name: "Sanity check: can we read the fork?"
         env:
           MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
