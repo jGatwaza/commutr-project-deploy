@@ -20,6 +20,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+      - name: Clear checkout action credentials
+        run: |
+          git config --unset-all http.https://github.com/.extraheader || true
+
       - name: Debug - Check token via API
         env:
           MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
