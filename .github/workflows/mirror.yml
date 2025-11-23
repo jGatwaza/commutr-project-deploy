@@ -15,44 +15,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Configure git identity
+      - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Clear checkout action credentials
-        run: |
           git config --unset-all http.https://github.com/.extraheader || true
 
-      - name: Debug - Check token via API
+      - name: Mirror to deployment repo
         env:
           MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
         run: |
-          echo "Testing API access to target repo..."
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token ${MIRROR_TOKEN}" https://api.github.com/repos/jGatwaza/commutr-project-deploy)
-          echo "API returned HTTP $HTTP_CODE"
-          if [ "$HTTP_CODE" = "200" ]; then
-            echo "✓ API access works"
-          else
-            echo "✗ API access failed with code $HTTP_CODE"
-            exit 1
-          fi
-
-      - name: "Sanity check: can we read the deploy repo?"
-        env:
-          MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
-        run: |
-          set -e
-          TARGET_REPO="jGatwaza/commutr-project-deploy"
-          git ls-remote https://jGatwaza:${MIRROR_TOKEN}@github.com/${TARGET_REPO}.git | head -n 2 || (echo "Cannot read target repo"; exit 1)
-          echo "Read OK"
-
-      - name: "Add remote & push"
-        env:
-          MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
-        run: |
-          set -e
-          TARGET_REPO="jGatwaza/commutr-project-deploy"
-          git remote add mirror https://jGatwaza:${MIRROR_TOKEN}@github.com/${TARGET_REPO}.git
+          git remote add mirror https://jGatwaza:${MIRROR_TOKEN}@github.com/jGatwaza/commutr-project-deploy.git
           git push mirror main:main
-          echo "Successfully mirrored to deployment repo"
+          echo "✓ Successfully mirrored to deployment repo"
