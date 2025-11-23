@@ -148,10 +148,8 @@ export function buildPack(input: BuildPackInput): BuildPackOutput {
     out.items.push({ videoId: video.videoId, durationSec: video.durationSec, channelId: video.channelId });
     out.totalDurationSec += video.durationSec;
     
-    // Stop if we've reached the minimum duration
-    if (out.totalDurationSec >= minDurationSec) {
-      break;
-    }
+    // Continue adding videos to fill closer to target (don't stop at minimum)
+    // Only stop if we're close to max duration
   }
   
   // Keep trying to add more videos until we reach minimum duration or can't fit any more

@@ -62,23 +62,21 @@ export async function searchYouTubeVideos(topic: string, maxResults: number = 50
   console.log(`🔍 Searching YouTube for: "${topic}"`);
   
   try {
-    // Step 1: Search for educational videos on the topic (YouTube handles typos automatically)
+    // Step 1: Search for educational videos with multiple enhanced queries
     const searchQueries = [
       `${topic} tutorial`,
       `${topic} explained`, 
-      `${topic} basics`,
       `learn ${topic}`,
-      `${topic} for beginners`,
-      `${topic} course`,
-      `how to ${topic}`
+      `${topic} course`
     ];
     
     let allCandidates: Candidate[] = [];
     
-    // Simple single search - just get videos that work
-    const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(topic + ' tutorial')}&type=video&maxResults=20&key=${API_KEY}`;
-    
-    const searchResponse = await fetch(searchUrl);
+    // Try multiple search queries to get diverse, educational content
+    for (const query of searchQueries.slice(0, 2)) { // Use first 2 queries to save quota
+      const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=15&videoCategoryId=27&key=${API_KEY}`;
+      
+      const searchResponse = await fetch(searchUrl);
 
     if (!searchResponse.ok) {
       await handleYouTubeErrorResponse(searchResponse);
@@ -158,6 +156,7 @@ export async function searchYouTubeVideos(topic: string, maxResults: number = 50
         allCandidates.push(...candidates);
       }
     }
+    } // Close for loop
     
     // Remove duplicates and sort by duration (shorter first for better pack building)
     const uniqueCandidates = allCandidates.filter((candidate, index, self) => 
