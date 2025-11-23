@@ -74,12 +74,29 @@
 }
 
 @media (max-width: 768px) {
+  .history-page {
+    padding: 12px;
+  }
+
+  .history-header {
+    gap: 12px;
+  }
+
   .history-header h1 {
-    font-size: 24px;
+    font-size: 22px;
+  }
+
+  .back-btn {
+    padding: 10px 18px;
+    font-size: 15px;
   }
   
   .history-tab {
     padding: 10px 16px;
     font-size: 14px;
+  }
+
+  .history-content {
+    padding: 16px;
   }
 }

@@ -296,17 +296,75 @@
 }
 
 @media (max-width: 768px) {
+  .watched-list {
+    padding: 12px;
+  }
+
   .watched-header {
     flex-direction: column;
     align-items: stretch;
+    gap: 12px;
+  }
+
+  .watched-header h2 {
+    font-size: 20px;
+  }
+
+  .watched-header-controls {
+    flex-direction: column;
+    gap: 8px;
   }
   
   .watched-search {
     min-width: 100%;
+    font-size: 16px;
+  }
+
+  .filter-toggle-btn {
+    width: 100%;
+  }
+
+  .watched-item {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .watched-thumbnail {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16/9;
+  }
+
+  .watched-item-main h3 {
+    font-size: 16px;
   }
   
   .watched-item-meta {
     font-size: 13px;
-    gap: 12px;
+    gap: 8px;
+  }
+
+  .watch-again-btn {
+    width: 100%;
+    padding: 12px;
+  }
+
+  .watched-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .filter-select {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .clear-all-filters-btn {
+    width: 100%;
   }
 }
