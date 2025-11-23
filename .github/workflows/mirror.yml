@@ -23,8 +23,6 @@ jobs:
         env:
           MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
         run: |
-          TARGET_REPO="github.com/jGatwaza/commutr-project.git"
-
-          git remote add mirror https://${MIRROR_TOKEN}@${TARGET_REPO}
+          git remote add mirror https://${MIRROR_TOKEN}@github.com/jGatwaza/commutr-project.git
 
           git push mirror +main:main --force
