@@ -21,10 +21,17 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --unset-all http.https://github.com/.extraheader || true
 
+      - name: Prepare deployment branch
+        run: |
+          git checkout -b deploy-temp
+          rm -rf .github/workflows
+          git add -A
+          git commit -m "Remove workflows for deployment" || echo "No workflows to remove"
+
       - name: Mirror to deployment repo
         env:
           MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
         run: |
           git remote add mirror https://jGatwaza:${MIRROR_TOKEN}@github.com/jGatwaza/commutr-project-deploy.git
-          git push mirror main:main
-          echo "✓ Successfully mirrored to deployment repo"
+          git push -f mirror deploy-temp:main
+          echo "✓ Successfully mirrored to deployment repo (without workflows)"
