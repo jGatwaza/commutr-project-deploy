@@ -20,7 +20,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Sanity check: can we read the fork?
+      - name: "Sanity check: can we read the fork?"
         env:
           MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
         run: |
@@ -29,7 +29,7 @@ jobs:
           git ls-remote https://x-access-token:${MIRROR_TOKEN}@${TARGET_REPO} | head -n 2 || (echo "Cannot read target repo"; exit 1)
           echo "Read OK"
 
-      - name: Add remote & dry-run push
+      - name: "Add remote & dry-run push"
         env:
           MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
         run: |
