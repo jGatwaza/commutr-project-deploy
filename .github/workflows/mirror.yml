@@ -1,0 +1,30 @@
+name: Mirror to personal repo for deployment
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Push to personal deployment repo
+        env:
+          MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
+        run: |
+          TARGET_REPO="github.com/jGatwaza/commutr-project.git"
+
+          git remote add mirror https://${MIRROR_TOKEN}@${TARGET_REPO}
+
+          git push mirror +main:main --force
