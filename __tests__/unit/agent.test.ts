@@ -242,7 +242,7 @@ describe('Agent Service - Message Processing', () => {
       // Simulate LLM returning both natural text AND JSON structure
       const mixedResponse = 'What would you like to learn about during your commute? { "message": "What would you like to learn about during your commute?" }';
       
-      (__mockGroqCreate as jest.Mock).mockResolvedValue({
+      __mockGroqCreate.mockResolvedValue({
         choices: [{
           message: {
             content: mixedResponse
@@ -263,7 +263,7 @@ describe('Agent Service - Message Processing', () => {
     test('should strip JSON artifacts from end of natural language response', async () => {
       const mixedResponse = 'Great! Let me help you create that playlist. {"message": "Great! Let me help you create that playlist."}';
       
-      (__mockGroqCreate as jest.Mock).mockResolvedValue({
+      __mockGroqCreate.mockResolvedValue({
         choices: [{
           message: {
             content: mixedResponse
@@ -281,7 +281,7 @@ describe('Agent Service - Message Processing', () => {
     test('should handle JSON structure in middle of response text', async () => {
       const mixedResponse = 'Sounds great! {"message": "Sounds great!"} What topic interests you?';
       
-      (__mockGroqCreate as jest.Mock).mockResolvedValue({
+      __mockGroqCreate.mockResolvedValue({
         choices: [{
           message: {
             content: mixedResponse

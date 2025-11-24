@@ -135,17 +135,51 @@ Remember: GATHER → CONFIRM → CREATE (only after "yes")`;
 
     const responseText = completion.choices[0]?.message?.content || '';
     
-    // Parse the JSON response
+    // Parse the JSON response with intelligent extraction
     try {
+      // First, try to parse the entire response as JSON
       const parsed = JSON.parse(responseText);
       return {
         message: parsed.message || "I'll help you create a playlist!",
         playlistRequest: parsed.playlistRequest
       };
     } catch (parseError) {
-      // If JSON parsing fails, treat the response as a plain message
+      // If direct parsing fails, try to extract JSON from mixed content
+      // Look for JSON patterns like { "message": "..." }
+      const jsonPattern = /\{[^{}]*"message"[^{}]*\}/g;
+      const matches = responseText.match(jsonPattern);
+      
+      if (matches && matches.length > 0) {
+        // Try to parse the first JSON match
+        for (const match of matches) {
+          try {
+            const parsed = JSON.parse(match);
+            if (parsed.message) {
+              // Clean the original text by removing JSON artifacts
+              let cleanMessage = responseText.replace(jsonPattern, '').trim();
+              
+              // If the cleaned message is empty, use the parsed message
+              if (!cleanMessage) {
+                cleanMessage = parsed.message;
+              }
+              
+              return {
+                message: cleanMessage,
+                playlistRequest: parsed.playlistRequest
+              };
+            }
+          } catch {
+            // Continue to next match if this one fails
+            continue;
+          }
+        }
+      }
+      
+      // If no valid JSON found, return the original text as-is
+      // But clean any obvious JSON artifacts
+      const cleanedText = responseText.replace(/\{[^{}]*"message"[^{}]*\}/g, '').trim();
       return {
-        message: responseText || "I'm here to help you create learning playlists! Just tell me what topic you'd like and your commute duration."
+        message: cleanedText || responseText || "I'm here to help you create learning playlists! Just tell me what topic you'd like and your commute duration."
       };
     }
     
