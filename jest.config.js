@@ -9,6 +9,7 @@ export default {
   testTimeout: 10000,
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
+    '^groq-sdk/shims/node$': '<rootDir>/__mocks__/groq-sdk/shims/node.ts',
     '^groq-sdk$': '<rootDir>/__mocks__/groq-sdk.ts',
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
