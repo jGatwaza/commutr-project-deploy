@@ -10,9 +10,9 @@ import {
 } from '../store/conversationSlice';
 import { speak, stopSpeaking } from '../services/ttsService';
 import '../styles/ConversationMode.css';
+import { buildApiUrl, AUTH_TOKEN } from '../config/api';
 
-const API_BASE = 'http://localhost:3000';
-const AUTH_TOKEN = 'Bearer TEST';
+const API_BASE = buildApiUrl();
 
 function ConversationMode() {
   const dispatch = useDispatch();

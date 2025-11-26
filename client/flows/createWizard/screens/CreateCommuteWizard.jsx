@@ -11,15 +11,19 @@ function StepHeader({ stepIndex }) {
   const steps = ['Commute', 'Vibe', 'Topics', 'Summary'];
   return (
     <div className="wizard-stepper">
-      {steps.map((label, index) => (
-        <div
-          key={label}
-          className={`wizard-step ${index === stepIndex ? 'active' : ''} ${index < stepIndex ? 'completed' : ''}`}
-        >
-          <span className="wizard-step-number">{index + 1}</span>
-          <span className="wizard-step-label">{label}</span>
-        </div>
-      ))}
+      {steps.map((label, index) => {
+        // Only show current step on mobile (CSS will handle this)
+        return (
+          <div
+            key={label}
+            className={`wizard-step ${index === stepIndex ? 'active' : ''} ${index < stepIndex ? 'completed' : ''}`}
+            data-current={index === stepIndex}
+          >
+            <span className="wizard-step-number">{index + 1}</span>
+            <span className="wizard-step-label">{label}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -213,25 +217,6 @@ function SummaryStep({
         </div>
       </div>
 
-      {previewVideos?.length > 0 && (
-        <div className="summary-preview">
-          <h3>What we&apos;ll pull in</h3>
-          <div className="preview-grid">
-            {previewVideos.map((video) => (
-              <div key={video.videoId} className="preview-card">
-                <div className="preview-thumbnail">
-                  <img src={video.thumbnail} alt="" />
-                </div>
-                <div className="preview-meta">
-                  <span className="preview-title">{video.title}</span>
-                  <span className="preview-channel">{video.channelTitle}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       <button type="button" className="link-btn" onClick={() => setStepIndex(2)}>
         ← Adjust topic or vibe
       </button>
@@ -397,13 +382,15 @@ function CreateCommuteWizard() {
   return (
     <div className="wizard-shell">
       <header className="wizard-top-bar">
-        <button type="button" className="back-link" onClick={() => navigate('/home')}>
-          ← Back to Home
-        </button>
         <div className="wizard-top-copy">
-          <h1>Commute Playlist Wizard</h1>
+          <h1>Playlist Wizard</h1>
           <p>Tell us how you&apos;re feeling and we&apos;ll craft the perfect learning ride.</p>
         </div>
+        <button type="button" className="back-link" onClick={() => navigate('/home')} aria-label="Back to Home">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
       </header>
 
       <div className="wizard-page">

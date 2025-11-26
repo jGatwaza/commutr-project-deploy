@@ -269,8 +269,9 @@ function getWatchedVideoIdSet(userId: string): Set<string> {
 
 /**
  * Get list of video IDs watched by a user, optionally filtered by topic.
+ * Returns a Set for efficient lookup by the agent endpoint.
  */
-export function getWatchedVideoIds(userId: string, topic?: string): string[] {
+export function getWatchedVideoIds(userId: string, topic?: string): Set<string> {
   const store = loadWatched();
   let entries = store.entries.filter(e => e.userId === userId);
   
@@ -283,7 +284,7 @@ export function getWatchedVideoIds(userId: string, topic?: string): string[] {
     );
   }
   
-  return entries.map(e => e.videoId);
+  return new Set(entries.map(e => e.videoId).filter(Boolean));
 }
 
 /**
@@ -453,6 +454,7 @@ export function getWatchAnalytics(userId: string, timeframe: 'week' | 'month' | 
         weekStart.setDate(date.getDate() - date.getDay());
         weekStart.setHours(0, 0, 0, 0);
         const weekKey = weekStart.toISOString().split('T')[0];
+        if (!weekKey) return; // Skip if weekKey is undefined
         
         const existing = weeklyMap.get(weekKey) || { count: 0, duration: 0 };
         weeklyMap.set(weekKey, {
@@ -510,8 +512,12 @@ function calculateStreak(userId: string): number {
   // Count consecutive days
   let streak = 1;
   for (let i = 1; i < dates.length; i++) {
-    const currentDate = new Date(dates[i - 1]);
-    const prevDate = new Date(dates[i]);
+    const currentDateStr = dates[i - 1];
+    const prevDateStr = dates[i];
+    if (!currentDateStr || !prevDateStr) break;
+    
+    const currentDate = new Date(currentDateStr);
+    const prevDate = new Date(prevDateStr);
     const diffDays = Math.floor((currentDate.getTime() - prevDate.getTime()) / (24 * 60 * 60 * 1000));
     
     if (diffDays === 1) {

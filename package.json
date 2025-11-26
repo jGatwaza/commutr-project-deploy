@@ -3,13 +3,14 @@
   "version": "0.1.0",
   "description": "Commutr notifications and player events service",
   "type": "module",
-  "main": "src/server.js",
   "scripts": {
     "start": "tsx src/server.ts",
     "dev": "concurrently -n \"API,REACT\" -c \"cyan,magenta\" \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "PORT=5173 tsx src/server.ts",
     "dev:client": "VITE_API_BASE_URL=http://localhost:5173 VITE_API_AUTH_TOKEN='Bearer TEST' vite",
     "build": "vite build",
+    "vercel-build": "vite build",
+    "type-check": "tsc --noEmit",
     "preview": "vite preview",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand"
   },
@@ -40,6 +41,7 @@
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@types/supertest": "^6.0.3",
+    "@vercel/node": "^3.0.0",
     "@vitejs/plugin-react": "^4.3.1",
     "babel-jest": "^29.7.0",
     "concurrently": "^8.2.2",

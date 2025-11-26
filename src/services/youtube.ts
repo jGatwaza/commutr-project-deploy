@@ -6,7 +6,9 @@ export class YouTubeQuotaExceededError extends Error {
   constructor(message: string, reason?: string) {
     super(message);
     this.name = 'YouTubeQuotaExceededError';
-    this.reason = reason;
+    if (reason !== undefined) {
+      this.reason = reason;
+    }
   }
 }
 
@@ -60,23 +62,21 @@ export async function searchYouTubeVideos(topic: string, maxResults: number = 50
   console.log(`🔍 Searching YouTube for: "${topic}"`);
   
   try {
-    // Step 1: Search for educational videos on the topic (YouTube handles typos automatically)
+    // Step 1: Search for educational videos with multiple enhanced queries
     const searchQueries = [
       `${topic} tutorial`,
       `${topic} explained`, 
-      `${topic} basics`,
       `learn ${topic}`,
-      `${topic} for beginners`,
-      `${topic} course`,
-      `how to ${topic}`
+      `${topic} course`
     ];
     
     let allCandidates: Candidate[] = [];
     
-    // Simple single search - just get videos that work
-    const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(topic + ' tutorial')}&type=video&maxResults=20&key=${API_KEY}`;
-    
-    const searchResponse = await fetch(searchUrl);
+    // Try multiple search queries to get diverse, educational content
+    for (const query of searchQueries.slice(0, 2)) { // Use first 2 queries to save quota
+      const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=15&key=${API_KEY}`;
+      
+      const searchResponse = await fetch(searchUrl);
 
     if (!searchResponse.ok) {
       await handleYouTubeErrorResponse(searchResponse);
@@ -84,7 +84,7 @@ export async function searchYouTubeVideos(topic: string, maxResults: number = 50
 
     const searchData = (await searchResponse.json()) as any;
     
-    console.log('📊 YouTube search found:', searchData.items?.length || 0, 'videos');
+    console.log(`📊 YouTube search for "${query}" found:`, searchData.items?.length || 0, 'videos');
     
     if (searchData.items && searchData.items.length > 0) {
       // Get video details including duration and playback status flags
@@ -145,10 +145,11 @@ export async function searchYouTubeVideos(topic: string, maxResults: number = 50
             };
           })
           .filter((candidate: Candidate) => {
-            // Exclude very short or very long videos and ensure we have a valid videoId
+            // Exclude shorts (<=60s), very long videos, and ensure valid videoId
+            // Shorts are typically 60 seconds or less
             return (
               Boolean(candidate.videoId) &&
-              candidate.durationSec >= 60 &&
+              candidate.durationSec > 60 &&
               candidate.durationSec <= 7200
             );
           });
@@ -156,13 +157,15 @@ export async function searchYouTubeVideos(topic: string, maxResults: number = 50
         allCandidates.push(...candidates);
       }
     }
+    } // Close for loop
     
     // Remove duplicates and sort by duration (shorter first for better pack building)
     const uniqueCandidates = allCandidates.filter((candidate, index, self) => 
       index === self.findIndex(c => c.videoId === candidate.videoId)
     ).sort((a, b) => a.durationSec - b.durationSec);
     
-    console.log(`✅ Found ${uniqueCandidates.length} videos for "${topic}"`);
+    console.log(`✅ Found ${uniqueCandidates.length} videos for "${topic}" (after filtering shorts and duplicates)`);
+    console.log(`   Video durations:`, uniqueCandidates.map(v => `${Math.floor(v.durationSec/60)}m`).join(', '));
     return uniqueCandidates.slice(0, maxResults);
     
   } catch (error) {

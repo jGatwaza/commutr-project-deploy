@@ -237,6 +237,65 @@ describe('Agent Service - Message Processing', () => {
       expect(result.playlistRequest?.durationMinutes).toBe(2);
     });
 
+    // HW11-CTR-78: Test for JSON leak bug
+    test('should handle mixed natural text + JSON response without leaking JSON', async () => {
+      // Simulate LLM returning both natural text AND JSON structure
+      const mixedResponse = 'What would you like to learn about during your commute? { "message": "What would you like to learn about during your commute?" }';
+      
+      __mockGroqCreate.mockResolvedValue({
+        choices: [{
+          message: {
+            content: mixedResponse
+          }
+        }]
+      });
+
+      const result = await processMessage('create a commute 40 seconds long');
+
+      // The message should NOT contain visible JSON structure
+      expect(result.message).not.toContain('{ "message"');
+      expect(result.message).not.toContain('}');
+      // Should extract only the natural language message
+      expect(result.message).toBe('What would you like to learn about during your commute?');
+    });
+
+    // HW11-CTR-78: Test for JSON at end of message
+    test('should strip JSON artifacts from end of natural language response', async () => {
+      const mixedResponse = 'Great! Let me help you create that playlist. {"message": "Great! Let me help you create that playlist."}';
+      
+      __mockGroqCreate.mockResolvedValue({
+        choices: [{
+          message: {
+            content: mixedResponse
+          }
+        }]
+      });
+
+      const result = await processMessage('Python for 15 minutes');
+
+      expect(result.message).toBe('Great! Let me help you create that playlist.');
+      expect(result.message).not.toContain('{');
+    });
+
+    // HW11-CTR-78: Test for JSON in middle of message
+    test('should handle JSON structure in middle of response text', async () => {
+      const mixedResponse = 'Sounds great! {"message": "Sounds great!"} What topic interests you?';
+      
+      __mockGroqCreate.mockResolvedValue({
+        choices: [{
+          message: {
+            content: mixedResponse
+          }
+        }]
+      });
+
+      const result = await processMessage('40 seconds');
+
+      // Should clean up the JSON and preserve natural text
+      expect(result.message).not.toContain('{"message"');
+      expect(result.message).toBeTruthy();
+    });
+
     test('should handle very long duration', async () => {
       (__mockGroqCreate as jest.Mock).mockResolvedValue({
         choices: [{

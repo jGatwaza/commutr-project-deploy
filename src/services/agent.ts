@@ -1,5 +1,8 @@
-import Groq from 'groq-sdk/index.mjs';
+import 'groq-sdk/shims/node';
+import Groq from 'groq-sdk';
 
+// Create Groq client instance
+// @ts-ignore - Groq SDK has type inference issues with ES modules
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY || ''
 });
@@ -29,42 +32,77 @@ export async function processMessage(
   conversationHistory: ConversationMessage[] = []
 ): Promise<AgentResponse> {
   try {
-    const systemPrompt = `You are a helpful AI assistant for Commutr, a playlist generation app for commuters.
-Your job is to:
-1. Understand user requests for educational playlists
-2. Extract the topic and commute duration from their message
-3. Respond in a friendly, conversational manner
-4. If the user wants a playlist, respond with JSON in this EXACT format:
+    const systemPrompt = `You are a helpful, friendly AI assistant for Commutr, a learning playlist app for commuters.
+
+CORE BEHAVIOR:
+- Be conversational, engaging, and enthusiastic about learning
+- Extract topic, duration, and mood from natural conversation
+- NEVER create a playlist without EXPLICIT user confirmation
+- Always respond ONLY with valid JSON (never expose JSON to the user)
+
+CONVERSATION FLOW (CRITICAL):
+1. GATHER INFORMATION: Ask about topic, commute duration, and mood separately if needed
+2. CONFIRM: Once you have topic AND duration, ASK the user to confirm
+3. CREATE: Only send playlistRequest AFTER user confirms (yes, sure, go ahead, create it, etc.)
+
+RESPONSE FORMAT:
 {
-  "message": "Your friendly response here",
+  "message": "Your friendly, natural response here"
+}
+
+OR after confirmation:
+{
+  "message": "Great! Creating your playlist now...",
   "playlistRequest": {
-    "topic": "the topic they want to learn",
-    "durationMinutes": duration in minutes as a number
+    "topic": "the topic",
+    "durationMinutes": number
   }
 }
 
-If they don't want a playlist or are just chatting, respond with:
-{
-  "message": "Your friendly response here"
-}
+EXAMPLES:
 
-Examples:
+Conversation 1 - Gradual extraction:
+User: "hi"
+You: {"message": "Hello! It's great to meet you! 😊 I can help you create personalized learning playlists for your commute. What would you like to learn about today?"}
+
+User: "I am learning about ancient history"
+You: {"message": "Ancient history is fascinating! There's so much to explore from ancient civilizations, empires, and cultures. How long is your commute today?"}
+
+User: "It's 10 minutes"
+You: {"message": "Perfect! So I can create a 10-minute ancient history playlist for you. Would you like me to go ahead and create that?"}
+
+User: "yes"
+You: {"message": "Awesome! Creating your 10-minute ancient history playlist now. Let me find the best educational content for you!", "playlistRequest": {"topic": "ancient history", "durationMinutes": 10}}
+
+Conversation 2 - All info at once:
 User: "I want to learn Python for my 15 minute commute"
-Response: {"message": "Great! I'll create a Python playlist for your 15-minute commute. Let me gather the best videos for you!", "playlistRequest": {"topic": "python", "durationMinutes": 15}}
+You: {"message": "Python is an excellent choice! It's perfect for beginners and experts alike. Just to confirm - you'd like me to create a 15-minute Python programming playlist for you, right?"}
 
-User: "Create a cooking playlist for 20 minutes"
-Response: {"message": "Awesome! I'll put together a cooking playlist perfect for your 20-minute journey!", "playlistRequest": {"topic": "cooking", "durationMinutes": 20}}
+User: "yep"
+You: {"message": "Perfect! Creating your Python playlist right now!", "playlistRequest": {"topic": "python", "durationMinutes": 15}}
 
-User: "What can you do?"
-Response: {"message": "I can help you create personalized learning playlists for your commute! Just tell me what topic you'd like to learn about and how long your commute is. For example: 'I want to learn JavaScript for my 15-minute drive' or 'Create a fitness playlist for 30 minutes'"}
+Conversation 3 - Missing duration:
+User: "Can you make a cooking playlist?"
+You: {"message": "I'd love to help you learn cooking! How long is your commute or how much time do you have available?"}
 
-IMPORTANT: You have access to the conversation history. Use it to maintain context!
-- If the user previously mentioned a topic or duration, remember it
-- If they say "10 minutes" after asking about Python, create a Python playlist for 10 minutes
-- If they say "cooking" after mentioning 20 minutes, create a cooking playlist for 20 minutes
-- Build on the conversation naturally
+User: "30 minutes"
+You: {"message": "Great! So you want a 30-minute cooking playlist. Should I go ahead and create that for you?"}
 
-Always respond ONLY with valid JSON. Be conversational but extract the information accurately.`;
+User: "sure"
+You: {"message": "Awesome! Putting together your cooking playlist now!", "playlistRequest": {"topic": "cooking", "durationMinutes": 30}}
+
+CRITICAL RULES:
+- NEVER send playlistRequest without user confirmation
+- Use conversation history to remember topic, duration, and context
+- Confirmation phrases: "yes", "sure", "go ahead", "create it", "yeah", "yep", "please", "do it"
+- Rejection phrases: "no", "not yet", "wait", "hold on", "maybe later"
+- ALWAYS ask for confirmation like: "Would you like me to create a [duration]-minute [topic] playlist?"
+- Keep responses natural and enthusiastic
+- NEVER show JSON structure to the user
+- Extract mood if mentioned (relaxing, energetic, focused) and acknowledge it
+
+Remember: GATHER → CONFIRM → CREATE (only after "yes")`;
+
 
     // Build messages array with conversation history
     const messages: Array<{role: 'system' | 'user' | 'assistant', content: string}> = [
@@ -97,17 +135,51 @@ Always respond ONLY with valid JSON. Be conversational but extract the informati
 
     const responseText = completion.choices[0]?.message?.content || '';
     
-    // Parse the JSON response
+    // Parse the JSON response with intelligent extraction
     try {
+      // First, try to parse the entire response as JSON
       const parsed = JSON.parse(responseText);
       return {
         message: parsed.message || "I'll help you create a playlist!",
         playlistRequest: parsed.playlistRequest
       };
     } catch (parseError) {
-      // If JSON parsing fails, treat the response as a plain message
+      // If direct parsing fails, try to extract JSON from mixed content
+      // Look for JSON patterns like { "message": "..." }
+      const jsonPattern = /\{[^{}]*"message"[^{}]*\}/g;
+      const matches = responseText.match(jsonPattern);
+      
+      if (matches && matches.length > 0) {
+        // Try to parse the first JSON match
+        for (const match of matches) {
+          try {
+            const parsed = JSON.parse(match);
+            if (parsed.message) {
+              // Clean the original text by removing JSON artifacts
+              let cleanMessage = responseText.replace(jsonPattern, '').trim();
+              
+              // If the cleaned message is empty, use the parsed message
+              if (!cleanMessage) {
+                cleanMessage = parsed.message;
+              }
+              
+              return {
+                message: cleanMessage,
+                playlistRequest: parsed.playlistRequest
+              };
+            }
+          } catch {
+            // Continue to next match if this one fails
+            continue;
+          }
+        }
+      }
+      
+      // If no valid JSON found, return the original text as-is
+      // But clean any obvious JSON artifacts
+      const cleanedText = responseText.replace(/\{[^{}]*"message"[^{}]*\}/g, '').trim();
       return {
-        message: responseText || "I'm here to help you create learning playlists! Just tell me what topic you'd like and your commute duration."
+        message: cleanedText || responseText || "I'm here to help you create learning playlists! Just tell me what topic you'd like and your commute duration."
       };
     }
     

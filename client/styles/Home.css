@@ -14,6 +14,14 @@
   background: rgba(3, 25, 38, 0.95);
 }
 
+@media (max-width: 600px) {
+  .home-header {
+    padding: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+}
+
 .user-info {
   display: flex;
   align-items: center;
@@ -30,6 +38,18 @@
   justify-content: center;
   overflow: hidden;
   border: 2px solid #468189;
+}
+
+@media (max-width: 600px) {
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .user-avatar svg {
+    width: 24px;
+    height: 24px;
+  }
 }
 
 .user-avatar img {
@@ -51,9 +71,21 @@
   margin-bottom: 2px;
 }
 
+@media (max-width: 600px) {
+  .user-name {
+    font-size: 14px;
+  }
+}
+
 .user-email {
   font-size: 13px;
   color: #9DBEBB;
+}
+
+@media (max-width: 600px) {
+  .user-email {
+    font-size: 12px;
+  }
 }
 
 .logout-btn {
@@ -66,6 +98,13 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+}
+
+@media (max-width: 600px) {
+  .logout-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
 }
 
 .logout-btn:hover {
@@ -86,11 +125,26 @@
   padding: 20px;
 }
 
+@media (max-width: 600px) {
+  .home-container {
+    padding: 16px;
+    justify-content: flex-start;
+    padding-top: 40px;
+  }
+}
+
 .home-page h1 {
   font-size: 64px;
   font-weight: 300;
   color: #F4E9CD;
   margin-bottom: 16px;
+}
+
+@media (max-width: 600px) {
+  .home-page h1 {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
 }
 
 .tagline {
@@ -100,11 +154,27 @@
   font-weight: 300;
 }
 
+@media (max-width: 600px) {
+  .tagline {
+    font-size: 16px;
+    margin-bottom: 32px;
+    padding: 0 8px;
+  }
+}
+
 .actions {
   display: flex;
   gap: 16px;
   justify-content: center;
   flex-wrap: wrap;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .actions {
+    flex-direction: column;
+    gap: 12px;
+  }
 }
 
 .action-btn {
@@ -120,6 +190,20 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
+}
+
+@media (max-width: 600px) {
+  .action-btn {
+    width: 100%;
+    padding: 14px 24px;
+    font-size: 15px;
+    min-width: unset;
+  }
+
+  .action-btn svg {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 .action-btn.primary {
@@ -171,16 +255,3 @@
   box-shadow: 0 6px 20px rgba(70, 129, 137, 0.4);
 }
 
-@media (max-width: 600px) {
-  .home-page h1 {
-    font-size: 48px;
-  }
-
-  .tagline {
-    font-size: 16px;
-  }
-
-  .action-btn {
-    width: 100%;
-  }
-}
