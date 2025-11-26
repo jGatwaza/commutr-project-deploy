@@ -257,7 +257,7 @@ export function listWatched(options: {
 /**
  * Utility used by the agent endpoint: return set of watched video IDs for a user.
  */
-export function getWatchedVideoIds(userId: string): Set<string> {
+function getWatchedVideoIdSet(userId: string): Set<string> {
   const store = loadWatched();
   return new Set(
     store.entries
