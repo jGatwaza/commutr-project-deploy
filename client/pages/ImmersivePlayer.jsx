@@ -103,9 +103,12 @@ function ImmersivePlayer() {
 
   const handleEndCommuteEarly = async () => {
     if (showCompletion) return;
+    markVideoWatched(currentVideo.videoId);
     await saveCommuteToHistory();
+    // Show the completion summary first so it can read the latest
+    // watchedVideoIds/topics from CommuteContext. We only clear the
+    // commute state when the user leaves this screen.
     setShowCompletion(true);
-    endCommute();
   };
 
   // Update remaining time every second
@@ -115,9 +118,12 @@ function ImmersivePlayer() {
       setRemainingTimeSec(remaining);
 
       if (remaining === 0 && !showCompletion) {
+        // Commute reached its planned duration. Save history and
+        // transition to the completion summary, but defer clearing
+        // commute context until the user leaves that screen so the
+        // stats tiles can reflect the latest session.
         saveCommuteToHistory();
         setShowCompletion(true);
-        endCommute();
       }
     }, 1000);
 
@@ -126,6 +132,10 @@ function ImmersivePlayer() {
 
   // Save video position periodically and check if video ended
   useEffect(() => {
+    if (showCompletion) {
+      return;
+    }
+
     const saveInterval = setInterval(() => {
       const elapsedSinceStart = Math.floor((Date.now() - videoStartTime) / 1000);
       const estimatedPosition = initialPosition + elapsedSinceStart;
@@ -138,7 +148,7 @@ function ImmersivePlayer() {
     }, 10000); // Check every 10 seconds
 
     return () => clearInterval(saveInterval);
-  }, [currentVideo.videoId, currentVideo.durationSec, videoStartTime, initialPosition, saveVideoPosition]);
+  }, [currentVideo.videoId, currentVideo.durationSec, videoStartTime, initialPosition, saveVideoPosition, showCompletion]);
 
   // Track watched video
   const markVideoWatched = (videoId) => {
@@ -305,6 +315,27 @@ function ImmersivePlayer() {
         )
       : totalDuration;
 
+    const watchedVideos = playlist.items
+      .filter(video => contextWatchedIds.includes(video.videoId));
+
+    // Approximate total learning time as the sum of how long you actually
+    // watched each video in this commute. We primarily rely on
+    // CommuteContext's saved video positions (seconds watched), and
+    // fall back to the full video duration if no position is recorded.
+    const watchedSecondsFromPositions = watchedVideos.reduce((sum, video) => {
+      const position = getVideoPosition(video.videoId);
+      if (position && Number.isFinite(position)) {
+        const capped = video.durationSec ? Math.min(position, video.durationSec) : position;
+        return sum + capped;
+      }
+
+      return sum + (video.durationSec || 0);
+    }, 0);
+
+    const minutesLearned = watchedSecondsFromPositions > 0
+      ? Math.round(watchedSecondsFromPositions / 60)
+      : Math.floor(elapsedSeconds / 60);
+
     return (
       <div className="immersive-player-page">
         <div className="completion-screen">
@@ -315,11 +346,11 @@ function ImmersivePlayer() {
             
             <div className="completion-stats">
               <div className="stat">
-                <span className="stat-value">{contextWatchedIds.length}</span>
+                <span className="stat-value">{watchedVideos.length}</span>
                 <span className="stat-label">Videos Watched</span>
               </div>
               <div className="stat">
-                <span className="stat-value">{Math.floor(elapsedSeconds / 60)}</span>
+                <span className="stat-value">{minutesLearned}</span>
                 <span className="stat-label">Minutes Learned</span>
               </div>
               <div className="stat">
