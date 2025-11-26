@@ -49,13 +49,15 @@ function VoiceButton({ onTranscript, onStatus, onComplete }) {
     recognition.onend = () => {
       console.log('Voice recognition ended');
       setIsRecording(false);
-      callbacksRef.current.onStatus('Sending...');
       
-      // Trigger auto-submit
+      // Let the user review and edit the transcribed message before sending.
+      // We only update status here; actual sending happens when the user
+      // explicitly taps the Send button in the chat UI.
+      callbacksRef.current.onStatus('Recording complete. Review your message, then tap Send.');
+
       setTimeout(() => {
-        callbacksRef.current.onComplete();
         callbacksRef.current.onStatus('');
-      }, 500);
+      }, 3000);
     };
 
     recognition.onerror = (event) => {
