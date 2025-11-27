@@ -38,8 +38,20 @@ function ImmersivePlayer() {
   }
 
   const currentVideo = playlist.items[currentIndex];
-  const [videoStartTime] = useState(Date.now());
-  const [initialPosition] = useState(() => getVideoPosition(currentVideo?.videoId));
+  const [videoStartTime, setVideoStartTime] = useState(Date.now());
+  const [initialPosition, setInitialPosition] = useState(() => getVideoPosition(currentVideo?.videoId) || 0);
+  const videoEndedRef = useRef(false);
+
+  const goToNextVideo = () => {
+    let advanced = false;
+    setCurrentIndex(prevIndex => {
+      const maxIndex = playlist.items.length - 1;
+      const nextIndex = Math.min(prevIndex + 1, maxIndex);
+      advanced = nextIndex !== prevIndex;
+      return nextIndex;
+    });
+    return advanced;
+  };
 
   // Save commute to history function
   const saveCommuteToHistory = async () => {
@@ -150,6 +162,12 @@ function ImmersivePlayer() {
     return () => clearInterval(saveInterval);
   }, [currentVideo.videoId, currentVideo.durationSec, videoStartTime, initialPosition, saveVideoPosition, showCompletion]);
 
+  useEffect(() => {
+    setVideoStartTime(Date.now());
+    setInitialPosition(getVideoPosition(currentVideo?.videoId) || 0);
+    videoEndedRef.current = false;
+  }, [currentVideo?.videoId, getVideoPosition]);
+
   // Track watched video
   const markVideoWatched = (videoId) => {
     if (!contextWatchedIds.includes(videoId)) {
@@ -199,13 +217,10 @@ function ImmersivePlayer() {
     // Mark current video as watched
     markVideoWatched(currentVideo.videoId);
 
-    // Check if we're at the last video
-    if (currentIndex >= playlist.items.length - 1) {
-      // Fetch more videos
+    const advanced = goToNextVideo();
+
+    if (!advanced) {
       await fetchMoreVideos('skip');
-    } else {
-      // Move to next video
-      setCurrentIndex(prev => prev + 1);
     }
   };
 
@@ -292,13 +307,15 @@ function ImmersivePlayer() {
   };
 
   const handleVideoEnd = () => {
+    if (videoEndedRef.current) {
+      return;
+    }
+    videoEndedRef.current = true;
     markVideoWatched(currentVideo.videoId);
-    
-    // Auto-advance to next video
-    if (currentIndex < playlist.items.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    } else {
-      // Fetch more videos if time remaining
+
+    const advanced = goToNextVideo();
+
+    if (!advanced) {
       if (remainingTimeSec > 120) { // More than 2 minutes left
         fetchMoreVideos('continue');
       } else {
