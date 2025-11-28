@@ -237,4 +237,107 @@ describe('HW9 CTR-C4: Achievements API Tests', () => {
       expect(minutes30Badge.progressTarget).toBe(30);
     });
   });
+
+  describe('Commute Completion Integration', () => {
+    test('completing a commute via API updates achievements', async () => {
+      // Save a commute via the commute history endpoint
+      const commuteSession = createMockCommute({
+        topics: ['python'],
+        durationSec: 10 * 60 // 10 minutes
+      });
+
+      const saveRes = await request(app)
+        .post('/api/commute-history')
+        .set(AUTH)
+        .send({
+          userId: TEST_USER_ID,
+          session: commuteSession
+        });
+
+      expect(saveRes.status).toBe(200);
+      expect(saveRes.body.success).toBe(true);
+
+      // Now fetch achievements - should show the commute
+      const achievementsRes = await request(app)
+        .get(`/api/achievements?userId=${TEST_USER_ID}`)
+        .set(AUTH);
+
+      expect(achievementsRes.status).toBe(200);
+      expect(achievementsRes.body.summary.totalSessions).toBe(1);
+      expect(achievementsRes.body.summary.totalMinutes).toBeGreaterThanOrEqual(10);
+
+      // First Commute badge should be unlocked
+      const commute1Badge = achievementsRes.body.badges.find((b: any) => b.id === 'commute-1');
+      expect(commute1Badge.earned).toBe(true);
+      expect(commute1Badge.earnedAt).toBeTruthy();
+    });
+
+    test('multiple commutes accumulate in achievements', async () => {
+      // Save 3 commutes
+      for (let i = 0; i < 3; i++) {
+        const commuteSession = createMockCommute({
+          topics: ['python'],
+          durationSec: 5 * 60
+        });
+
+        await request(app)
+          .post('/api/commute-history')
+          .set(AUTH)
+          .send({
+            userId: TEST_USER_ID,
+            session: commuteSession
+          });
+      }
+
+      // Fetch achievements
+      const res = await request(app)
+        .get(`/api/achievements?userId=${TEST_USER_ID}`)
+        .set(AUTH);
+
+      expect(res.status).toBe(200);
+      expect(res.body.summary.totalSessions).toBe(3);
+      expect(res.body.summary.totalMinutes).toBeGreaterThanOrEqual(15);
+
+      // Commute badges
+      const commute1Badge = res.body.badges.find((b: any) => b.id === 'commute-1');
+      expect(commute1Badge.earned).toBe(true);
+    });
+
+    test('commute saves with videosWatched metadata', async () => {
+      const commuteSession = createMockCommute({
+        topics: ['cooking'],
+        durationSec: 5 * 60,
+        videosWatched: [
+          {
+            videoId: 'vid-123',
+            title: 'How to Cook',
+            thumbnail: 'https://example.com/thumb.jpg',
+            channelTitle: 'Cooking Channel',
+            durationSec: 300
+          }
+        ]
+      });
+
+      const saveRes = await request(app)
+        .post('/api/commute-history')
+        .set(AUTH)
+        .send({
+          userId: TEST_USER_ID,
+          session: commuteSession
+        });
+
+      expect(saveRes.status).toBe(200);
+      expect(saveRes.body.success).toBe(true);
+
+      // Retrieve the commute to verify it was saved correctly
+      const getRes = await request(app)
+        .get(`/api/commute-history/${TEST_USER_ID}`)
+        .set(AUTH);
+
+      expect(getRes.status).toBe(200);
+      expect(getRes.body.history).toHaveLength(1);
+      expect(getRes.body.history[0].videosWatched).toHaveLength(1);
+      expect(getRes.body.history[0].videosWatched[0].videoId).toBe('vid-123');
+    });
+  });
 });

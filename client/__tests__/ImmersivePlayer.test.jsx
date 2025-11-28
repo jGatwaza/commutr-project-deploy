@@ -22,8 +22,9 @@ jest.mock('react-router-dom', () => ({
 }));
 
 // Mock AuthContext
+const mockUser = { uid: 'test-user-123' };
 jest.mock('../context/AuthContext', () => ({
-  useAuth: () => ({ user: null }),
+  useAuth: () => ({ user: mockUser }),
 }));
 
 // Mock CommuteContext
@@ -123,5 +124,114 @@ describe('ImmersivePlayer navigation', () => {
     iframe = container.querySelector('iframe');
     expect(iframe).not.toBeNull();
     expect(iframe.src).toContain('vid-3');
+  });
+});
+
+describe('ImmersivePlayer commute completion', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    global.fetch = jest.fn();
+  });
+
+  test('completing a commute saves session with real user ID', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ success: true, id: 'commute-123' })
+    });
+
+    const mockNavigate = jest.fn();
+    require('react-router-dom').useNavigate = () => mockNavigate;
+
+    render(<ImmersivePlayer />);
+
+    // Click "End Commute" button
+    const endButton = screen.getByText('End Commute');
+    await act(async () => {
+      fireEvent.click(endButton);
+    });
+
+    // Verify commute history API was called with correct user ID
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/commute-history'),
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          'Content-Type': 'application/json'
+        }),
+        body: expect.stringContaining('test-user-123')
+      })
+    );
+  });
+
+  test('completion screen shows with Go Home button', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ success: true })
+    });
+
+    render(<ImmersivePlayer />);
+
+    // Click "End Commute" button
+    const endButton = screen.getByText('End Commute');
+    await act(async () => {
+      fireEvent.click(endButton);
+    });
+
+    // Verify completion screen appears
+    expect(screen.getByText('Commute Complete!')).toBeInTheDocument();
+    expect(screen.getByText('Go Home')).toBeInTheDocument();
+    expect(screen.getByText('Create New Playlist')).toBeInTheDocument();
+  });
+
+  test('Go Home button navigates to home page', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ success: true })
+    });
+
+    const mockNavigate = jest.fn();
+    require('react-router-dom').useNavigate = () => mockNavigate;
+
+    render(<ImmersivePlayer />);
+
+    // End commute
+    const endButton = screen.getByText('End Commute');
+    await act(async () => {
+      fireEvent.click(endButton);
+    });
+
+    // Click Go Home
+    const goHomeButton = screen.getByText('Go Home');
+    fireEvent.click(goHomeButton);
+
+    // Verify navigation
+    expect(mockNavigate).toHaveBeenCalledWith('/home');
+    expect(mockEndCommute).toHaveBeenCalled();
+  });
+
+  test('does not save commute if user is not authenticated', async () => {
+    // Temporarily mock no user
+    jest.resetModules();
+    jest.mock('../context/AuthContext', () => ({
+      useAuth: () => ({ user: null })
+    }));
+
+    global.fetch = jest.fn();
+
+    const ImmersivePlayerNoAuth = require('../pages/ImmersivePlayer.jsx').default;
+    render(<ImmersivePlayerNoAuth />);
+
+    const endButton = screen.queryByText('End Commute');
+    if (endButton) {
+      await act(async () => {
+        fireEvent.click(endButton);
+      });
+    }
+
+    // Should not call commute history API without user
+    expect(global.fetch).not.toHaveBeenCalledWith(
+      expect.stringContaining('/api/commute-history'),
+      expect.anything()
+    );
   });
 });

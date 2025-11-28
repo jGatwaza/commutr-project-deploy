@@ -321,17 +321,30 @@
   margin: 0;
 }
 
+.btn-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+  z-index: 1000;
+  position: relative;
+}
+
 .btn-done {
-  background: #468189;
-  color: white;
-  border: none;
-  padding: 16px 48px;
-  border-radius: 12px;
-  font-size: 18px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 16px rgba(70, 129, 137, 0.4);
+  background: #468189 !important;
+  color: white !important;
+  border: none !important;
+  padding: 12px 32px !important;
+  font-size: 18px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 12px rgba(70, 129, 137, 0.4) !important;
+  transition: all 0.3s ease !important;
+  margin: 0 !important;
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 1000 !important;
+  position: relative !important;
 }
 
 @media (max-width: 768px) {
@@ -343,8 +356,19 @@
 }
 
 .btn-done:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(70, 129, 137, 0.6);
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 24px rgba(70, 129, 137, 0.6) !important;
+  background: #3a6b72 !important;
+}
+
+.completion-content > div[style*="display: flex"] {
+  display: flex !important;
+  gap: 16px !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+  margin-top: 24px !important;
+  width: 100% !important;
+  visibility: visible !important;
 }
 
 /* Error State */

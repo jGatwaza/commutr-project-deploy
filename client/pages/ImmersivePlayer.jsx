@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCommute } from '../context/CommuteContext';
 import { useAuth } from '../context/AuthContext';
@@ -62,11 +62,26 @@ function ImmersivePlayer() {
     return true;
   };
 
-  // Save commute to history function
-  const saveCommuteToHistory = async () => {
+  // Save commute to history function (memoized with useCallback)
+  const saveCommuteToHistory = useCallback(async () => {
     console.log('=== SAVING COMMUTE TO HISTORY ===');
     console.log('Watched videos:', contextWatchedIds);
     console.log('Topics learned:', topicsLearned);
+    console.log('User object:', user);
+    
+    // Check if user is authenticated
+    if (!user) {
+      console.error('❌ COMMUTE NOT SAVED: No user authenticated');
+      alert('Please log in to save your commute history');
+      return;
+    }
+    
+    if (!user.uid) {
+      console.error('❌ COMMUTE NOT SAVED: user.uid is missing', user);
+      alert('Authentication error: user ID is missing');
+      return;
+    }
+    
     const elapsedSeconds = commuteStartTime
       ? Math.min(
           totalDuration,
@@ -74,6 +89,7 @@ function ImmersivePlayer() {
         )
       : totalDuration;
     console.log('Elapsed seconds:', elapsedSeconds);
+    console.log('User ID:', user.uid);
 
     try {
       const watchedVideos = playlist.items
@@ -105,7 +121,7 @@ function ImmersivePlayer() {
           'Authorization': AUTH_TOKEN
         },
         body: JSON.stringify({
-          userId: 'demoUser',
+          userId: user.uid, // Use real Firebase user ID
           session: commuteSession
         })
       });
@@ -115,12 +131,14 @@ function ImmersivePlayer() {
       }
 
       const result = await response.json();
-      console.log('✅ Commute saved successfully:', result);
+      console.log('✅ COMMUTE SAVED SUCCESSFULLY:', result);
+      console.log('✅ Achievements should now update with this commute');
     } catch (error) {
-      console.error('❌ Failed to save commute to history:', error);
-      alert(`Failed to save history: ${error.message}`);
+      console.error('❌ FAILED TO SAVE COMMUTE:', error);
+      console.error('❌ Error details:', { message: error.message, stack: error.stack });
+      alert(`Failed to save commute: ${error.message}`);
     }
-  };
+  }, [user, contextWatchedIds, topicsLearned, commuteStartTime, totalDuration, playlist.items]);
 
   const handleEndCommuteEarly = async () => {
     if (showCompletion) return;
@@ -149,7 +167,7 @@ function ImmersivePlayer() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [getRemainingTime, showCompletion, endCommute]);
+  }, [getRemainingTime, showCompletion, saveCommuteToHistory]);
 
   // Save video position periodically and check if video ended
   useEffect(() => {
@@ -333,6 +351,9 @@ function ImmersivePlayer() {
   };
 
   if (showCompletion) {
+    console.log('🎉 Rendering completion screen');
+    console.log('Completion screen data:', { contextWatchedIds, topicsLearned, user: user?.uid });
+    
     const elapsedSeconds = commuteStartTime
       ? Math.min(
           totalDuration,
@@ -342,6 +363,12 @@ function ImmersivePlayer() {
 
     const watchedVideos = playlist.items
       .filter(video => contextWatchedIds.includes(video.videoId));
+    
+    console.log('Completion stats:', { 
+      videosWatched: watchedVideos.length, 
+      topicsCount: topicsLearned.length,
+      elapsedSeconds 
+    });
 
     // Approximate total learning time as the sum of how long you actually
     // watched each video in this commute. We primarily rely on
@@ -422,17 +449,27 @@ function ImmersivePlayer() {
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button onClick={() => {
-                endCommute();
-                navigate('/home');
-              }} className="btn-done">
+            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '24px' }}>
+              <button 
+                onClick={() => {
+                  console.log('🏠 Go Home button clicked');
+                  endCommute();
+                  navigate('/home');
+                }} 
+                className="btn-done"
+                style={{ minWidth: '150px', fontSize: '16px', fontWeight: '600' }}
+              >
                 Go Home
               </button>
-              <button onClick={() => {
-                endCommute();
-                navigate('/create');
-              }} className="btn-done">
+              <button 
+                onClick={() => {
+                  console.log('➕ Create New Playlist button clicked');
+                  endCommute();
+                  navigate('/create');
+                }} 
+                className="btn-done"
+                style={{ minWidth: '150px', fontSize: '16px', fontWeight: '600' }}
+              >
                 Create New Playlist
               </button>
             </div>
