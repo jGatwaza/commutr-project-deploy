@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCommute } from '../context/CommuteContext';
 import { useAuth } from '../context/AuthContext';
@@ -39,18 +39,27 @@ function ImmersivePlayer() {
 
   const currentVideo = playlist.items[currentIndex];
   const [videoStartTime, setVideoStartTime] = useState(Date.now());
-  const [initialPosition, setInitialPosition] = useState(() => getVideoPosition(currentVideo?.videoId) || 0);
+  const initialPosition = useMemo(
+    () => getVideoPosition(currentVideo?.videoId) || 0,
+    [currentVideo?.videoId]
+  );
   const videoEndedRef = useRef(false);
 
   const goToNextVideo = () => {
-    let advanced = false;
-    setCurrentIndex(prevIndex => {
-      const maxIndex = playlist.items.length - 1;
-      const nextIndex = Math.min(prevIndex + 1, maxIndex);
-      advanced = nextIndex !== prevIndex;
-      return nextIndex;
-    });
-    return advanced;
+    const totalItems = playlist?.items?.length || 0;
+
+    if (totalItems === 0) {
+      return false;
+    }
+
+    const maxIndex = totalItems - 1;
+
+    if (currentIndex >= maxIndex) {
+      return false;
+    }
+
+    setCurrentIndex(currentIndex + 1);
+    return true;
   };
 
   // Save commute to history function
@@ -144,29 +153,28 @@ function ImmersivePlayer() {
 
   // Save video position periodically and check if video ended
   useEffect(() => {
-    if (showCompletion) {
-      return;
-    }
-
     const saveInterval = setInterval(() => {
       const elapsedSinceStart = Math.floor((Date.now() - videoStartTime) / 1000);
       const estimatedPosition = initialPosition + elapsedSinceStart;
-      saveVideoPosition(currentVideo.videoId, estimatedPosition);
+      const clampedPosition = Math.max(
+        0,
+        Math.min(estimatedPosition, currentVideo.durationSec)
+      );
 
-      // Check if video has ended (only when actually complete, no early skip)
-      if (estimatedPosition >= currentVideo.durationSec) {
+      saveVideoPosition(currentVideo.videoId, clampedPosition);
+
+      if (!videoEndedRef.current && clampedPosition >= currentVideo.durationSec) {
         handleVideoEnd();
       }
-    }, 10000); // Check every 10 seconds
+    }, 1000); // Check every second for responsive autoplay
 
     return () => clearInterval(saveInterval);
-  }, [currentVideo.videoId, currentVideo.durationSec, videoStartTime, initialPosition, saveVideoPosition, showCompletion]);
+  }, [currentVideo.videoId, currentVideo.durationSec, videoStartTime, initialPosition, saveVideoPosition]);
 
   useEffect(() => {
     setVideoStartTime(Date.now());
-    setInitialPosition(getVideoPosition(currentVideo?.videoId) || 0);
     videoEndedRef.current = false;
-  }, [currentVideo?.videoId, getVideoPosition]);
+  }, [currentVideo?.videoId]);
 
   // Track watched video
   const markVideoWatched = (videoId) => {
@@ -442,7 +450,7 @@ function ImmersivePlayer() {
         <div className="video-wrapper">
           <iframe
             ref={playerRef}
-            src={`https://www.youtube.com/embed/${currentVideo.videoId}?autoplay=1&rel=0${initialPosition > 0 ? `&start=${Math.floor(initialPosition)}` : ''}`}
+            src={`https://www.youtube.com/embed/${currentVideo.videoId}?autoplay=1&rel=0&enablejsapi=1${initialPosition > 0 ? `&start=${Math.floor(initialPosition)}` : ''}`}
             title={currentVideo.title}
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
