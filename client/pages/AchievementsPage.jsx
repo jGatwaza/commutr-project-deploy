@@ -73,6 +73,9 @@ function AchievementsPage() {
 
   const { summary, badges } = data;
 
+  // Check if user has any activity (videos watched or commutes completed)
+  const hasActivity = summary.totalMinutes > 0 || badges.some(b => b.earned);
+
   return (
     <div className="achievements-page">
       <div className="achievements-header">
@@ -84,6 +87,20 @@ function AchievementsPage() {
       </div>
 
       <div className="achievements-container">
+        {!hasActivity ? (
+          // Empty state when no commute history
+          <div className="empty-state">
+            <div className="empty-icon">🎯</div>
+            <h2>No achievements yet!</h2>
+            <p className="empty-message">
+              Complete your first commute to start unlocking badges and tracking your learning progress.
+            </p>
+            <button onClick={() => navigate('/create')} className="create-playlist-btn">
+              Create Your First Playlist
+            </button>
+          </div>
+        ) : (
+        <>
         {/* Stats Summary */}
         <div className="stats-section">
           <h2>Your Stats</h2>
@@ -143,6 +160,8 @@ function AchievementsPage() {
             ))}
           </div>
         </div>
+        </>
+        )}
       </div>
     </div>
   );

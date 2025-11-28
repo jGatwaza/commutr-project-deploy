@@ -16,13 +16,16 @@ function requireAuth(req: any, res: any, next: any) {
 }
 
 /**
- * GET /api/achievements
+ * GET /api/achievements?userId=xxx
  * Returns user's achievement summary and badges
  */
 router.get('/achievements', requireAuth, async (req, res) => {
   try {
-    // Call the service to compute achievements
-    const payload = await computeAchievements();
+    // Get userId from query params (defaults to 'demoUser' if not provided)
+    const userId = (req.query.userId as string) || 'demoUser';
+    
+    // Call the service to compute achievements for this user
+    const payload = await computeAchievements(userId);
     
     return res.status(200).json(payload);
   } catch (error) {

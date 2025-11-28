@@ -1,13 +1,31 @@
 // HW9 CTR-C4: Achievements API Tests
 import request from 'supertest';
 import app from '../src/server.js';
-import { clearSessions, saveSession } from '../src/history/store.js';
+import { saveCommuteSession, type CommuteSession } from '../src/history/commuteHistory.js';
+import fs from 'fs';
+import path from 'path';
 
 const AUTH = { Authorization: 'Bearer TEST' };
+const TEST_USER_ID = 'testUser';
+const HISTORY_FILE = path.join(process.cwd(), 'data', 'commute-history.json');
 
-// Clear sessions before each test
+// Helper to create mock commute
+function createMockCommute(overrides: Partial<CommuteSession> = {}): CommuteSession {
+  return {
+    id: `commute-${Date.now()}-${Math.random()}`,
+    timestamp: new Date().toISOString(),
+    topics: ['test'],
+    durationSec: 300,
+    videosWatched: [],
+    ...overrides
+  };
+}
+
+// Clear commute history before each test
 beforeEach(() => {
-  clearSessions();
+  if (fs.existsSync(HISTORY_FILE)) {
+    fs.writeFileSync(HISTORY_FILE, JSON.stringify({}), 'utf-8');
+  }
 });
 
 describe('HW9 CTR-C4: Achievements API Tests', () => {
@@ -44,9 +62,9 @@ describe('HW9 CTR-C4: Achievements API Tests', () => {
   });
 
   describe('GET /api/achievements - Happy Path', () => {
-    test('With no sessions, returns all zeros and no earned badges', async () => {
+    test('With no commutes, returns all zeros and no earned badges', async () => {
       const res = await request(app)
-        .get('/api/achievements')
+        .get(`/api/achievements?userId=${TEST_USER_ID}`)
         .set(AUTH);
 
       expect(res.status).toBe(200);
@@ -73,17 +91,15 @@ describe('HW9 CTR-C4: Achievements API Tests', () => {
       });
     });
 
-    test('With one session (35 minutes), earns minutes-30 and session-1 badges', async () => {
-      // Create a session with 35 minutes (35 * 60 * 1000 ms = 2,100,000 ms)
-      saveSession({
-        queryText: 'python basics',
-        intentJSON: { topic: 'python' },
-        playlistJSON: { items: ['vid1', 'vid2'] },
-        durationMs: 2_100_000 // 35 minutes
-      });
+    test('With one commute (35 minutes), earns minutes-30 and commute-1 badges', async () => {
+      // Create a commute with 35 minutes (35 * 60 seconds = 2,100 seconds)
+      saveCommuteSession(TEST_USER_ID, createMockCommute({
+        topics: ['python'],
+        durationSec: 2_100 // 35 minutes
+      }));
 
       const res = await request(app)
-        .get('/api/achievements')
+        .get(`/api/achievements?userId=${TEST_USER_ID}`)
         .set(AUTH);
 
       expect(res.status).toBe(200);
@@ -96,7 +112,7 @@ describe('HW9 CTR-C4: Achievements API Tests', () => {
       const badges = res.body.badges;
       const minutes30Badge = badges.find((b: any) => b.id === 'minutes-30');
       const minutes100Badge = badges.find((b: any) => b.id === 'minutes-100');
-      const session1Badge = badges.find((b: any) => b.id === 'session-1');
+      const commute1Badge = badges.find((b: any) => b.id === 'commute-1');
 
       // minutes-30 should be earned
       expect(minutes30Badge.earned).toBe(true);
@@ -109,39 +125,25 @@ describe('HW9 CTR-C4: Achievements API Tests', () => {
       expect(minutes100Badge.progressCurrent).toBe(35);
       expect(minutes100Badge.progressTarget).toBe(100);
 
-      // session-1 should be earned
-      expect(session1Badge.earned).toBe(true);
-      expect(session1Badge.progressCurrent).toBe(1);
-      expect(session1Badge.progressTarget).toBe(1);
+      // commute-1 should be earned
+      expect(commute1Badge.earned).toBe(true);
+      expect(commute1Badge.progressCurrent).toBe(1);
+      expect(commute1Badge.progressTarget).toBe(1);
     });
 
     test('With 120 minutes total, earns minutes-30 and minutes-100 badges', async () => {
-      // Create three sessions totaling 120 minutes
-      saveSession({
-        queryText: 'session 1',
-        intentJSON: {},
-        playlistJSON: {},
-        durationMs: 40 * 60 * 1000 // 40 minutes
-      });
-      saveSession({
-        queryText: 'session 2',
-        intentJSON: {},
-        playlistJSON: {},
-        durationMs: 50 * 60 * 1000 // 50 minutes
-      });
-      saveSession({
-        queryText: 'session 3',
-        intentJSON: {},
-        playlistJSON: {},
-        durationMs: 30 * 60 * 1000 // 30 minutes
-      });
+      // Create three commutes totaling 120 minutes
+      saveCommuteSession(TEST_USER_ID, createMockCommute({ durationSec: 40 * 60 }));
+      saveCommuteSession(TEST_USER_ID, createMockCommute({ durationSec: 50 * 60 }));
+      saveCommuteSession(TEST_USER_ID, createMockCommute({ durationSec: 30 * 60 }));
 
       const res = await request(app)
-        .get('/api/achievements')
+        .get(`/api/achievements?userId=${TEST_USER_ID}`)
         .set(AUTH);
 
       expect(res.status).toBe(200);
       expect(res.body.summary.totalMinutes).toBe(120);
+      expect(res.body.summary.totalSessions).toBe(3);
 
       const badges = res.body.badges;
       const minutes30Badge = badges.find((b: any) => b.id === 'minutes-30');
@@ -155,109 +157,74 @@ describe('HW9 CTR-C4: Achievements API Tests', () => {
       expect(minutes300Badge.progressTarget).toBe(300);
     });
 
-    test('With sessions on multiple days, correctly calculates streaks', async () => {
+    test('With commutes on multiple days, correctly calculates streaks', async () => {
       const today = new Date();
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
       const twoDaysAgo = new Date(today);
       twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
 
-      // Manually set createdAt to create a 3-day streak
-      const session1 = saveSession({
-        queryText: 'day 1',
-        intentJSON: {},
-        playlistJSON: {},
-        durationMs: 10 * 60 * 1000
-      });
-      const session2 = saveSession({
-        queryText: 'day 2',
-        intentJSON: {},
-        playlistJSON: {},
-        durationMs: 10 * 60 * 1000
-      });
-      const session3 = saveSession({
-        queryText: 'day 3',
-        intentJSON: {},
-        playlistJSON: {},
-        durationMs: 10 * 60 * 1000
-      });
+      // Create commutes on 3 consecutive days
+      saveCommuteSession(TEST_USER_ID, createMockCommute({
+        timestamp: twoDaysAgo.toISOString(),
+        durationSec: 10 * 60
+      }));
+      saveCommuteSession(TEST_USER_ID, createMockCommute({
+        timestamp: yesterday.toISOString(),
+        durationSec: 10 * 60
+      }));
+      saveCommuteSession(TEST_USER_ID, createMockCommute({
+        timestamp: today.toISOString(),
+        durationSec: 10 * 60
+      }));
 
-      // Modify timestamps to create streak (requires direct file manipulation in real scenario)
-      // For this test, we'll just verify the logic works with today's sessions
       const res = await request(app)
-        .get('/api/achievements')
+        .get(`/api/achievements?userId=${TEST_USER_ID}`)
         .set(AUTH);
 
       expect(res.status).toBe(200);
       expect(res.body.summary.totalSessions).toBe(3);
-      // All sessions today should give currentStreak of 1
-      expect(res.body.summary.currentStreak).toBeGreaterThanOrEqual(1);
+      // Should have at least a 3-day streak
+      expect(res.body.summary.currentStreak).toBeGreaterThanOrEqual(3);
+      expect(res.body.summary.longestStreak).toBeGreaterThanOrEqual(3);
     });
 
-    test('With 10+ sessions, earns session-10 badge', async () => {
-      // Create 12 sessions
-      for (let i = 0; i < 12; i++) {
-        saveSession({
-          queryText: `session ${i + 1}`,
-          intentJSON: {},
-          playlistJSON: {},
-          durationMs: 5 * 60 * 1000 // 5 minutes each
-        });
+    test('With 5 commutes, earns commute-5 badge', async () => {
+      // Create 5 commutes (MAX_COMMUTES_PER_USER limit)
+      for (let i = 0; i < 5; i++) {
+        saveCommuteSession(TEST_USER_ID, createMockCommute({
+          durationSec: 5 * 60 // 5 minutes each
+        }));
       }
 
       const res = await request(app)
-        .get('/api/achievements')
+        .get(`/api/achievements?userId=${TEST_USER_ID}`)
         .set(AUTH);
 
       expect(res.status).toBe(200);
-      expect(res.body.summary.totalSessions).toBe(12);
+      expect(res.body.summary.totalSessions).toBe(5);
 
       const badges = res.body.badges;
-      const session1Badge = badges.find((b: any) => b.id === 'session-1');
-      const session10Badge = badges.find((b: any) => b.id === 'session-10');
+      const commute1Badge = badges.find((b: any) => b.id === 'commute-1');
+      const commute5Badge = badges.find((b: any) => b.id === 'commute-5');
 
-      expect(session1Badge.earned).toBe(true);
-      expect(session10Badge.earned).toBe(true);
-      expect(session10Badge.progressCurrent).toBe(12);
-      expect(session10Badge.progressTarget).toBe(10);
+      expect(commute1Badge.earned).toBe(true);
+      expect(commute5Badge.earned).toBe(true);
+      expect(commute5Badge.progressCurrent).toBe(5);
+      expect(commute5Badge.progressTarget).toBe(5);
     });
 
-    test('With shared sessions, earns share-1 badge', async () => {
-      // saveSession automatically creates a shareToken
-      saveSession({
-        queryText: 'shared playlist',
-        intentJSON: {},
-        playlistJSON: { items: ['vid1'] },
-        durationMs: 10 * 60 * 1000
-      });
-
-      const res = await request(app)
-        .get('/api/achievements')
-        .set(AUTH);
-
-      expect(res.status).toBe(200);
-
-      const badges = res.body.badges;
-      const share1Badge = badges.find((b: any) => b.id === 'share-1');
-
-      expect(share1Badge.earned).toBe(true);
-      expect(share1Badge.progressCurrent).toBe(1);
-      expect(share1Badge.progressTarget).toBe(1);
-    });
   });
 
   describe('Progress Tracking', () => {
     test('Progress bars show current progress toward unearned badges', async () => {
-      // Create session with 25 minutes (below 30 threshold)
-      saveSession({
-        queryText: 'short session',
-        intentJSON: {},
-        playlistJSON: {},
-        durationMs: 25 * 60 * 1000
-      });
+      // Create commute with 25 minutes (below 30 threshold)
+      saveCommuteSession(TEST_USER_ID, createMockCommute({
+        durationSec: 25 * 60
+      }));
 
       const res = await request(app)
-        .get('/api/achievements')
+        .get(`/api/achievements?userId=${TEST_USER_ID}`)
         .set(AUTH);
 
       expect(res.status).toBe(200);

@@ -1,17 +1,42 @@
 // HW9 CTR-C4: Achievements Service Unit Tests
-import { computeAchievements } from '../src/achievements/service.js';
-import { clearSessions, saveSession } from '../src/history/store.js';
+import { computeAchievementsFromHistory } from '../src/achievements/service.js';
+import type { CommuteSession } from '../src/history/commuteHistory.js';
+import type { WatchedEntry } from '../src/history/watchHistory.js';
 
-// Clear sessions before each test
-beforeEach(() => {
-  clearSessions();
-});
+// Helper to create mock commute sessions
+function createMockCommute(overrides: Partial<CommuteSession> = {}): CommuteSession {
+  return {
+    id: `commute-${Date.now()}-${Math.random()}`,
+    timestamp: new Date().toISOString(),
+    topics: ['test'],
+    durationSec: 300, // 5 minutes default
+    videosWatched: [],
+    ...overrides
+  };
+}
 
-describe('HW9 CTR-C4: Achievements Service Unit Tests', () => {
+// Helper to create mock watched videos
+function createMockWatched(overrides: Partial<WatchedEntry> = {}): WatchedEntry {
+  const now = new Date().toISOString();
+  return {
+    id: `w${Date.now()}-${Math.random()}`,
+    userId: 'testUser',
+    videoId: `vid-${Math.random()}`,
+    title: 'Test Video',
+    durationSec: 300, // 5 minutes default
+    createdAt: now,
+    updatedAt: now,
+    completedAt: now,
+    ...overrides
+  };
+}
+
+describe('HW9 CTR-C4: Achievements Service Unit Tests - Watch & Commute History', () => {
   
-  describe('computeAchievements() - Basic Functionality', () => {
-    test('Returns correct structure with summary and badges', async () => {
-      const result = await computeAchievements();
+  describe('computeAchievementsFromHistory() - Basic Functionality', () => {
+    test('Returns correct structure with summary and badges', () => {
+      const history: CommuteSession[] = [createMockCommute()];
+      const result = computeAchievementsFromHistory(history);
 
       expect(result).toHaveProperty('summary');
       expect(result).toHaveProperty('badges');
@@ -25,8 +50,9 @@ describe('HW9 CTR-C4: Achievements Service Unit Tests', () => {
       expect(result.badges.length).toBeGreaterThan(0);
     });
 
-    test('Each badge has required fields', async () => {
-      const result = await computeAchievements();
+    test('Each badge has required fields', () => {
+      const history: CommuteSession[] = [createMockCommute()];
+      const result = computeAchievementsFromHistory(history);
 
       result.badges.forEach(badge => {
         expect(badge).toHaveProperty('id');
@@ -46,9 +72,11 @@ describe('HW9 CTR-C4: Achievements Service Unit Tests', () => {
     });
   });
 
-  describe('Summary Stats - Zero State', () => {
-    test('With no sessions, returns all zeros', async () => {
-      const result = await computeAchievements();
+  describe('Summary Stats - Zero State (Empty History)', () => {
+    test('With no commutes or videos, returns all zeros', () => {
+      const history: CommuteSession[] = [];
+      const watched: WatchedEntry[] = [];
+      const result = computeAchievementsFromHistory(history, watched);
 
       expect(result.summary).toEqual({
         totalMinutes: 0,
@@ -58,8 +86,10 @@ describe('HW9 CTR-C4: Achievements Service Unit Tests', () => {
       });
     });
 
-    test('With no sessions, all badges are locked', async () => {
-      const result = await computeAchievements();
+    test('With no commutes or videos, all badges are locked', () => {
+      const history: CommuteSession[] = [];
+      const watched: WatchedEntry[] = [];
+      const result = computeAchievementsFromHistory(history, watched);
 
       result.badges.forEach(badge => {
         expect(badge.earned).toBe(false);
@@ -68,54 +98,39 @@ describe('HW9 CTR-C4: Achievements Service Unit Tests', () => {
     });
   });
 
-  describe('Summary Stats - With Sessions', () => {
-    test('Correctly calculates totalMinutes from durationMs', async () => {
-      // Create sessions with known durations
-      saveSession({
-        queryText: 'test1',
-        intentJSON: {},
-        playlistJSON: {},
-        durationMs: 15 * 60 * 1000 // 15 minutes
-      });
-      saveSession({
-        queryText: 'test2',
-        intentJSON: {},
-        playlistJSON: {},
-        durationMs: 25 * 60 * 1000 // 25 minutes
-      });
+  describe('Summary Stats - With Commute History', () => {
+    test('Correctly calculates totalMinutes from durationSec', () => {
+      const history: CommuteSession[] = [
+        createMockCommute({ durationSec: 15 * 60 }), // 15 minutes
+        createMockCommute({ durationSec: 25 * 60 })  // 25 minutes
+      ];
 
-      const result = await computeAchievements();
+      const result = computeAchievementsFromHistory(history);
 
       expect(result.summary.totalMinutes).toBe(40);
       expect(result.summary.totalSessions).toBe(2);
     });
 
-    test('Rounds down partial minutes', async () => {
-      // Create session with 10.5 minutes worth of milliseconds
-      saveSession({
-        queryText: 'test',
-        intentJSON: {},
-        playlistJSON: {},
-        durationMs: 10.5 * 60 * 1000 // 10 minutes 30 seconds
-      });
+    test('Rounds down partial minutes', () => {
+      const history: CommuteSession[] = [
+        createMockCommute({ durationSec: 10.5 * 60 }) // 10 minutes 30 seconds = 630 seconds
+      ];
 
-      const result = await computeAchievements();
+      const result = computeAchievementsFromHistory(history);
 
       // Should round down to 10
       expect(result.summary.totalMinutes).toBe(10);
     });
   });
 
-  describe('Badge Thresholds - Minutes Badges', () => {
-    test('minutes-30 badge unlocks at exactly 30 minutes', async () => {
-      saveSession({
-        queryText: 'test',
-        intentJSON: {},
-        playlistJSON: {},
-        durationMs: 30 * 60 * 1000
-      });
+  describe('Badge Thresholds - Minutes Badges (Combined)', () => {
+    test('minutes-30 badge unlocks with 30 minutes from commutes', () => {
+      const history: CommuteSession[] = [
+        createMockCommute({ durationSec: 30 * 60 })
+      ];
+      const watched: WatchedEntry[] = [];
 
-      const result = await computeAchievements();
+      const result = computeAchievementsFromHistory(history, watched);
       const badge = result.badges.find(b => b.id === 'minutes-30');
 
       expect(badge?.earned).toBe(true);
@@ -123,15 +138,42 @@ describe('HW9 CTR-C4: Achievements Service Unit Tests', () => {
       expect(badge?.progressTarget).toBe(30);
     });
 
-    test('minutes-30 badge locked below 30 minutes', async () => {
-      saveSession({
-        queryText: 'test',
-        intentJSON: {},
-        playlistJSON: {},
-        durationMs: 29 * 60 * 1000
-      });
+    test('minutes-30 badge unlocks with 30 minutes from watched videos', () => {
+      const history: CommuteSession[] = [];
+      const watched: WatchedEntry[] = [
+        createMockWatched({ durationSec: 30 * 60 })
+      ];
 
-      const result = await computeAchievements();
+      const result = computeAchievementsFromHistory(history, watched);
+      const badge = result.badges.find(b => b.id === 'minutes-30');
+
+      expect(badge?.earned).toBe(true);
+      expect(badge?.progressCurrent).toBe(30);
+      expect(badge?.progressTarget).toBe(30);
+    });
+
+    test('minutes-30 badge unlocks with combined time from both sources', () => {
+      const history: CommuteSession[] = [
+        createMockCommute({ durationSec: 15 * 60 })
+      ];
+      const watched: WatchedEntry[] = [
+        createMockWatched({ durationSec: 15 * 60 })
+      ];
+
+      const result = computeAchievementsFromHistory(history, watched);
+      const badge = result.badges.find(b => b.id === 'minutes-30');
+
+      expect(badge?.earned).toBe(true);
+      expect(badge?.progressCurrent).toBe(30);
+    });
+
+    test('minutes-30 badge locked below 30 minutes', () => {
+      const history: CommuteSession[] = [
+        createMockCommute({ durationSec: 29 * 60 })
+      ];
+      const watched: WatchedEntry[] = [];
+
+      const result = computeAchievementsFromHistory(history, watched);
       const badge = result.badges.find(b => b.id === 'minutes-30');
 
       expect(badge?.earned).toBe(false);
@@ -139,30 +181,27 @@ describe('HW9 CTR-C4: Achievements Service Unit Tests', () => {
       expect(badge?.progressTarget).toBe(30);
     });
 
-    test('minutes-100 badge unlocks at 100+ minutes', async () => {
-      // Create multiple sessions totaling 105 minutes
-      saveSession({ queryText: 'test1', intentJSON: {}, playlistJSON: {}, durationMs: 50 * 60 * 1000 });
-      saveSession({ queryText: 'test2', intentJSON: {}, playlistJSON: {}, durationMs: 55 * 60 * 1000 });
+    test('minutes-100 badge unlocks at 100+ minutes', () => {
+      const history: CommuteSession[] = [
+        createMockCommute({ durationSec: 50 * 60 }),
+        createMockCommute({ durationSec: 55 * 60 })
+      ];
 
-      const result = await computeAchievements();
+      const result = computeAchievementsFromHistory(history);
       const badge = result.badges.find(b => b.id === 'minutes-100');
 
       expect(badge?.earned).toBe(true);
       expect(badge?.progressCurrent).toBe(105);
     });
 
-    test('minutes-300 badge unlocks at 300+ minutes', async () => {
-      // Create sessions totaling 310 minutes
+    test('minutes-300 badge unlocks at 300+ minutes', () => {
+      const history: CommuteSession[] = [];
+      // Create 31 commutes of 10 minutes each = 310 minutes total
       for (let i = 0; i < 31; i++) {
-        saveSession({
-          queryText: `test${i}`,
-          intentJSON: {},
-          playlistJSON: {},
-          durationMs: 10 * 60 * 1000 // 10 minutes each
-        });
+        history.push(createMockCommute({ durationSec: 10 * 60 }));
       }
 
-      const result = await computeAchievements();
+      const result = computeAchievementsFromHistory(history);
       const badge = result.badges.find(b => b.id === 'minutes-300');
 
       expect(badge?.earned).toBe(true);
@@ -170,126 +209,202 @@ describe('HW9 CTR-C4: Achievements Service Unit Tests', () => {
     });
   });
 
-  describe('Badge Thresholds - Session Badges', () => {
-    test('session-1 badge unlocks with first session', async () => {
-      saveSession({
-        queryText: 'first',
-        intentJSON: {},
-        playlistJSON: {},
-        durationMs: 5 * 60 * 1000
-      });
+  describe('Badge Thresholds - Video Watch Badges', () => {
+    test('video-1 badge (First Video) unlocks with first watched video', () => {
+      const history: CommuteSession[] = [];
+      const watched: WatchedEntry[] = [
+        createMockWatched({ durationSec: 5 * 60 })
+      ];
 
-      const result = await computeAchievements();
-      const badge = result.badges.find(b => b.id === 'session-1');
+      const result = computeAchievementsFromHistory(history, watched);
+      const badge = result.badges.find(b => b.id === 'video-1');
 
       expect(badge?.earned).toBe(true);
       expect(badge?.progressCurrent).toBe(1);
+      expect(badge?.title).toBe('First Video');
     });
 
-    test('session-10 badge unlocks with 10+ sessions', async () => {
-      for (let i = 0; i < 10; i++) {
-        saveSession({
-          queryText: `session${i}`,
-          intentJSON: {},
-          playlistJSON: {},
-          durationMs: 5 * 60 * 1000
-        });
+    test('video-5 badge unlocks with 5 watched videos', () => {
+      const history: CommuteSession[] = [];
+      const watched: WatchedEntry[] = [];
+      for (let i = 0; i < 5; i++) {
+        watched.push(createMockWatched());
       }
 
-      const result = await computeAchievements();
-      const badge = result.badges.find(b => b.id === 'session-10');
+      const result = computeAchievementsFromHistory(history, watched);
+      const badge = result.badges.find(b => b.id === 'video-5');
 
       expect(badge?.earned).toBe(true);
-      expect(badge?.progressCurrent).toBe(10);
+      expect(badge?.progressCurrent).toBe(5);
     });
 
-    test('session-10 badge locked with 9 sessions', async () => {
-      for (let i = 0; i < 9; i++) {
-        saveSession({
-          queryText: `session${i}`,
-          intentJSON: {},
-          playlistJSON: {},
-          durationMs: 5 * 60 * 1000
-        });
+    test('video-10 badge unlocks with 10+ watched videos', () => {
+      const history: CommuteSession[] = [];
+      const watched: WatchedEntry[] = [];
+      for (let i = 0; i < 12; i++) {
+        watched.push(createMockWatched());
       }
 
-      const result = await computeAchievements();
-      const badge = result.badges.find(b => b.id === 'session-10');
+      const result = computeAchievementsFromHistory(history, watched);
+      const badge = result.badges.find(b => b.id === 'video-10');
+
+      expect(badge?.earned).toBe(true);
+      expect(badge?.progressCurrent).toBe(12);
+    });
+  });
+
+  describe('Badge Thresholds - Commute Badges', () => {
+    test('commute-1 badge (First Commute) unlocks with first commute', () => {
+      const history: CommuteSession[] = [
+        createMockCommute({ durationSec: 5 * 60 })
+      ];
+
+      const result = computeAchievementsFromHistory(history);
+      const badge = result.badges.find(b => b.id === 'commute-1');
+
+      expect(badge?.earned).toBe(true);
+      expect(badge?.progressCurrent).toBe(1);
+      expect(badge?.title).toBe('First Commute');
+    });
+
+    test('commute-5 badge unlocks with 5 commutes', () => {
+      const history: CommuteSession[] = [];
+      for (let i = 0; i < 5; i++) {
+        history.push(createMockCommute());
+      }
+
+      const result = computeAchievementsFromHistory(history);
+      const badge = result.badges.find(b => b.id === 'commute-5');
+
+      expect(badge?.earned).toBe(true);
+      expect(badge?.progressCurrent).toBe(5);
+    });
+
+    test('commute-10 badge unlocks with 10+ commutes', () => {
+      const history: CommuteSession[] = [];
+      for (let i = 0; i < 12; i++) {
+        history.push(createMockCommute());
+      }
+
+      const result = computeAchievementsFromHistory(history);
+      const badge = result.badges.find(b => b.id === 'commute-10');
+
+      expect(badge?.earned).toBe(true);
+      expect(badge?.progressCurrent).toBe(12);
+    });
+
+    test('commute-10 badge locked with 9 commutes', () => {
+      const history: CommuteSession[] = [];
+      for (let i = 0; i < 9; i++) {
+        history.push(createMockCommute());
+      }
+
+      const result = computeAchievementsFromHistory(history);
+      const badge = result.badges.find(b => b.id === 'commute-10');
 
       expect(badge?.earned).toBe(false);
       expect(badge?.progressCurrent).toBe(9);
     });
-  });
 
-  describe('Badge Thresholds - Share Badge', () => {
-    test('share-1 badge unlocks when session has shareToken', async () => {
-      // saveSession automatically creates a shareToken
-      saveSession({
-        queryText: 'shared',
-        intentJSON: {},
-        playlistJSON: {},
-        durationMs: 5 * 60 * 1000
-      });
+    test('commute-25 badge unlocks with 25+ commutes', () => {
+      const history: CommuteSession[] = [];
+      for (let i = 0; i < 25; i++) {
+        history.push(createMockCommute());
+      }
 
-      const result = await computeAchievements();
-      const badge = result.badges.find(b => b.id === 'share-1');
+      const result = computeAchievementsFromHistory(history);
+      const badge = result.badges.find(b => b.id === 'commute-25');
 
       expect(badge?.earned).toBe(true);
-      expect(badge?.progressCurrent).toBe(1);
+      expect(badge?.progressCurrent).toBe(25);
     });
   });
 
-  describe('Badge Thresholds - Streak Badges', () => {
-    test('streak badges use longestStreak for progress', async () => {
-      // Create one session (streak of 1 day if today)
-      saveSession({
-        queryText: 'today',
-        intentJSON: {},
-        playlistJSON: {},
-        durationMs: 10 * 60 * 1000
-      });
 
-      const result = await computeAchievements();
+  describe('Badge Thresholds - Streak Badges', () => {
+    test('streak badges use longestStreak for progress', () => {
+      const today = new Date();
+      const history: CommuteSession[] = [
+        createMockCommute({ timestamp: today.toISOString() })
+      ];
+
+      const result = computeAchievementsFromHistory(history);
       const streak3Badge = result.badges.find(b => b.id === 'streak-3');
       const streak7Badge = result.badges.find(b => b.id === 'streak-7');
 
-      // With only today's session, longest streak should be 1
+      // With only today's commute, longest streak should be 1
       expect(result.summary.longestStreak).toBeGreaterThanOrEqual(1);
       expect(streak3Badge?.progressCurrent).toBe(result.summary.longestStreak);
       expect(streak7Badge?.progressCurrent).toBe(result.summary.longestStreak);
     });
+
+    test('streak-3 badge unlocks with 3 consecutive days', () => {
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const twoDaysAgo = new Date(today);
+      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+
+      const history: CommuteSession[] = [
+        createMockCommute({ timestamp: twoDaysAgo.toISOString() }),
+        createMockCommute({ timestamp: yesterday.toISOString() }),
+        createMockCommute({ timestamp: today.toISOString() })
+      ];
+
+      const result = computeAchievementsFromHistory(history);
+      const streak3Badge = result.badges.find(b => b.id === 'streak-3');
+
+      expect(result.summary.longestStreak).toBeGreaterThanOrEqual(3);
+      expect(streak3Badge?.earned).toBe(true);
+    });
+
+    test('streak-7 badge unlocks with 7 consecutive days', () => {
+      const history: CommuteSession[] = [];
+      const today = new Date();
+      
+      // Create commutes for 7 consecutive days
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        history.push(createMockCommute({ timestamp: date.toISOString() }));
+      }
+
+      const result = computeAchievementsFromHistory(history);
+      const streak7Badge = result.badges.find(b => b.id === 'streak-7');
+
+      expect(result.summary.longestStreak).toBeGreaterThanOrEqual(7);
+      expect(streak7Badge?.earned).toBe(true);
+    });
   });
 
   describe('earnedAt Timestamps', () => {
-    test('Earned badges have earnedAt timestamp', async () => {
-      saveSession({
-        queryText: 'test',
-        intentJSON: {},
-        playlistJSON: {},
-        durationMs: 35 * 60 * 1000 // Earns minutes-30 and session-1
-      });
+    test('Earned badges have earnedAt timestamp', () => {
+      const testTimestamp = '2024-01-15T10:30:00.000Z';
+      const history: CommuteSession[] = [
+        createMockCommute({ 
+          durationSec: 35 * 60, 
+          timestamp: testTimestamp 
+        })
+      ];
 
-      const result = await computeAchievements();
+      const result = computeAchievementsFromHistory(history);
       const minutes30Badge = result.badges.find(b => b.id === 'minutes-30');
-      const session1Badge = result.badges.find(b => b.id === 'session-1');
+      const commute1Badge = result.badges.find(b => b.id === 'commute-1');
 
       expect(minutes30Badge?.earned).toBe(true);
       expect(minutes30Badge?.earnedAt).toBeTruthy();
       expect(typeof minutes30Badge?.earnedAt).toBe('string');
 
-      expect(session1Badge?.earned).toBe(true);
-      expect(session1Badge?.earnedAt).toBeTruthy();
+      expect(commute1Badge?.earned).toBe(true);
+      expect(commute1Badge?.earnedAt).toBeTruthy();
     });
 
-    test('Unearned badges have no earnedAt timestamp', async () => {
-      saveSession({
-        queryText: 'test',
-        intentJSON: {},
-        playlistJSON: {},
-        durationMs: 15 * 60 * 1000 // Below 30 minute threshold
-      });
+    test('Unearned badges have no earnedAt timestamp', () => {
+      const history: CommuteSession[] = [
+        createMockCommute({ durationSec: 15 * 60 })
+      ];
 
-      const result = await computeAchievements();
+      const result = computeAchievementsFromHistory(history);
       const minutes30Badge = result.badges.find(b => b.id === 'minutes-30');
 
       expect(minutes30Badge?.earned).toBe(false);
@@ -298,30 +413,23 @@ describe('HW9 CTR-C4: Achievements Service Unit Tests', () => {
   });
 
   describe('Edge Cases', () => {
-    test('Handles sessions with 0 duration', async () => {
-      saveSession({
-        queryText: 'test',
-        intentJSON: {},
-        playlistJSON: {},
-        durationMs: 0
-      });
+    test('Handles commutes with 0 duration', () => {
+      const history: CommuteSession[] = [
+        createMockCommute({ durationSec: 0 })
+      ];
 
-      const result = await computeAchievements();
+      const result = computeAchievementsFromHistory(history);
 
       expect(result.summary.totalMinutes).toBe(0);
       expect(result.summary.totalSessions).toBe(1);
     });
 
-    test('Handles very large duration values', async () => {
-      // 1000 minutes
-      saveSession({
-        queryText: 'test',
-        intentJSON: {},
-        playlistJSON: {},
-        durationMs: 1000 * 60 * 1000
-      });
+    test('Handles very large duration values', () => {
+      const history: CommuteSession[] = [
+        createMockCommute({ durationSec: 1000 * 60 }) // 1000 minutes
+      ];
 
-      const result = await computeAchievements();
+      const result = computeAchievementsFromHistory(history);
 
       expect(result.summary.totalMinutes).toBe(1000);
       
@@ -333,6 +441,29 @@ describe('HW9 CTR-C4: Achievements Service Unit Tests', () => {
       expect(minutes30Badge?.earned).toBe(true);
       expect(minutes100Badge?.earned).toBe(true);
       expect(minutes300Badge?.earned).toBe(true);
+    });
+
+    test('earnedAt timestamp is set to the commute that crossed threshold', () => {
+      const timestamp1 = '2024-01-01T10:00:00.000Z';
+      const timestamp2 = '2024-01-02T10:00:00.000Z';
+      const timestamp3 = '2024-01-03T10:00:00.000Z';
+
+      // Create history with commutes in chronological order
+      const history: CommuteSession[] = [
+        createMockCommute({ durationSec: 10 * 60, timestamp: timestamp1 }),
+        createMockCommute({ durationSec: 15 * 60, timestamp: timestamp2 }),
+        createMockCommute({ durationSec: 10 * 60, timestamp: timestamp3 })
+      ];
+
+      const result = computeAchievementsFromHistory(history);
+      const minutes30Badge = result.badges.find(b => b.id === 'minutes-30');
+
+      // Total is 35 minutes
+      // After first commute: 10 minutes (not crossed)
+      // After second commute: 25 minutes (not crossed yet)
+      // After third commute: 35 minutes (crossed 30!)
+      expect(minutes30Badge?.earned).toBe(true);
+      expect(minutes30Badge?.earnedAt).toBe(timestamp3);
     });
   });
 });

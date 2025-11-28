@@ -1,14 +1,11 @@
 // HW9 CTR-C4: Badges & Accomplishments Service
-// This module computes achievement stats and badges by reusing existing data
-// from the history store and streak service.
+// This module computes achievement stats and badges from both watch history and commute history data.
 
-import { readFileSync, existsSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import type { SessionRec } from '../history/store.js';
+import { getUserHistory, type CommuteSession } from '../history/commuteHistory.js';
+import { listWatched, type WatchedEntry } from '../history/watchHistory.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __filename = import.meta.url;
+const __dirname = new URL('.', import.meta.url).pathname;
 
 // Type definitions for HW9 CTR-C4
 export type AchievementSummary = {
@@ -41,54 +38,106 @@ interface BadgeDefinition {
   description: string;
   icon: string;
   threshold: number;
-  type: 'minutes' | 'streak' | 'session' | 'share';
+  type: 'minutes' | 'streak' | 'commute' | 'videos';
 }
 
 const BADGE_CATALOG: BadgeDefinition[] = [
+  // Video watch badges (from watch history)
+  {
+    id: 'video-1',
+    title: 'First Video',
+    description: 'Watch your first video',
+    icon: '🎬',
+    threshold: 1,
+    type: 'videos'
+  },
+  {
+    id: 'video-5',
+    title: '5 Videos',
+    description: 'Watch 5 videos',
+    icon: '🎥',
+    threshold: 5,
+    type: 'videos'
+  },
+  {
+    id: 'video-10',
+    title: '10 Videos',
+    description: 'Watch 10 videos',
+    icon: '📹',
+    threshold: 10,
+    type: 'videos'
+  },
+  {
+    id: 'video-25',
+    title: '25 Videos',
+    description: 'Watch 25 videos',
+    icon: '🌟',
+    threshold: 25,
+    type: 'videos'
+  },
+  // Commute completion badges
+  {
+    id: 'commute-1',
+    title: 'First Commute',
+    description: 'Complete your first commute',
+    icon: '🚗',
+    threshold: 1,
+    type: 'commute'
+  },
+  {
+    id: 'commute-5',
+    title: '5 Commutes',
+    description: 'Complete 5 commutes',
+    icon: '🎵',
+    threshold: 5,
+    type: 'commute'
+  },
+  {
+    id: 'commute-10',
+    title: '10 Commutes',
+    description: 'Complete 10 commutes',
+    icon: '🔟',
+    threshold: 10,
+    type: 'commute'
+  },
+  {
+    id: 'commute-25',
+    title: '25 Commutes',
+    description: 'Complete 25 commutes',
+    icon: '⭐',
+    threshold: 25,
+    type: 'commute'
+  },
+  // Watch time badges (combined from both sources)
   {
     id: 'minutes-30',
-    title: '30 Minutes Listened',
-    description: 'Complete 30 minutes of learning',
+    title: '30 Minutes Watched',
+    description: 'Watch 30 minutes of content',
     icon: '⏱️',
     threshold: 30,
     type: 'minutes'
   },
   {
     id: 'minutes-100',
-    title: '100 Minutes Listened',
-    description: 'Complete 100 minutes of learning',
+    title: '100 Minutes Watched',
+    description: 'Watch 100 minutes of content',
     icon: '🎧',
     threshold: 100,
     type: 'minutes'
   },
   {
     id: 'minutes-300',
-    title: '5 Hours Learned',
-    description: 'Complete 300 minutes of learning',
+    title: '5 Hours Watched',
+    description: 'Watch 300 minutes of content',
     icon: '📚',
     threshold: 300,
     type: 'minutes'
   },
-  {
-    id: 'session-1',
-    title: 'First Playlist',
-    description: 'Create your first learning playlist',
-    icon: '🎵',
-    threshold: 1,
-    type: 'session'
-  },
-  {
-    id: 'session-10',
-    title: '10 Sessions',
-    description: 'Complete 10 learning sessions',
-    icon: '🔟',
-    threshold: 10,
-    type: 'session'
-  },
+  // Streak badges (from commute history)
   {
     id: 'streak-3',
     title: '3-Day Streak',
-    description: 'Learn for 3 consecutive days',
+    description: 'Commute for 3 consecutive days',
     icon: '🔥',
     threshold: 3,
     type: 'streak'
@@ -96,55 +145,29 @@ const BADGE_CATALOG: BadgeDefinition[] = [
   {
     id: 'streak-7',
     title: '7-Day Streak',
-    description: 'Learn for 7 consecutive days',
+    description: 'Commute for 7 consecutive days',
     icon: '⚡',
     threshold: 7,
     type: 'streak'
-  },
-  {
-    id: 'share-1',
-    title: 'First Share',
-    description: 'Share your first playlist',
-    icon: '🤝',
-    threshold: 1,
-    type: 'share'
   }
 ];
 
-// Helper: Load sessions from history store
-function loadHistorySessions(): SessionRec[] {
-  const dataDir = join(__dirname, '../../data');
-  const sessionsFile = join(dataDir, 'sessions.json');
-  
-  if (!existsSync(sessionsFile)) {
-    return [];
-  }
-  
-  try {
-    const data = readFileSync(sessionsFile, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Error loading history sessions:', error);
-    return [];
-  }
-}
-
-// Helper: Calculate streak from sessions (reusing logic from streak service)
-function calculateStreakFromSessions(sessions: SessionRec[]): {
+// Helper: Calculate streak from commute sessions
+function calculateStreakFromCommutes(commutes: CommuteSession[]): {
   currentStreak: number;
   longestStreak: number;
 } {
-  if (sessions.length === 0) {
+  if (commutes.length === 0) {
     return { currentStreak: 0, longestStreak: 0 };
   }
 
-  // Group sessions by calendar day (YYYY-MM-DD)
-  const daysWithSessions = new Set<string>();
-  for (const session of sessions) {
-    const date = new Date(session.createdAt);
+  // Group commutes by calendar day (YYYY-MM-DD)
+  const daysWithCommutes = new Set<string>();
+  for (const commute of commutes) {
+    const date = new Date(commute.timestamp);
     const dayKey = date.toISOString().split('T')[0]; // YYYY-MM-DD in UTC
     if (dayKey) {
-      daysWithSessions.add(dayKey);
+      daysWithCommutes.add(dayKey);
     }
   }
 
@@ -157,10 +180,15 @@ function calculateStreakFromSessions(sessions: SessionRec[]): {
     checkDate.setDate(checkDate.getDate() - offset);
     const checkDayKey = checkDate.toISOString().split('T')[0];
 
-    if (checkDayKey && daysWithSessions.has(checkDayKey)) {
+    if (checkDayKey && daysWithCommutes.has(checkDayKey)) {
       currentStreak++;
       offset++;
     } else {
+      // Allow one skip for current streak (if today has no commute, start checking from yesterday)
+      if (offset === 0) {
+        offset++;
+        continue;
+      }
       break;
     }
 
@@ -169,7 +197,7 @@ function calculateStreakFromSessions(sessions: SessionRec[]): {
   }
 
   // Calculate longest streak by checking all possible consecutive sequences
-  const sortedDays = Array.from(daysWithSessions).sort();
+  const sortedDays = Array.from(daysWithCommutes).sort();
   let longestStreak = 0;
   let tempStreak = 1;
 
@@ -194,26 +222,30 @@ function calculateStreakFromSessions(sessions: SessionRec[]): {
   return { currentStreak, longestStreak };
 }
 
+
 /**
- * HW9 CTR-C4: Compute achievements summary and badges
- * @param userId - Optional user ID (for future multi-user support)
+ * Compute achievements from both watch history and commute history data
+ * @param history - Array of CommuteSession objects
+ * @param watchedVideos - Array of WatchedEntry objects
  * @returns AchievementsPayload with summary stats and badges
  */
-export async function computeAchievements(userId?: string): Promise<AchievementsPayload> {
-  // Load sessions from history store
-  const sessions = loadHistorySessions();
-
-  // Compute summary stats
-  const totalMinutes = Math.floor(
-    sessions.reduce((sum, s) => sum + (s.durationMs || 0), 0) / 60_000
+export function computeAchievementsFromHistory(
+  history: CommuteSession[],
+  watchedVideos: WatchedEntry[] = []
+): AchievementsPayload {
+  // Compute summary stats from both sources
+  const commuteMinutes = Math.floor(
+    history.reduce((sum, c) => sum + (c.durationSec || 0), 0) / 60
   );
-  const totalSessions = sessions.length;
+  const watchMinutes = Math.floor(
+    watchedVideos.reduce((sum, v) => sum + (v.durationSec || 0), 0) / 60
+  );
+  const totalMinutes = commuteMinutes + watchMinutes;
+  const totalSessions = history.length;
+  const totalVideos = watchedVideos.length;
 
   // Calculate streaks
-  const { currentStreak, longestStreak } = calculateStreakFromSessions(sessions);
-
-  // Count sessions with share tokens
-  const totalShares = sessions.filter(s => s.shareToken).length;
+  const { currentStreak, longestStreak } = calculateStreakFromCommutes(history);
 
   // Build summary
   const summary: AchievementSummary = {
@@ -235,53 +267,73 @@ export async function computeAchievements(userId?: string): Promise<Achievements
         progressCurrent = totalMinutes;
         earned = totalMinutes >= def.threshold;
         break;
-      case 'session':
+      case 'commute':
         progressCurrent = totalSessions;
         earned = totalSessions >= def.threshold;
+        break;
+      case 'videos':
+        progressCurrent = totalVideos;
+        earned = totalVideos >= def.threshold;
         break;
       case 'streak':
         progressCurrent = longestStreak; // Show best streak for progress
         earned = longestStreak >= def.threshold;
         break;
-      case 'share':
-        progressCurrent = totalShares;
-        earned = totalShares >= def.threshold;
-        break;
     }
 
-    // Find earnedAt by finding the first session where threshold was crossed
-    if (earned && sessions.length > 0) {
-      // For simplicity, use the timestamp of the session that crossed the threshold
+    // Find earnedAt by finding when threshold was crossed
+    if (earned) {
       if (def.type === 'minutes') {
+        // Combine both sources, sorted by time
+        const allTimedEvents: Array<{ timestamp: string; minutes: number }> = [
+          ...history.map(c => ({
+            timestamp: c.timestamp,
+            minutes: Math.floor(c.durationSec / 60),
+          })),
+          ...watchedVideos.map(v => ({
+            timestamp: v.completedAt || v.createdAt,
+            minutes: Math.floor(v.durationSec / 60),
+          })),
+        ].sort(
+          (a, b) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
+
         let accumulatedMinutes = 0;
-        for (const session of sessions) {
-          accumulatedMinutes += Math.floor((session.durationMs || 0) / 60_000);
+        for (const event of allTimedEvents) {
+          accumulatedMinutes += event.minutes;
           if (accumulatedMinutes >= def.threshold) {
-            earnedAt = session.createdAt;
+            earnedAt = event.timestamp;
             break;
           }
         }
-      } else if (def.type === 'session') {
-        // Earned when we reached that many sessions
-        if (sessions.length >= def.threshold) {
-          const session = sessions[def.threshold - 1];
-          if (session) {
-            earnedAt = session.createdAt;
-          }
+      } else if (def.type === 'commute' && history.length > 0) {
+        const sortedHistory = [...history].sort(
+          (a, b) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
+        if (sortedHistory.length >= def.threshold) {
+          earnedAt = sortedHistory[def.threshold - 1].timestamp;
         }
-      } else if (def.type === 'share') {
-        const sharedSessions = sessions.filter(s => s.shareToken);
-        if (sharedSessions.length >= def.threshold) {
-          const session = sharedSessions[def.threshold - 1];
-          if (session) {
-            earnedAt = session.createdAt;
-          }
+      } else if (def.type === 'videos' && watchedVideos.length > 0) {
+        const sortedVideos = [...watchedVideos].sort(
+          (a, b) =>
+            new Date(a.completedAt || a.createdAt).getTime() -
+            new Date(b.completedAt || b.createdAt).getTime()
+        );
+        if (sortedVideos.length >= def.threshold) {
+          const v = sortedVideos[def.threshold - 1];
+          earnedAt = v.completedAt || v.createdAt;
         }
-      } else if (def.type === 'streak') {
-        // For streaks, use the most recent session timestamp
-        earnedAt = sessions[sessions.length - 1]?.createdAt;
+      } else if (def.type === 'streak' && history.length > 0) {
+        const sortedHistory = [...history].sort(
+          (a, b) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
+        earnedAt = sortedHistory[sortedHistory.length - 1]?.timestamp;
       }
     }
+
 
     return {
       id: def.id,
@@ -299,4 +351,32 @@ export async function computeAchievements(userId?: string): Promise<Achievements
     summary,
     badges
   };
+}
+
+/**
+ * HW9 CTR-C4: Compute achievements summary and badges from user's watch history and commute history
+ * @param userId - User ID to fetch history for
+ * @returns AchievementsPayload with summary stats and badges
+ */
+export async function computeAchievements(userId: string = 'demoUser'): Promise<AchievementsPayload> {
+  console.log('🏆 Computing achievements for userId:', userId);
+  
+  // Load commute history for the user
+  const history = getUserHistory(userId);
+  console.log('📊 Commute history loaded:', history.length, 'commutes');
+  
+  // Load watch history for the user (all entries, no pagination)
+  const watchedData = listWatched({ userId, limit: 1000 });
+  const watchedVideos = watchedData.items;
+  console.log('📺 Watch history loaded:', watchedVideos.length, 'videos');
+  
+  // Compute achievements from both sources
+  const result = computeAchievementsFromHistory(history, watchedVideos);
+  console.log('✅ Achievements computed:', {
+    totalMinutes: result.summary.totalMinutes,
+    totalSessions: result.summary.totalSessions,
+    earnedBadges: result.badges.filter(b => b.earned).length
+  });
+  
+  return result;
 }

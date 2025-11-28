@@ -193,6 +193,60 @@
   color: #9DBEBB;
 }
 
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.empty-icon {
+  font-size: 5rem;
+  margin-bottom: 20px;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.empty-state h2 {
+  font-size: 2rem;
+  color: #F4E9CD;
+  margin-bottom: 15px;
+}
+
+.empty-message {
+  font-size: 1.1rem;
+  color: #9DBEBB;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.create-playlist-btn {
+  background: linear-gradient(135deg, #468189 0%, #77ACA2 100%);
+  color: #F4E9CD;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(70, 129, 137, 0.3);
+}
+
+.create-playlist-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(70, 129, 137, 0.5);
+}
+
 .error-message {
   color: #ff6b6b;
   font-size: 1.2rem;
