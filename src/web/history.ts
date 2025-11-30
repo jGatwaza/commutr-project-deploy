@@ -201,14 +201,20 @@ router.post('/commute-history', requireAuth, async (req, res) => {
   const parsed = commuteSessionSchema.safeParse(req.body);
   
   if (!parsed.success) {
-    return res.status(400).json({ error: 'Invalid commute session data' });
+    console.error('Validation error:', parsed.error);
+    return res.status(400).json({ error: 'Invalid commute session data', details: parsed.error });
   }
   
-  const { userId, session } = parsed.data;
+  const { session } = parsed.data;
   
   try {
+    // Use authenticated user from middleware
+    const firebaseUid = req.user!.firebaseUid;
+    
+    console.log('Saving commute for user:', firebaseUid, 'with', session.videosWatched?.length || 0, 'videos');
+    
     const savedSession = await saveCommuteSessionDB({
-      firebaseUid: userId,
+      firebaseUid,
       topics: session.topics,
       durationSec: session.durationSec,
       videosWatched: session.videosWatched.map(v => ({
@@ -220,12 +226,12 @@ router.post('/commute-history', requireAuth, async (req, res) => {
       }))
     });
     
-    console.log('commute_saved', { userId, commuteId: savedSession.sessionId });
+    console.log('✅ Commute saved:', { firebaseUid, commuteId: savedSession.sessionId });
     
     return res.status(200).json({ success: true, id: savedSession.sessionId });
-  } catch (error) {
-    console.error('Error saving commute:', error);
-    return res.status(500).json({ error: 'Failed to save commute' });
+  } catch (error: any) {
+    console.error('❌ Error saving commute:', error.message, error.stack);
+    return res.status(500).json({ error: 'Failed to save commute', message: error.message });
   }
 });
 

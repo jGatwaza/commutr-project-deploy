@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import CommuteTimer from '../components/CommuteTimer';
 import PlayerControls from '../components/PlayerControls';
 import '../styles/ImmersivePlayer.css';
-import { buildApiUrl, AUTH_TOKEN } from '../config/api';
+import { buildApiUrl, getAuthHeaders } from '../config/api';
 
 const API_BASE = buildApiUrl();
 
@@ -114,11 +114,12 @@ function ImmersivePlayer() {
 
       console.log('Commute session to save:', commuteSession);
 
+      const authHeaders = await getAuthHeaders(user);
       const response = await fetch(`${API_BASE}/api/commute-history`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': AUTH_TOKEN
+          ...authHeaders
         },
         body: JSON.stringify({
           userId: user.uid, // Use real Firebase user ID
@@ -195,17 +196,18 @@ function ImmersivePlayer() {
   }, [currentVideo?.videoId]);
 
   // Track watched video
-  const markVideoWatched = (videoId) => {
+  const markVideoWatched = async (videoId) => {
     if (!contextWatchedIds.includes(videoId)) {
       addWatchedVideo(videoId);
       
       // Save to watch history
       if (user) {
+        const authHeaders = await getAuthHeaders(user);
         fetch(`${API_BASE}/api/history/watch`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': AUTH_TOKEN
+            ...authHeaders
           },
           body: JSON.stringify({
             userId: user.uid,

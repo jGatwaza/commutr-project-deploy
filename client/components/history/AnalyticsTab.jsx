@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import VideoModal from '../VideoModal';
 import '../../styles/AnalyticsTab.css';
-import { buildApiUrl, AUTH_TOKEN } from '../../config/api';
+import { buildApiUrl, getAuthHeaders } from '../../config/api';
 
 const API_BASE = buildApiUrl();
 
@@ -34,15 +34,20 @@ function AnalyticsTab({ onSwitchToWatched }) {
         timeframe
       });
       
+      const authHeaders = await getAuthHeaders(user);
       const res = await fetch(`${API_BASE}/api/history/analytics?${params}`, {
-        headers: { Authorization: AUTH_TOKEN }
+        headers: authHeaders
       });
       
-      if (!res.ok) throw new Error('Failed to fetch analytics');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to fetch analytics');
+      }
       
       const data = await res.json();
       setAnalytics(data);
     } catch (err) {
+      console.error('Analytics error:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -65,8 +70,9 @@ function AnalyticsTab({ onSwitchToWatched }) {
   const fetchVideosForTopic = async (topic) => {
     if (!user) return;
     try {
+      const authHeaders = await getAuthHeaders(user);
       const res = await fetch(`${API_BASE}/api/history/watch?userId=${user.uid}&limit=50`, {
-        headers: { Authorization: AUTH_TOKEN }
+        headers: authHeaders
       });
       if (!res.ok) throw new Error('Failed to fetch videos');
       const data = await res.json();
@@ -82,8 +88,9 @@ function AnalyticsTab({ onSwitchToWatched }) {
   const fetchVideosForCommuteLength = async (length) => {
     if (!user) return;
     try {
+      const authHeaders = await getAuthHeaders(user);
       const res = await fetch(`${API_BASE}/api/history/watch?userId=${user.uid}&limit=50`, {
-        headers: { Authorization: AUTH_TOKEN }
+        headers: authHeaders
       });
       if (!res.ok) throw new Error('Failed to fetch videos');
       const data = await res.json();
@@ -103,8 +110,9 @@ function AnalyticsTab({ onSwitchToWatched }) {
   const fetchVideosForTimeOfDay = async (period) => {
     if (!user) return;
     try {
+      const authHeaders = await getAuthHeaders(user);
       const res = await fetch(`${API_BASE}/api/history/watch?userId=${user.uid}&limit=50`, {
-        headers: { Authorization: AUTH_TOKEN }
+        headers: authHeaders
       });
       if (!res.ok) throw new Error('Failed to fetch videos');
       const data = await res.json();
@@ -136,8 +144,9 @@ function AnalyticsTab({ onSwitchToWatched }) {
   const fetchRecentVideosInline = async () => {
     if (!user) return;
     try {
+      const authHeaders = await getAuthHeaders(user);
       const res = await fetch(`${API_BASE}/api/history/watch?userId=${user.uid}&limit=5`, {
-        headers: { Authorization: AUTH_TOKEN }
+        headers: authHeaders
       });
       if (!res.ok) throw new Error('Failed to fetch videos');
       const data = await res.json();
@@ -150,8 +159,9 @@ function AnalyticsTab({ onSwitchToWatched }) {
   const fetchRecentVideos = async () => {
     if (!user) return;
     try {
+      const authHeaders = await getAuthHeaders(user);
       const res = await fetch(`${API_BASE}/api/history/watch?userId=${user.uid}&limit=5`, {
-        headers: { Authorization: AUTH_TOKEN }
+        headers: authHeaders
       });
       if (!res.ok) throw new Error('Failed to fetch videos');
       const data = await res.json();
@@ -181,8 +191,9 @@ function AnalyticsTab({ onSwitchToWatched }) {
   const fetchAllVideos = async () => {
     if (!user) return;
     try {
+      const authHeaders = await getAuthHeaders(user);
       const res = await fetch(`${API_BASE}/api/history/watch?userId=${user.uid}&limit=50`, {
-        headers: { Authorization: AUTH_TOKEN }
+        headers: authHeaders
       });
       if (!res.ok) throw new Error('Failed to fetch videos');
       const data = await res.json();
