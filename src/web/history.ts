@@ -1,19 +1,12 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import { getOrCreateUser } from '../db/services/userService.js';
+import { createPlaylist, getUserPlaylists, getPlaylistById, getPlaylistByShareToken } from '../db/services/playlistService.js';
 import {
-  saveSession,
-  listSessions,
-  getSession,
-  getShared,
-  issueShareToken
-} from '../history/store.js';
-import {
-  saveCommuteSession,
-  getUserHistory,
-  getCommuteSession,
-  type CommuteSession,
-  type VideoWatched
-} from '../history/commuteHistory.js';
+  saveCommuteSession as saveCommuteSessionDB,
+  getUserCommuteHistory,
+  getCommuteSession as getCommuteSessionDB
+} from '../db/services/commuteSessionService.js';
 
 const router = Router();
 
@@ -45,7 +38,7 @@ const listQuerySchema = z.object({
  * POST /api/history
  * Save a new session
  */
-router.post('/history', requireAuth, (req, res) => {
+router.post('/history', requireAuth, async (req, res) => {
   const parsed = sessionSchema.safeParse(req.body);
   
   if (!parsed.success) {
@@ -56,19 +49,45 @@ router.post('/history', requireAuth, (req, res) => {
   const { queryText, intent, playlist, durationMs } = parsed.data;
   
   try {
-    const session = saveSession({
+    // For now, use a demo user - in production, get from Firebase auth
+    const firebaseUid = req.headers['x-user-id'] as string || 'demo-user';
+    
+    // Ensure user exists
+    await getOrCreateUser({
+      firebaseUid,
+      email: 'demo@commutr.app',
+      displayName: 'Demo User'
+    });
+    
+    // Extract videos from playlist
+    const playlistData = playlist as any;
+    const videos = playlistData?.items || [];
+    const topic = playlistData?.topic || queryText;
+    
+    // Create playlist in MongoDB
+    const savedPlaylist = await createPlaylist({
+      firebaseUid,
+      topic,
+      videos: videos.map((v: any, index: number) => ({
+        videoId: v.videoId,
+        title: v.title || '',
+        channelTitle: v.channelTitle || '',
+        thumbnail: v.thumbnail || '',
+        durationSec: v.durationSec || 0,
+        order: index
+      })),
+      durationSec: Math.floor(durationMs / 1000),
       queryText,
       intentJSON: intent,
-      playlistJSON: playlist,
-      durationMs
+      source: 'wizard'
     });
     
     // Emit telemetry
-    console.log('history_saved', { id: session.id, queryText: session.queryText });
+    console.log('history_saved', { id: savedPlaylist.playlistId, queryText });
     
     return res.status(200).json({
-      id: session.id,
-      shareToken: session.shareToken
+      id: savedPlaylist.playlistId,
+      shareToken: savedPlaylist.shareToken
     });
   } catch (error) {
     console.error('Error saving session:', error);
@@ -80,7 +99,7 @@ router.post('/history', requireAuth, (req, res) => {
  * GET /api/history
  * List sessions with optional filters
  */
-router.get('/history', requireAuth, (req, res) => {
+router.get('/history', requireAuth, async (req, res) => {
   const parsed = listQuerySchema.safeParse(req.query);
   
   if (!parsed.success) {
@@ -90,11 +109,17 @@ router.get('/history', requireAuth, (req, res) => {
   const { limit, since, q } = parsed.data;
   
   try {
-    const options: { limit?: number; sinceISO?: string; q?: string } = { limit };
-    if (since) options.sinceISO = since;
-    if (q) options.q = q;
+    const firebaseUid = req.headers['x-user-id'] as string || 'demo-user';
     
-    const sessions = listSessions(options);
+    const playlists = await getUserPlaylists(firebaseUid, { limit, skip: 0 });
+    
+    // Transform to match old format
+    const sessions = playlists.map(p => ({
+      id: p.playlistId,
+      createdAt: p.createdAt.toISOString(),
+      queryText: p.queryText || p.topic,
+      shareToken: p.shareToken
+    }));
     
     return res.status(200).json(sessions);
   } catch (error) {
@@ -107,26 +132,30 @@ router.get('/history', requireAuth, (req, res) => {
  * GET /api/history/:id
  * Get full session details
  */
-router.get('/history/:id', requireAuth, (req, res) => {
+router.get('/history/:id', requireAuth, async (req, res) => {
   const { id } = req.params;
   
   try {
-    const session = getSession(id);
+    const playlist = await getPlaylistById(id);
     
-    if (!session) {
+    if (!playlist) {
       return res.status(404).json({ error: 'Session not found' });
     }
     
     // Emit telemetry
-    console.log('history_viewed', { id: session.id, queryText: session.queryText });
+    console.log('history_viewed', { id: playlist.playlistId, queryText: playlist.queryText });
     
+    // Transform to match old format
     return res.status(200).json({
-      id: session.id,
-      createdAt: session.createdAt,
-      queryText: session.queryText,
-      intent: session.intentJSON,
-      playlist: session.playlistJSON,
-      shareToken: session.shareToken
+      id: playlist.playlistId,
+      createdAt: playlist.createdAt.toISOString(),
+      queryText: playlist.queryText || playlist.topic,
+      intent: playlist.intentJSON,
+      playlist: {
+        topic: playlist.topic,
+        items: playlist.videos
+      },
+      shareToken: playlist.shareToken
     });
   } catch (error) {
     console.error('Error getting session:', error);
@@ -138,19 +167,22 @@ router.get('/history/:id', requireAuth, (req, res) => {
  * GET /api/share/:token
  * Get public session data by share token (no auth required)
  */
-router.get('/share/:token', (req, res) => {
+router.get('/share/:token', async (req, res) => {
   const { token } = req.params;
   
   try {
-    const shared = getShared(token);
+    const playlist = await getPlaylistByShareToken(token);
     
-    if (!shared) {
+    if (!playlist) {
       return res.status(404).json({ error: 'Share not found' });
     }
     
     return res.status(200).json({
-      queryText: shared.queryText,
-      playlist: shared.playlistJSON
+      queryText: playlist.queryText || playlist.topic,
+      playlist: {
+        topic: playlist.topic,
+        items: playlist.videos
+      }
     });
   } catch (error) {
     console.error('Error getting shared session:', error);
@@ -180,7 +212,7 @@ const commuteSessionSchema = z.object({
  * POST /api/commute-history
  * Save a commute session
  */
-router.post('/commute-history', requireAuth, (req, res) => {
+router.post('/commute-history', requireAuth, async (req, res) => {
   const parsed = commuteSessionSchema.safeParse(req.body);
   
   if (!parsed.success) {
@@ -190,11 +222,22 @@ router.post('/commute-history', requireAuth, (req, res) => {
   const { userId, session } = parsed.data;
   
   try {
-    saveCommuteSession(userId, session);
+    const savedSession = await saveCommuteSessionDB({
+      firebaseUid: userId,
+      topics: session.topics,
+      durationSec: session.durationSec,
+      videosWatched: session.videosWatched.map(v => ({
+        videoId: v.videoId,
+        title: v.title,
+        channelTitle: v.channelTitle,
+        thumbnail: v.thumbnail,
+        durationSec: v.durationSec
+      }))
+    });
     
-    console.log('commute_saved', { userId, commuteId: session.id });
+    console.log('commute_saved', { userId, commuteId: savedSession.sessionId });
     
-    return res.status(200).json({ success: true, id: session.id });
+    return res.status(200).json({ success: true, id: savedSession.sessionId });
   } catch (error) {
     console.error('Error saving commute:', error);
     return res.status(500).json({ error: 'Failed to save commute' });
@@ -205,13 +248,22 @@ router.post('/commute-history', requireAuth, (req, res) => {
  * GET /api/commute-history/:userId
  * Get commute history for a user
  */
-router.get('/commute-history/:userId', requireAuth, (req, res) => {
+router.get('/commute-history/:userId', requireAuth, async (req, res) => {
   const { userId } = req.params;
   
   try {
-    const history = getUserHistory(userId);
+    const history = await getUserCommuteHistory(userId, { limit: 50 });
     
-    return res.status(200).json({ history });
+    // Transform to match old format
+    const formattedHistory = history.map(s => ({
+      id: s.sessionId,
+      timestamp: s.timestamp.toISOString(),
+      topics: s.topics,
+      durationSec: s.durationSec,
+      videosWatched: s.videosWatched
+    }));
+    
+    return res.status(200).json({ history: formattedHistory });
   } catch (error) {
     console.error('Error getting commute history:', error);
     return res.status(500).json({ error: 'Failed to get commute history' });
@@ -222,17 +274,24 @@ router.get('/commute-history/:userId', requireAuth, (req, res) => {
  * GET /api/commute-history/:userId/:commuteId
  * Get a specific commute session
  */
-router.get('/commute-history/:userId/:commuteId', requireAuth, (req, res) => {
+router.get('/commute-history/:userId/:commuteId', requireAuth, async (req, res) => {
   const { userId, commuteId } = req.params;
   
   try {
-    const session = getCommuteSession(userId, commuteId);
+    const session = await getCommuteSessionDB(commuteId);
     
-    if (!session) {
+    if (!session || session.firebaseUid !== userId) {
       return res.status(404).json({ error: 'Commute not found' });
     }
     
-    return res.status(200).json(session);
+    // Transform to match old format
+    return res.status(200).json({
+      id: session.sessionId,
+      timestamp: session.timestamp.toISOString(),
+      topics: session.topics,
+      durationSec: session.durationSec,
+      videosWatched: session.videosWatched
+    });
   } catch (error) {
     console.error('Error getting commute:', error);
     return res.status(500).json({ error: 'Failed to get commute' });

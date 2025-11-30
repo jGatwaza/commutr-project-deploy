@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { upsertWatched, listWatched, getWatchAnalytics } from '../history/watchHistory.js';
+import { upsertWatchHistory, getWatchHistory, getWatchAnalytics } from '../db/services/watchHistoryService.js';
 
 const router = Router();
 
@@ -46,7 +46,7 @@ const listWatchedSchema = z.object({
  * TODO(auth): Later enforce that userId matches the authenticated user's ID.
  * For now, we accept any userId from the request body.
  */
-router.post('/history/watch', requireAuth, (req, res) => {
+router.post('/history/watch', requireAuth, async (req, res) => {
   const parsed = watchedEntrySchema.safeParse(req.body);
   
   if (!parsed.success) {
@@ -59,21 +59,35 @@ router.post('/history/watch', requireAuth, (req, res) => {
   }
   
   try {
-    // Remove undefined optional properties before calling upsertWatched
     const data = parsed.data;
-    const input = {
-      userId: data.userId,
+    
+    const entry = await upsertWatchHistory({
+      firebaseUid: data.userId,
       videoId: data.videoId,
       title: data.title,
       durationSec: data.durationSec,
-      ...(data.topicTags ? { topicTags: data.topicTags } : {}),
-      ...(data.startedAt ? { startedAt: data.startedAt } : {}),
-      ...(data.completedAt ? { completedAt: data.completedAt } : {}),
-      ...(data.progressPct !== undefined ? { progressPct: data.progressPct } : {}),
-      ...(data.source ? { source: data.source } : {})
-    };
-    const entry = upsertWatched(input as any);
-    return res.status(201).json(entry);
+      ...(data.topicTags && { topicTags: data.topicTags }),
+      ...(data.startedAt && { startedAt: new Date(data.startedAt) }),
+      ...(data.completedAt && { completedAt: new Date(data.completedAt) }),
+      progressPct: data.progressPct || 0,
+      ...(data.source && { source: data.source })
+    });
+    
+    // Transform to match expected format
+    return res.status(201).json({
+      id: entry.watchId,
+      userId: entry.firebaseUid,
+      videoId: entry.videoId,
+      title: entry.title,
+      durationSec: entry.durationSec,
+      topicTags: entry.topicTags,
+      startedAt: entry.startedAt?.toISOString(),
+      completedAt: entry.completedAt?.toISOString(),
+      progressPct: entry.progressPct,
+      source: entry.source,
+      createdAt: entry.createdAt.toISOString(),
+      updatedAt: entry.updatedAt.toISOString()
+    });
   } catch (error) {
     console.error('Error upserting watched entry:', error);
     return res.status(500).json({ error: 'Failed to save watched entry' });
@@ -90,7 +104,7 @@ router.post('/history/watch', requireAuth, (req, res) => {
  * - cursor: optional, opaque token for pagination
  * - q: optional, case-insensitive title search
  */
-router.get('/history/watch', requireAuth, (req, res) => {
+router.get('/history/watch', requireAuth, async (req, res) => {
   const parsed = listWatchedSchema.safeParse(req.query);
   
   if (!parsed.success) {
@@ -112,13 +126,25 @@ router.get('/history/watch', requireAuth, (req, res) => {
   }
   
   try {
-    // Build options object with only defined properties
-    const options: any = { userId, limit };
-    if (cursor !== undefined) options.cursor = cursor;
-    if (q !== undefined) options.q = q;
+    const entries = await getWatchHistory(userId, { limit, completedOnly: false });
     
-    const result = listWatched(options);
-    return res.status(200).json(result);
+    // Transform to match expected format
+    const items = entries.map(e => ({
+      id: e.watchId,
+      userId: e.firebaseUid,
+      videoId: e.videoId,
+      title: e.title,
+      durationSec: e.durationSec,
+      topicTags: e.topicTags,
+      startedAt: e.startedAt?.toISOString(),
+      completedAt: e.completedAt?.toISOString(),
+      progressPct: e.progressPct,
+      source: e.source,
+      createdAt: e.createdAt.toISOString(),
+      updatedAt: e.updatedAt.toISOString()
+    }));
+    
+    return res.status(200).json({ items });
   } catch (error) {
     console.error('Error listing watched entries:', error);
     return res.status(500).json({ error: 'Failed to list watched entries' });
@@ -141,7 +167,7 @@ const analyticsSchema = z.object({
  * - userId: required, filter to specific user
  * - timeframe: optional, 'week' | 'month' | 'all' (default 'month')
  */
-router.get('/history/analytics', requireAuth, (req, res) => {
+router.get('/history/analytics', requireAuth, async (req, res) => {
   const parsed = analyticsSchema.safeParse(req.query);
   
   if (!parsed.success) {
@@ -155,7 +181,7 @@ router.get('/history/analytics', requireAuth, (req, res) => {
   const { userId, timeframe } = parsed.data;
   
   try {
-    const analytics = getWatchAnalytics(userId, timeframe);
+    const analytics = await getWatchAnalytics(userId, timeframe);
     return res.status(200).json(analytics);
   } catch (error) {
     console.error('Error getting analytics:', error);
