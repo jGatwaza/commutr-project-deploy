@@ -161,6 +161,11 @@ export async function getWatchAnalytics(
     videoCount: number;
     totalDuration: number;
   }>;
+  byTimeOfDay: Array<{
+    timePeriod: string;
+    videoCount: number;
+    totalDuration: number;
+  }>;
   recentVideos: WatchHistory[];
   totalVideos: number;
   totalTimeSec: number;
@@ -259,6 +264,29 @@ export async function getWatchAnalytics(
     }
   });
 
+  // By time of day
+  const byTimeOfDay = [
+    { timePeriod: 'morning', videoCount: 0, totalDuration: 0 },
+    { timePeriod: 'afternoon', videoCount: 0, totalDuration: 0 },
+    { timePeriod: 'evening', videoCount: 0, totalDuration: 0 },
+  ];
+
+  watchHistory.forEach(w => {
+    if (w.completedAt) {
+      const hour = new Date(w.completedAt).getHours();
+      if (hour >= 5 && hour < 12) {
+        byTimeOfDay[0]!.videoCount++;
+        byTimeOfDay[0]!.totalDuration += w.durationSec;
+      } else if (hour >= 12 && hour < 18) {
+        byTimeOfDay[1]!.videoCount++;
+        byTimeOfDay[1]!.totalDuration += w.durationSec;
+      } else {
+        byTimeOfDay[2]!.videoCount++;
+        byTimeOfDay[2]!.totalDuration += w.durationSec;
+      }
+    }
+  });
+
   // Recent videos
   const recentVideos = await db
     .collection<WatchHistory>('watch_history')
@@ -276,6 +304,7 @@ export async function getWatchAnalytics(
     },
     byTopic,
     byCommuteLength,
+    byTimeOfDay,
     recentVideos,
     totalVideos,
     totalTimeSec,

@@ -84,8 +84,6 @@ export async function requireFirebaseAuth(
       ...(photoURL && { photoURL }),
       emailVerified
     };
-
-    console.log(`✅ Authenticated user: ${email} (${firebaseUid})`);
     
     // Continue to next middleware
     next();
