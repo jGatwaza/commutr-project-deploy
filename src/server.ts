@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
+import { connectToDatabase, closeDatabaseConnection, checkDatabaseHealth } from './db/connection.js';
 import playlistRouter from './web/playlist.js';
 import streakRouter from './web/streak.js';
 import playbackRouter from './web/playback.js';
@@ -69,8 +70,13 @@ app.use(playbackRouter);
 app.use(agentRouter);
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/health', async (req, res) => {
+  const dbHealth = await checkDatabaseHealth();
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    database: dbHealth ? 'connected' : 'disconnected'
+  });
 });
 
 // Legacy route
@@ -125,25 +131,59 @@ app.get('*', (req, res, next) => {
 const PORT = process.env.PORT || 3000;
 const API_PORT = process.env.API_PORT || 5173;
 
-// Only start the server if not in serverless environment (Vercel)
-if (process.env.VERCEL !== '1') {
-  // Start the server
-  server.listen(API_PORT, () => {
-    console.log(`🚀 API Server running on port ${API_PORT}`);
-    console.log(`🌍 Web Server running on port ${PORT}`);
-    console.log(`📂 Serving from: ${hasDist ? 'dist' : 'public'} directory`);
+// Initialize MongoDB and start server
+async function startServer() {
+  try {
+    // Connect to MongoDB
+    await connectToDatabase();
+    console.log('✅ MongoDB connected successfully');
     
-    // Log all registered routes
-    console.log('\n📡 Registered Routes:');
-    console.log('  GET    /health');
-    console.log('  POST   /api/wizard/recommendations');
-    console.log('  POST   /api/wizard/playlist');
-    console.log('  GET    /api/streak');
-    console.log('  GET    /api/history');
-    console.log('  GET    /api/recommend');
-    console.log('  GET    /api/achievements');
-    console.log('\n🔌 WebSocket ready at ws://localhost:' + API_PORT);
-  });
+    // Only start the server if not in serverless environment (Vercel)
+    if (process.env.VERCEL !== '1') {
+      // Start the server
+      server.listen(API_PORT, () => {
+        console.log(`\n🚀 API Server running on port ${API_PORT}`);
+        console.log(`🌍 Web Server running on port ${PORT}`);
+        console.log(`📂 Serving from: ${hasDist ? 'dist' : 'public'} directory`);
+        
+        // Log all registered routes
+        console.log('\n📡 Registered Routes:');
+        console.log('  GET    /health');
+        console.log('  POST   /api/wizard/recommendations');
+        console.log('  POST   /api/wizard/playlist');
+        console.log('  GET    /api/streak');
+        console.log('  GET    /api/history');
+        console.log('  GET    /api/recommend');
+        console.log('  GET    /api/achievements');
+        console.log('\n🔌 WebSocket ready at ws://localhost:' + API_PORT);
+        console.log('💾 MongoDB Atlas connected\n');
+      });
+      
+      // Graceful shutdown
+      process.on('SIGINT', async () => {
+        console.log('\n🛑 Shutting down gracefully...');
+        await closeDatabaseConnection();
+        process.exit(0);
+      });
+      
+      process.on('SIGTERM', async () => {
+        console.log('\n🛑 Shutting down gracefully...');
+        await closeDatabaseConnection();
+        process.exit(0);
+      });
+    }
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+// Start the server
+if (process.env.VERCEL !== '1') {
+  startServer();
+} else {
+  // For Vercel, connect to MongoDB but don't start server (serverless)
+  connectToDatabase().catch(console.error);
 }
 
 export default app;
