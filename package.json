@@ -12,7 +12,10 @@
     "vercel-build": "vite build",
     "type-check": "tsc --noEmit",
     "preview": "vite preview",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
+    "db:test": "node -r dotenv/config scripts/test-connection.js",
+    "db:init": "node -r dotenv/config scripts/init-mongodb-atlas.js",
+    "db:init:drop": "DROP_EXISTING=true node -r dotenv/config scripts/init-mongodb-atlas.js"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.0.1",
