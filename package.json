@@ -12,7 +12,11 @@
     "vercel-build": "vite build",
     "type-check": "tsc --noEmit",
     "preview": "vite preview",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
+    "db:test": "node -r dotenv/config scripts/test-connection.js",
+    "db:init": "node -r dotenv/config scripts/init-mongodb-atlas.js",
+    "db:init:drop": "DROP_EXISTING=true node -r dotenv/config scripts/init-mongodb-atlas.js",
+    "db:check": "node -r dotenv/config scripts/check-database.js"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.0.1",
@@ -22,7 +26,9 @@
     "express": "^4.19.2",
     "express-rate-limit": "^7.3.0",
     "firebase": "^10.12.2",
+    "firebase-admin": "^13.6.0",
     "groq-sdk": "^0.3.3",
+    "mongodb": "^7.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-redux": "^9.0.4",

@@ -1,5 +1,5 @@
 import { useAuth } from '../context/AuthContext';
-import { buildApiUrl, AUTH_TOKEN } from '../config/api';
+import { buildApiUrl, getAuthHeaders } from '../config/api';
 
 const API_BASE = buildApiUrl();
 
@@ -15,11 +15,12 @@ function PlaylistModal({ playlist, context, onClose }) {
     if (!user) return;
 
     try {
-      await fetch(`${API_BASE}/api/history/watch`, {
+      const authHeaders = await getAuthHeaders(user);
+      await fetch(`${API_BASE}/api/history`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': AUTH_TOKEN
+          ...authHeaders
         },
         body: JSON.stringify({
           userId: user.uid,

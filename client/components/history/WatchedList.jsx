@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import VideoModal from '../VideoModal';
+import { buildApiUrl, getAuthHeaders } from '../../config/api';
 import '../../styles/WatchedList.css';
-import { buildApiUrl, AUTH_TOKEN } from '../../config/api';
 
 const API_BASE = buildApiUrl();
 
@@ -48,8 +47,9 @@ function WatchedList() {
       if (cursor) params.append('cursor', cursor);
       if (searchDebounce) params.append('q', searchDebounce);
       
+      const authHeaders = await getAuthHeaders(user);
       const res = await fetch(`${API_BASE}/api/history/watch?${params}`, {
-        headers: { Authorization: AUTH_TOKEN }
+        headers: authHeaders
       });
       
       if (!res.ok) throw new Error('Failed to fetch watched history');
