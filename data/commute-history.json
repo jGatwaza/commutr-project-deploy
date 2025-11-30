@@ -274,5 +274,24 @@
         }
       ]
     }
+  ],
+  "test-user-123": [
+    {
+      "id": "commute-1764540107453",
+      "timestamp": "2025-11-30T22:01:47.453Z",
+      "topics": [
+        "javascript"
+      ],
+      "durationSec": 600,
+      "videosWatched": [
+        {
+          "videoId": "test-video-1",
+          "title": "JavaScript Tutorial",
+          "thumbnail": "https://img.youtube.com/vi/test-video-1/mqdefault.jpg",
+          "channelTitle": "Code Academy",
+          "durationSec": 300
+        }
+      ]
+    }
   ]
 }

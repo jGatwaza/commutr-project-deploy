@@ -7,6 +7,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import { connectToDatabase, closeDatabaseConnection, checkDatabaseHealth } from './db/connection.js';
+import { initializeFirebaseAdmin } from './auth/firebaseAdmin.js';
 import playlistRouter from './web/playlist.js';
 import streakRouter from './web/streak.js';
 import playbackRouter from './web/playback.js';
@@ -134,6 +135,9 @@ const API_PORT = process.env.API_PORT || 5173;
 // Initialize MongoDB and start server
 async function startServer() {
   try {
+    // Initialize Firebase Admin
+    initializeFirebaseAdmin();
+    
     // Connect to MongoDB
     await connectToDatabase();
     console.log('✅ MongoDB connected successfully');

@@ -344,6 +344,22 @@
       "source": "youtube",
       "createdAt": "2025-11-28T04:21:39.782Z",
       "updatedAt": "2025-11-28T04:21:39.782Z"
+    },
+    {
+      "id": "wmim9mcoo5qcwwbi2t0v",
+      "userId": "test-user-123",
+      "videoId": "test-video-1",
+      "title": "JavaScript Tutorial for Beginners",
+      "durationSec": 300,
+      "topicTags": [
+        "javascript",
+        "programming"
+      ],
+      "completedAt": "2025-11-30T22:01:47.437Z",
+      "progressPct": 100,
+      "source": "test",
+      "createdAt": "2025-11-30T22:01:47.447Z",
+      "updatedAt": "2025-11-30T22:01:47.447Z"
     }
   ]
 }

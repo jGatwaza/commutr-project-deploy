@@ -7,17 +7,9 @@ import {
   getUserCommuteHistory,
   getCommuteSession as getCommuteSessionDB
 } from '../db/services/commuteSessionService.js';
+import { requireAuth } from '../auth/middleware.js';
 
 const router = Router();
-
-// Auth middleware - requires Authorization: Bearer TEST
-function requireAuth(req: any, res: any, next: any) {
-  const auth = req.headers.authorization;
-  if (!auth || auth !== 'Bearer TEST') {
-    return res.status(401).json({ error: 'unauthorized' });
-  }
-  next();
-}
 
 // Validation schema for POST /api/history
 const sessionSchema = z.object({
@@ -49,15 +41,8 @@ router.post('/history', requireAuth, async (req, res) => {
   const { queryText, intent, playlist, durationMs } = parsed.data;
   
   try {
-    // For now, use a demo user - in production, get from Firebase auth
-    const firebaseUid = req.headers['x-user-id'] as string || 'demo-user';
-    
-    // Ensure user exists
-    await getOrCreateUser({
-      firebaseUid,
-      email: 'demo@commutr.app',
-      displayName: 'Demo User'
-    });
+    // Get authenticated user from middleware
+    const firebaseUid = req.user!.firebaseUid;
     
     // Extract videos from playlist
     const playlistData = playlist as any;
@@ -109,7 +94,7 @@ router.get('/history', requireAuth, async (req, res) => {
   const { limit, since, q } = parsed.data;
   
   try {
-    const firebaseUid = req.headers['x-user-id'] as string || 'demo-user';
+    const firebaseUid = req.user!.firebaseUid;
     
     const playlists = await getUserPlaylists(firebaseUid, { limit, skip: 0 });
     

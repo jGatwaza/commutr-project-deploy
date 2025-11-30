@@ -1,17 +1,9 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { upsertWatchHistory, getWatchHistory, getWatchAnalytics } from '../db/services/watchHistoryService.js';
+import { requireAuth } from '../auth/middleware.js';
 
 const router = Router();
-
-// Auth middleware - requires Authorization: Bearer TEST
-function requireAuth(req: any, res: any, next: any) {
-  const auth = req.headers.authorization;
-  if (!auth || auth !== 'Bearer TEST') {
-    return res.status(401).json({ error: 'unauthorized' });
-  }
-  next();
-}
 
 /**
  * Validation schema for POST /api/history/watch
