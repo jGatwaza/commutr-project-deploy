@@ -211,8 +211,6 @@ router.post('/commute-history', requireAuth, async (req, res) => {
     // Use authenticated user from middleware
     const firebaseUid = req.user!.firebaseUid;
     
-    console.log('Saving commute for user:', firebaseUid, 'with', session.videosWatched?.length || 0, 'videos');
-    
     const savedSession = await saveCommuteSessionDB({
       firebaseUid,
       topics: session.topics,
@@ -226,12 +224,10 @@ router.post('/commute-history', requireAuth, async (req, res) => {
       }))
     });
     
-    console.log('✅ Commute saved:', { firebaseUid, commuteId: savedSession.sessionId });
-    
     return res.status(200).json({ success: true, id: savedSession.sessionId });
   } catch (error: any) {
-    console.error('❌ Error saving commute:', error.message, error.stack);
-    return res.status(500).json({ error: 'Failed to save commute', message: error.message });
+    console.error('Error saving commute:', error);
+    return res.status(500).json({ error: 'Failed to save commute' });
   }
 });
 

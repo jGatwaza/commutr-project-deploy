@@ -144,11 +144,26 @@ export async function getWatchAnalytics(
   firebaseUid: string,
   timeframe: 'week' | 'month' | 'all' = 'month'
 ): Promise<{
+  streak: number;
+  completionRate: {
+    completionRate: number;
+    totalVideos: number;
+    completedVideos: number;
+  };
+  byTopic: Array<{ 
+    topic: string; 
+    videoCount: number; 
+    totalDuration: number;
+    avgCompletion: number;
+  }>;
+  byCommuteLength: Array<{
+    commuteLength: string;
+    videoCount: number;
+    totalDuration: number;
+  }>;
+  recentVideos: WatchHistory[];
   totalVideos: number;
   totalTimeSec: number;
-  completionRate: number;
-  byTopic: Array<{ topic: string; count: number; totalDuration: number }>;
-  recentVideos: WatchHistory[];
 }> {
   const db = getDatabase();
 
@@ -187,13 +202,62 @@ export async function getWatchAnalytics(
   });
 
   const byTopic = Array.from(topicMap.entries())
-    .map(([topic, stats]) => ({
-      topic,
-      count: stats.count,
-      totalDuration: stats.totalDuration,
-    }))
+    .map(([topic, stats]) => {
+      // Calculate average completion for this topic
+      const topicVideos = watchHistory.filter(w => w.topicTags?.includes(topic));
+      const avgCompletion = topicVideos.length > 0
+        ? topicVideos.reduce((sum, w) => sum + w.progressPct, 0) / topicVideos.length
+        : 0;
+
+      return {
+        topic,
+        videoCount: stats.count,
+        totalDuration: stats.totalDuration,
+        avgCompletion,
+      };
+    })
     .sort((a, b) => b.totalDuration - a.totalDuration)
     .slice(0, 10);
+
+  // Calculate streak (consecutive days with watch activity)
+  const uniqueDays = new Set(
+    watchHistory
+      .filter(w => w.completedAt)
+      .map(w => new Date(w.completedAt!).toDateString())
+  );
+  
+  let streak = 0;
+  const today = new Date();
+  for (let i = 0; i < 365; i++) {
+    const checkDate = new Date(today);
+    checkDate.setDate(checkDate.getDate() - i);
+    if (uniqueDays.has(checkDate.toDateString())) {
+      streak++;
+    } else if (i > 0) {
+      break; // Streak broken
+    }
+  }
+
+  // By commute length (approximate based on video duration)
+  const byCommuteLength = [
+    { commuteLength: '5min', videoCount: 0, totalDuration: 0 },
+    { commuteLength: '10min', videoCount: 0, totalDuration: 0 },
+    { commuteLength: '15min', videoCount: 0, totalDuration: 0 },
+  ];
+
+  watchHistory.forEach(w => {
+    const mins = Math.ceil(w.durationSec / 60);
+    if (mins <= 7) {
+      byCommuteLength[0]!.videoCount++;
+      byCommuteLength[0]!.totalDuration += w.durationSec;
+    } else if (mins <= 12) {
+      byCommuteLength[1]!.videoCount++;
+      byCommuteLength[1]!.totalDuration += w.durationSec;
+    } else if (mins <= 20) {
+      byCommuteLength[2]!.videoCount++;
+      byCommuteLength[2]!.totalDuration += w.durationSec;
+    }
+  });
 
   // Recent videos
   const recentVideos = await db
@@ -204,11 +268,17 @@ export async function getWatchAnalytics(
     .toArray();
 
   return {
+    streak,
+    completionRate: {
+      completionRate,
+      totalVideos,
+      completedVideos: completedCount,
+    },
+    byTopic,
+    byCommuteLength,
+    recentVideos,
     totalVideos,
     totalTimeSec,
-    completionRate,
-    byTopic,
-    recentVideos,
   };
 }
 

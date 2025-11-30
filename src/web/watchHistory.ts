@@ -173,13 +173,11 @@ router.get('/history/analytics', requireAuth, async (req, res) => {
   const { userId, timeframe } = parsed.data;
   
   try {
-    console.log('📊 Fetching analytics for user:', userId, 'timeframe:', timeframe);
     const analytics = await getWatchAnalytics(userId, timeframe);
-    console.log('✅ Analytics fetched:', analytics);
     return res.status(200).json(analytics);
   } catch (error: any) {
-    console.error('❌ Error getting analytics:', error.message, error.stack);
-    return res.status(500).json({ error: 'Failed to get analytics', message: error.message });
+    console.error('Error getting analytics:', error);
+    return res.status(500).json({ error: 'Failed to get analytics' });
   }
 });
 
