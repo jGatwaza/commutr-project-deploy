@@ -8,6 +8,7 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import { connectToDatabase, closeDatabaseConnection, checkDatabaseHealth } from './db/connection.js';
 import { initializeFirebaseAdmin } from './auth/firebaseAdmin.js';
+import { ensureDbConnected } from './middleware/ensureDb.js';
 import playlistRouter from './web/playlist.js';
 import streakRouter from './web/streak.js';
 import playbackRouter from './web/playback.js';
@@ -56,6 +57,9 @@ app.options('*', cors());
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Ensure database is connected for all API routes
+app.use('/api', ensureDbConnected);
 
 // API Routes (must come BEFORE static file serving)
 app.use('/api/wizard', wizardApiRouter); // Wizard API routes
@@ -186,8 +190,12 @@ async function startServer() {
 if (process.env.VERCEL !== '1') {
   startServer();
 } else {
-  // For Vercel, connect to MongoDB but don't start server (serverless)
-  connectToDatabase().catch(console.error);
+  // For Vercel serverless - initialize on cold start
+  console.log('🔧 Vercel serverless mode detected');
+  initializeFirebaseAdmin();
+  connectToDatabase()
+    .then(() => console.log('✅ Serverless initialization complete'))
+    .catch(err => console.error('❌ Serverless initialization failed:', err));
 }
 
 export default app;
