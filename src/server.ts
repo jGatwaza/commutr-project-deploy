@@ -8,6 +8,7 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import { connectToDatabase, closeDatabaseConnection, checkDatabaseHealth } from './db/connection.js';
 import { initializeFirebaseAdmin } from './auth/firebaseAdmin.js';
+import { ensureDbConnected } from './middleware/ensureDb.js';
 import playlistRouter from './web/playlist.js';
 import streakRouter from './web/streak.js';
 import playbackRouter from './web/playback.js';
@@ -56,6 +57,9 @@ app.options('*', cors());
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Ensure database is connected for all API routes
+app.use('/api', ensureDbConnected);
 
 // API Routes (must come BEFORE static file serving)
 app.use('/api/wizard', wizardApiRouter); // Wizard API routes
@@ -135,33 +139,19 @@ const API_PORT = process.env.API_PORT || 5173;
 // Initialize MongoDB and start server
 async function startServer() {
   try {
-    // Initialize Firebase Admin
-    initializeFirebaseAdmin();
-    
-    // Connect to MongoDB
-    await connectToDatabase();
-    console.log('✅ MongoDB connected successfully');
-    
     // Only start the server if not in serverless environment (Vercel)
     if (process.env.VERCEL !== '1') {
-      // Start the server
+      // Start the server immediately (don't wait for DB)
       server.listen(API_PORT, () => {
         console.log(`\n🚀 API Server running on port ${API_PORT}`);
-        console.log(`🌍 Web Server running on port ${PORT}`);
-        console.log(`📂 Serving from: ${hasDist ? 'dist' : 'public'} directory`);
-        
-        // Log all registered routes
-        console.log('\n📡 Registered Routes:');
-        console.log('  GET    /health');
-        console.log('  POST   /api/wizard/recommendations');
-        console.log('  POST   /api/wizard/playlist');
-        console.log('  GET    /api/streak');
-        console.log('  GET    /api/history');
-        console.log('  GET    /api/recommend');
-        console.log('  GET    /api/achievements');
-        console.log('\n🔌 WebSocket ready at ws://localhost:' + API_PORT);
-        console.log('💾 MongoDB Atlas connected\n');
+        console.log(`📂 Serving from: ${hasDist ? 'dist' : 'public'} directory\n`);
       });
+      
+      // Initialize in background (non-blocking)
+      initializeFirebaseAdmin();
+      connectToDatabase()
+        .then(() => console.log('✅ MongoDB connected'))
+        .catch(err => console.error('❌ MongoDB connection failed:', err));
       
       // Graceful shutdown
       process.on('SIGINT', async () => {
@@ -186,8 +176,12 @@ async function startServer() {
 if (process.env.VERCEL !== '1') {
   startServer();
 } else {
-  // For Vercel, connect to MongoDB but don't start server (serverless)
-  connectToDatabase().catch(console.error);
+  // For Vercel serverless - initialize on cold start
+  console.log('🔧 Vercel serverless mode detected');
+  initializeFirebaseAdmin();
+  connectToDatabase()
+    .then(() => console.log('✅ Serverless initialization complete'))
+    .catch(err => console.error('❌ Serverless initialization failed:', err));
 }
 
 export default app;
