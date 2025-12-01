@@ -139,33 +139,19 @@ const API_PORT = process.env.API_PORT || 5173;
 // Initialize MongoDB and start server
 async function startServer() {
   try {
-    // Initialize Firebase Admin
-    initializeFirebaseAdmin();
-    
-    // Connect to MongoDB
-    await connectToDatabase();
-    console.log('✅ MongoDB connected successfully');
-    
     // Only start the server if not in serverless environment (Vercel)
     if (process.env.VERCEL !== '1') {
-      // Start the server
+      // Start the server immediately (don't wait for DB)
       server.listen(API_PORT, () => {
         console.log(`\n🚀 API Server running on port ${API_PORT}`);
-        console.log(`🌍 Web Server running on port ${PORT}`);
-        console.log(`📂 Serving from: ${hasDist ? 'dist' : 'public'} directory`);
-        
-        // Log all registered routes
-        console.log('\n📡 Registered Routes:');
-        console.log('  GET    /health');
-        console.log('  POST   /api/wizard/recommendations');
-        console.log('  POST   /api/wizard/playlist');
-        console.log('  GET    /api/streak');
-        console.log('  GET    /api/history');
-        console.log('  GET    /api/recommend');
-        console.log('  GET    /api/achievements');
-        console.log('\n🔌 WebSocket ready at ws://localhost:' + API_PORT);
-        console.log('💾 MongoDB Atlas connected\n');
+        console.log(`📂 Serving from: ${hasDist ? 'dist' : 'public'} directory\n`);
       });
+      
+      // Initialize in background (non-blocking)
+      initializeFirebaseAdmin();
+      connectToDatabase()
+        .then(() => console.log('✅ MongoDB connected'))
+        .catch(err => console.error('❌ MongoDB connection failed:', err));
       
       // Graceful shutdown
       process.on('SIGINT', async () => {

@@ -1,17 +1,20 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CommuteProvider } from './context/CommuteContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import FloatingChat from './components/FloatingChat';
-import Login from './pages/Login';
-import AgentMode from './pages/AgentMode';
-import ConversationMode from './pages/ConversationMode';
-import Home from './pages/Home';
-import QuickPlaylist from './pages/QuickPlaylist';
-import PlaylistView from './pages/PlaylistView';
-import ImmersivePlayer from './pages/ImmersivePlayer';
-import History from './pages/History';
-import AchievementsPage from './pages/AchievementsPage';
+
+// Lazy load pages for faster initial load
+const Login = lazy(() => import('./pages/Login'));
+const AgentMode = lazy(() => import('./pages/AgentMode'));
+const ConversationMode = lazy(() => import('./pages/ConversationMode'));
+const Home = lazy(() => import('./pages/Home'));
+const QuickPlaylist = lazy(() => import('./pages/QuickPlaylist'));
+const PlaylistView = lazy(() => import('./pages/PlaylistView'));
+const ImmersivePlayer = lazy(() => import('./pages/ImmersivePlayer'));
+const History = lazy(() => import('./pages/History'));
+const AchievementsPage = lazy(() => import('./pages/AchievementsPage'));
 
 function AppContent() {
   const navigate = useNavigate();
@@ -50,8 +53,9 @@ function AppContent() {
 
   return (
     <>
-      <Routes>
-        <Route path="/login" element={<Login />} />
+      <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontSize: '18px', color: '#468189' }}>Loading...</div>}>
+        <Routes>
+          <Route path="/login" element={<Login />} />
         <Route
           path="/home"
           element={
@@ -117,7 +121,8 @@ function AppContent() {
           }
         />
         <Route path="/" element={<Navigate to="/home" replace />} />
-      </Routes>
+        </Routes>
+      </Suspense>
 
       {showChat && <FloatingChat onAction={handleChatAction} />}
     </>
