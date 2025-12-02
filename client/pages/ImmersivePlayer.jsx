@@ -256,11 +256,12 @@ function ImmersivePlayer() {
     setIsLoading(true);
     
     try {
+      const authHeaders = await getAuthHeaders(user);
       const response = await fetch(`${API_BASE}/v1/agent/adjust-playlist`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': AUTH_TOKEN
+          ...authHeaders
         },
         body: JSON.stringify({
           remainingTimeSec,
@@ -299,11 +300,12 @@ function ImmersivePlayer() {
     setIsLoading(true);
 
     try {
+      const authHeaders = await getAuthHeaders(user);
       const response = await fetch(`${API_BASE}/v1/agent/adjust-playlist`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': AUTH_TOKEN
+          ...authHeaders
         },
         body: JSON.stringify({
           remainingTimeSec,
