@@ -2,7 +2,7 @@
 // Provides endpoints for fetching user achievements and badges
 
 import { Router } from 'express';
-import { computeAchievements } from '../achievements/service.js';
+import { computeAchievements } from '../db/services/achievementService.js';
 
 const router = Router();
 
@@ -25,7 +25,22 @@ router.get('/achievements', requireAuth, async (req, res) => {
     const userId = (req.query.userId as string) || 'demoUser';
     
     // Call the service to compute achievements for this user
-    const payload = await computeAchievements(userId);
+    const result = await computeAchievements(userId);
+    
+    // Transform badges to match frontend format (badgeId -> id, earnedAt Date -> ISO string)
+    const payload = {
+      summary: result.summary,
+      badges: result.badges.map(badge => ({
+        id: badge.badgeId,
+        title: badge.title,
+        description: badge.description,
+        icon: badge.icon,
+        earned: badge.earned,
+        ...(badge.earnedAt && { earnedAt: badge.earnedAt.toISOString() }),
+        progressCurrent: badge.progressCurrent,
+        progressTarget: badge.progressTarget
+      }))
+    };
     
     return res.status(200).json(payload);
   } catch (error) {
