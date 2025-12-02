@@ -19,7 +19,7 @@ const groqClient = apiKey
   ? new GroqCtor({ apiKey })
   : null;
 
-const DEFAULT_MODEL = 'llama-3.3-8b-instant';
+const DEFAULT_MODEL = 'llama-3.3-70b-versatile';
 
 function sanitizeJsonPayload(raw: string): string {
   return raw

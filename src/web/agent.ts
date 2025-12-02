@@ -58,8 +58,9 @@ router.post('/v1/agent/chat', async (req, res) => {
       // Get user mastery
       const mastery = await getUserMastery('demoUser', topic);
 
-      // Build playlist
-      const pct = 0.07;
+      // Build playlist with 5 minutes tolerance
+      const minBuffer = 300; // 5 minutes
+      const pct = minBuffer / durationSec;
       const playlist = buildPack({
         topic: topic,
         minDurationSec: Math.round(durationSec * (1 - pct)),
@@ -207,8 +208,9 @@ router.post('/v1/agent/adjust-playlist', async (req, res) => {
     // Get user mastery
     const mastery = await getUserMastery(userId, topic);
 
-    // Build playlist for remaining time
-    const pct = 0.07;
+    // Build playlist for remaining time with 5 minutes tolerance
+    const minBuffer = 300; // 5 minutes
+    const pct = minBuffer / remainingTimeSec;
     const playlist = buildPack({
       topic: topic,
       minDurationSec: Math.round(remainingTimeSec * (1 - pct)),

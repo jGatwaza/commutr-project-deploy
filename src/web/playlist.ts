@@ -29,7 +29,9 @@ router.get('/v1/playlist', async (req, res) => {
 
   const mastery = await getUserMastery('demoUser', topic);
 
-  const pct = 0.07;
+  // Use 5 minutes tolerance for tight filling
+  const minBuffer = 300; // 5 minutes
+  const pct = minBuffer / durationSec;
   const out = buildPack({
     topic: topic,
     minDurationSec: Math.round(durationSec*(1-pct)),

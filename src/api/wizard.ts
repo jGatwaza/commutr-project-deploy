@@ -282,7 +282,8 @@ router.post('/recommendations', async (req, res) => {
 
     const random = refreshNonce ? createSeededRandom(refreshNonce) : Math.random;
 
-    let topicDescriptors = buildTopicDescriptors(requestedTopic, vibePreset, random);
+    // Use ONLY Groq AI for topic suggestions - no hardcoded topics
+    let topicDescriptors: TopicDescriptor[] = [];
 
     try {
       const groqRequest: {
@@ -291,7 +292,7 @@ router.post('/recommendations', async (req, res) => {
         requestedTopic?: string;
       } = {
         vibePreset,
-        limit: 6,
+        limit: 8, // Get more suggestions from Groq
       };
 
       if (requestedTopic) {
@@ -301,10 +302,9 @@ router.post('/recommendations', async (req, res) => {
       const groqSuggestions = await fetchGroqSuggestions(groqRequest);
 
       if (groqSuggestions.length) {
-        const existing = new Set(topicDescriptors.map((descriptor) => descriptor.topic.trim().toLowerCase()));
         groqSuggestions.forEach((suggestion) => {
           const normalized = suggestion.topic?.trim().toLowerCase();
-          if (!normalized || existing.has(normalized)) {
+          if (!normalized) {
             return;
           }
 
@@ -320,12 +320,13 @@ router.post('/recommendations', async (req, res) => {
             descriptor.difficultyHint = suggestion.difficulty;
           }
 
-          topicDescriptors = [...topicDescriptors, descriptor];
-          existing.add(normalized);
+          topicDescriptors.push(descriptor);
         });
       }
     } catch (groqError) {
       console.error('Failed to fetch Groq suggestions:', groqError);
+      // Fallback to hardcoded topics only if Groq fails
+      topicDescriptors = buildTopicDescriptors(requestedTopic, vibePreset, random);
     }
 
     const descriptorReasonMap = new Map<string, { reason: string; vibeMatched?: boolean; difficultyHint?: 'beginner' | 'intermediate' | 'advanced' }>();
@@ -346,99 +347,23 @@ router.post('/recommendations', async (req, res) => {
       }
     });
 
-    const queryTopics = Array.from(
-      new Set(
-        topicDescriptors
-          .map((descriptor) => descriptor.queryTopic.trim())
-          .filter((value) => Boolean(value))
-      )
-    );
-
-    const allCandidates: Candidate[] = [];
-
-    for (const queryTopic of queryTopics) {
-      try {
-        const candidates = await getCandidates(queryTopic);
-        
-        // Process candidates to ensure all required fields are present
-        const processedCandidates = candidates
-          .map((candidate) => {
-            if (!candidate.videoId || !candidate.channelId || !candidate.durationSec) {
-              return null;
-            }
-
-            const processed: Candidate = {
-              videoId: candidate.videoId,
-              channelId: candidate.channelId,
-              durationSec: candidate.durationSec,
-              topic: descriptorTopicMap.get(queryTopic.toLowerCase()) ?? queryTopic,
-              level: candidate.level || 'beginner',
-              title: candidate.title || `${queryTopic} Tutorial`,
-              channelTitle: candidate.channelTitle || 'Unknown Channel',
-              thumbnail: candidate.thumbnail || 'https://via.placeholder.com/320x180',
-              publishedAt: (candidate as any).publishedAt || new Date().toISOString()
-            };
-
-            return processed;
-          })
-          .filter((value): value is Candidate => Boolean(value));
-        
-        if (processedCandidates.length === 0) {
-          continue;
-        }
-        
-        allCandidates.push(...processedCandidates);
-      } catch (error) {
-        if (error instanceof YouTubeQuotaExceededError) {
-          console.error('YouTube quota exceeded while preparing recommendations:', error.message);
-          return res.status(429).json({
-            status: 'error',
-            code: 'YOUTUBE_QUOTA_EXCEEDED',
-            message: 'We hit our YouTube limit for today. Please try again later or pick from your saved topics.'
-          });
-        }
-
-        console.error(`Error getting candidates for topic ${queryTopic}:`, error);
-      }
-    }
+    // NO YOUTUBE API CALLS - Just return Groq-generated topic suggestions
+    // YouTube API will only be called when user confirms and creates playlist
     
-    // If no candidates found from API, return empty suggestions
-    if (allCandidates.length === 0) {
-      return res.status(204).json({
-        status: 'no_content',
-        payload: {
-          message: 'No matching topics found from YouTube right now.',
-        },
-      });
-    }
-    
-    // Filter out already learned topics, but always keep the explicitly requested topic
+    // Filter out already learned topics
     const learnedSet = new Set(topicsLearned.map((t: string) => t.toLowerCase()));
     const normalizedRequested = requestedTopic?.toLowerCase();
-    const filteredCandidates = allCandidates.filter((candidate) => {
-      const topicKey = candidate.topic.toLowerCase();
+    
+    const filteredDescriptors = topicDescriptors.filter((descriptor) => {
+      const topicKey = descriptor.topic.toLowerCase();
+      // Always keep requested topic
       if (normalizedRequested && topicKey === normalizedRequested) {
         return true;
       }
       return !learnedSet.has(topicKey);
     });
 
-    // Group by topic and select top candidates
-    const topicMap = new Map<string, { originalTopic: string; candidates: Candidate[] }>();
-    filteredCandidates.forEach(candidate => {
-      const key = candidate.topic.trim().toLowerCase();
-      const existing = topicMap.get(key);
-      if (existing) {
-        existing.candidates.push(candidate);
-      } else {
-        topicMap.set(key, {
-          originalTopic: candidate.topic,
-          candidates: [candidate],
-        });
-      }
-    });
-
-    const descriptorOrder = shuffleArray(topicDescriptors, random);
+    const descriptorOrder = shuffleArray(filteredDescriptors, random);
     if (normalizedRequested) {
       const requestedIndex = descriptorOrder.findIndex((descriptor) => descriptor.topic.trim().toLowerCase() === normalizedRequested);
       if (requestedIndex > 0) {
@@ -453,51 +378,23 @@ router.post('/recommendations', async (req, res) => {
     const suggestions = descriptorOrder
       .map((descriptor) => {
         const key = descriptor.topic.trim().toLowerCase();
-        const entry = topicMap.get(key);
-        if (!entry || entry.candidates.length === 0) {
-          return null;
-        }
-
         const descriptorMeta = descriptorReasonMap.get(key);
 
         return {
-          topic: entry.originalTopic || descriptor.topic,
+          topic: descriptor.topic,
           reason: descriptorMeta?.reason || descriptor.reason,
-          vibeMatched: descriptorMeta?.vibeMatched ?? true,
-          videoCount: entry.candidates.length,
-          difficulty: descriptorMeta?.difficultyHint ?? (entry.candidates[0]?.level ?? 'beginner'),
+          vibeMatched: descriptorMeta?.vibeMatched ?? descriptor.vibeMatched ?? true,
+          difficulty: descriptorMeta?.difficultyHint ?? 'beginner',
         };
       })
-      .filter((value): value is NonNullable<typeof value> => Boolean(value))
-      .slice(0, 6);
-
-    // If no suggestions matched descriptor order, fall back to any available topics
-    const fallbackSuggestions = suggestions.length === 0
-      ? Array.from(topicMap.values()).slice(0, 5).map((entry) => ({
-          topic: entry.originalTopic,
-          reason: 'Popular choice based on current vibe',
-          vibeMatched: true,
-          videoCount: entry.candidates.length,
-          difficulty: entry.candidates[0]?.level || 'beginner',
-        }))
-      : suggestions;
-
-    const requestedTopicEntry = normalizedRequested ? topicMap.get(normalizedRequested) : undefined;
+      .slice(0, 8);
 
     // Prepare response
     const response = {
       status: 'success' as const,
       payload: {
-        suggestions: fallbackSuggestions,
+        suggestions,
         suggestedDifficulty: vibePreset.defaultDifficulty,
-        previewVideos: requestedTopicEntry?.candidates.slice(0, 4).map((candidate) => ({
-          videoId: candidate.videoId,
-          title: candidate.title || `${candidate.topic} Tutorial`,
-          channelTitle: candidate.channelTitle || 'Unknown Channel',
-          durationSec: candidate.durationSec || 300,
-          level: candidate.level || 'beginner',
-          thumbnail: candidate.thumbnail || 'https://via.placeholder.com/320x180'
-        })) ?? [],
         historySummary: {
           totalSessions: Math.floor(Math.random() * 50) + 5,
           totalVideosWatched: Math.floor(Math.random() * 200) + 20,

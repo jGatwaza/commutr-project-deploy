@@ -31,8 +31,7 @@ function StepHeader({ stepIndex }) {
 function CommuteStep({ minutes, setMinutes, onNext }) {
   const handleSelect = useCallback((option) => {
     setMinutes(option);
-    setTimeout(() => onNext(), 160);
-  }, [onNext, setMinutes]);
+  }, [setMinutes]);
 
   return (
     <div className="wizard-card">
@@ -69,8 +68,7 @@ function CommuteStep({ minutes, setMinutes, onNext }) {
 function VibeStep({ vibeKey, onSelectVibe, onNext }) {
   const handleSelect = useCallback((key) => {
     onSelectVibe(key);
-    setTimeout(() => onNext(), 160);
-  }, [onNext, onSelectVibe]);
+  }, [onSelectVibe]);
 
   return (
     <div className="wizard-card">
@@ -172,10 +170,7 @@ function TopicStep({
                 key={suggestion.topic}
                 type="button"
                 className={`suggestion-card ${topic.toLowerCase() === suggestion.topic.toLowerCase() ? 'selected' : ''}`}
-                onClick={() => {
-                  onSuggestionSelect(suggestion.topic);
-                  setTimeout(() => onNext(), 160);
-                }}
+                onClick={() => onSuggestionSelect(suggestion.topic)}
               >
                 <div className="suggestion-topic">{suggestion.topic}</div>
                 <div className="suggestion-reason">{suggestion.reason}</div>

@@ -183,11 +183,12 @@
 }
 
 .video-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(3, 25, 38, 0.85);
+  border: 1px solid rgba(119, 172, 162, 0.2);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   display: grid;
   grid-template-columns: 300px 1fr;
   width: 100%;
@@ -197,7 +198,9 @@
 
 .video-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  border-color: rgba(119, 172, 162, 0.6);
+  background: rgba(3, 25, 38, 0.95);
 }
 
 .video-thumbnail {

@@ -4,6 +4,7 @@ import { resolveVibe, bumpDifficulty } from '../lib/recommender/vibes.js';
 import { getUserHistory, getTopicWatchCount } from '../history/commuteHistory.js';
 import { getCandidates } from '../stubs/metadata.js';
 import { buildPack } from '../pack/builder.js';
+import { searchYouTubeVideosIncremental } from '../services/youtubeIncremental.js';
 
 const router = Router();
 
@@ -136,7 +137,9 @@ router.post('/wizard/playlist', requireAuth, async (req, res) => {
   const finalDifficulty = bumpDifficulty(baseDifficulty, masteryScore);
 
   try {
-    const candidates = await getCandidates(topic);
+    // Use incremental fetching: starts conservative, fetches more if needed to reach 95% fill
+    console.log(`🎵 Building playlist for topic: ${topic}, duration: ${commuteDurationSec}s, difficulty: ${finalDifficulty}`);
+    const candidates = await searchYouTubeVideosIncremental(topic, commuteDurationSec, finalDifficulty);
 
     if (!candidates || candidates.length === 0) {
       return res.status(204).json({
@@ -145,12 +148,9 @@ router.post('/wizard/playlist', requireAuth, async (req, res) => {
       });
     }
 
-    const filtered = candidates.filter((candidate) => {
-      if (!candidate.level) return true;
-      return candidate.level.toLowerCase() === finalDifficulty;
-    });
-
-    const pct = 0.07;
+    // Use 5 minutes tolerance for tight filling
+    const minBuffer = 300; // 5 minutes in seconds
+    const pct = minBuffer / commuteDurationSec;
     const minDurationSec = Math.round(commuteDurationSec * (1 - pct));
     const maxDurationSec = Math.round(commuteDurationSec * (1 + pct));
 
@@ -159,7 +159,7 @@ router.post('/wizard/playlist', requireAuth, async (req, res) => {
       minDurationSec,
       maxDurationSec,
       userMasteryLevel: finalDifficulty,
-      candidates: filtered.length > 0 ? filtered : candidates
+      candidates: candidates
     });
 
     if (!playlist.items || playlist.items.length === 0) {
