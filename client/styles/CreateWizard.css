@@ -8,10 +8,10 @@
   flex-direction: column;
   background: #061a27;
   color: #eff6ff;
-  padding: var(--shell-top-pad) var(--shell-side-pad) var(--shell-bottom-pad);
+  padding: var(--shell-top-pad) var(--shell-side-pad) calc(var(--shell-bottom-pad) + var(--nav-height) + 2rem);
   position: relative;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: visible;
   font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
@@ -114,7 +114,7 @@
   align-items: stretch;
   gap: clamp(0.5rem, 1.6vw, 0.9rem);
   flex: 1;
-  padding-bottom: clamp(1rem, 2.8vh, 2rem);
+  padding-bottom: calc(var(--nav-height) + clamp(1.25rem, 3vh, 2.5rem));
   padding-top: clamp(0.2rem, 1.2vh, 0.75rem);
 }
 
@@ -163,19 +163,22 @@
 }
 
 .wizard-navigation {
-  position: static;
-  align-self: center;
-  margin-top: auto;
+  position: fixed;
+  bottom: clamp(0.75rem, 2vh, 1.25rem);
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   justify-content: center;
   align-items: center;
   gap: clamp(1rem, 3vw, 1.75rem);
-  padding: 0;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  width: auto;
-  z-index: auto;
+  padding: 1rem clamp(1rem, 4vw, 2.5rem);
+  background: rgba(3, 25, 38, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 45px rgba(3, 0, 22, 0.55);
+  border-radius: 32px;
+  width: min(960px, calc(100% - 2 * var(--shell-side-pad)));
+  z-index: 100;
+  backdrop-filter: blur(18px);
 }
 
 .wizard-navigation .btn-back,
@@ -211,6 +214,21 @@
 .wizard-navigation .btn-back:not(:disabled):hover,
 .wizard-navigation .btn-next:not(:disabled):hover {
   transform: translateY(-1px);
+}
+
+@media (max-width: 720px) {
+  .wizard-navigation {
+    flex-direction: column;
+    gap: 0.85rem;
+    width: calc(100% - 2 * var(--shell-side-pad));
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .wizard-navigation .btn-back,
+  .wizard-navigation .btn-next {
+    width: 100%;
+  }
 }
 
 .wizard-content {

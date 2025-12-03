@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useCommute } from '../../context/CommuteContext';
 import { buildApiUrl, getAuthHeaders } from '../../config/api';
 import '../../styles/WatchedList.css';
+import VideoModal from '../VideoModal';
+import { recordWatchAgain } from '../../utils/watchHistoryActions';
 
 const API_BASE = buildApiUrl();
 
 function WatchedList() {
   const { user } = useAuth();
+  const { startCommute } = useCommute();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const topicFilter = searchParams.get('topic');
@@ -18,10 +22,10 @@ function WatchedList() {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchDebounce, setSearchDebounce] = useState('');
-  const [modalVideo, setModalVideo] = useState(null);
   const [filterTopic, setFilterTopic] = useState('');
   const [filterSource, setFilterSource] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [modalVideo, setModalVideo] = useState(null);
 
   // Debounce search input
   useEffect(() => {
@@ -112,8 +116,17 @@ function WatchedList() {
     return date.toLocaleDateString();
   };
   
-  const handleWatchAgain = (item) => {
-    // Open video in modal
+  const handleWatchAgain = async (item) => {
+    if (!user) {
+      return;
+    }
+
+    try {
+      await recordWatchAgain(user, item);
+    } catch (error) {
+      console.error('Failed to record rewatch:', error);
+    }
+
     setModalVideo({
       videoId: item.videoId,
       title: item.title
@@ -238,6 +251,14 @@ function WatchedList() {
         ))}
       </div>
 
+      {modalVideo && (
+        <VideoModal
+          videoId={modalVideo.videoId}
+          title={modalVideo.title}
+          onClose={() => setModalVideo(null)}
+        />
+      )}
+
       {nextCursor && (
         <button
           onClick={handleLoadMore}
@@ -248,13 +269,6 @@ function WatchedList() {
         </button>
       )}
       
-      {modalVideo && (
-        <VideoModal
-          videoId={modalVideo.videoId}
-          title={modalVideo.title}
-          onClose={() => setModalVideo(null)}
-        />
-      )}
     </div>
   );
 }

@@ -21,6 +21,7 @@ function ImmersivePlayer() {
   const [remainingTimeSec, setRemainingTimeSec] = useState(getRemainingTime());
   const [isLoading, setIsLoading] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
+  const [completionRemainingSec, setCompletionRemainingSec] = useState(null);
 
   const playerRef = useRef(null);
 
@@ -148,6 +149,7 @@ function ImmersivePlayer() {
     // Show the completion summary first so it can read the latest
     // watchedVideoIds/topics from CommuteContext. We only clear the
     // commute state when the user leaves this screen.
+    setCompletionRemainingSec(prev => prev ?? getRemainingTime());
     setShowCompletion(true);
   };
 
@@ -163,6 +165,7 @@ function ImmersivePlayer() {
         // commute context until the user leaves that screen so the
         // stats tiles can reflect the latest session.
         saveCommuteToHistory();
+        setCompletionRemainingSec(0);
         setShowCompletion(true);
       }
     }, 1000);
@@ -203,6 +206,7 @@ function ImmersivePlayer() {
       // Save to watch history
       if (user) {
         const authHeaders = await getAuthHeaders(user);
+        const startedAtIso = new Date(videoStartTime || Date.now()).toISOString();
         fetch(`${API_BASE}/api/history/watch`, {
           method: 'POST',
           headers: {
@@ -215,6 +219,7 @@ function ImmersivePlayer() {
             title: currentVideo.title,
             durationSec: currentVideo.durationSec,
             topicTags: [context.topic],
+            startedAt: startedAtIso,
             completedAt: new Date().toISOString(),
             progressPct: 100,
             source: 'youtube'
@@ -349,6 +354,7 @@ function ImmersivePlayer() {
       if (remainingTimeSec > 120) { // More than 2 minutes left
         fetchMoreVideos('continue');
       } else {
+        setCompletionRemainingSec(prev => prev ?? getRemainingTime());
         setShowCompletion(true);
       }
     }
@@ -374,26 +380,15 @@ function ImmersivePlayer() {
       elapsedSeconds 
     });
 
-    // Approximate total learning time as the sum of how long you actually
-    // watched each video in this commute. We primarily rely on
-    // CommuteContext's saved video positions (seconds watched), and
-    // fall back to the full video duration if no position is recorded.
-    const watchedSecondsFromPositions = watchedVideos.reduce((sum, video) => {
-      const position = getVideoPosition(video.videoId);
-      if (position && Number.isFinite(position)) {
-        const capped = video.durationSec ? Math.min(position, video.durationSec) : position;
-        return sum + capped;
-      }
-
-      return sum + (video.durationSec || 0);
-    }, 0);
-
-    const minutesLearned = watchedSecondsFromPositions > 0
-      ? Math.round(watchedSecondsFromPositions / 60)
-      : Math.floor(elapsedSeconds / 60);
+    const remainingSecForSummary = completionRemainingSec ?? remainingTimeSec ?? getRemainingTime();
+    const timerBasedSeconds = Math.max(
+      0,
+      Math.min(totalDuration, totalDuration - (remainingSecForSummary ?? 0))
+    );
+    const minutesLearned = Math.max(0, Math.round(timerBasedSeconds / 60));
 
     return (
-      <div className="immersive-player-page">
+      <div className="immersive-player-page completion-mode">
         <div className="completion-screen">
           <div className="completion-content">
             <div className="completion-icon">🎉</div>
@@ -453,29 +448,29 @@ function ImmersivePlayer() {
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '24px' }}>
-              <button 
-                onClick={() => {
-                  console.log('🏠 Go Home button clicked');
-                  endCommute();
-                  navigate('/home');
-                }} 
-                className="btn-done"
-                style={{ minWidth: '150px', fontSize: '16px', fontWeight: '600' }}
-              >
-                Go Home
-              </button>
-              <button 
-                onClick={() => {
-                  console.log('➕ Create New Playlist button clicked');
-                  endCommute();
-                  navigate('/create');
-                }} 
-                className="btn-done"
-                style={{ minWidth: '150px', fontSize: '16px', fontWeight: '600' }}
-              >
-                Create New Playlist
-              </button>
+            <div className="completion-actions">
+              <div className="completion-actions-inner">
+                <button 
+                  onClick={() => {
+                    console.log('🏠 Go Home button clicked');
+                    endCommute();
+                    navigate('/home');
+                  }} 
+                  className="btn-done"
+                >
+                  Go Home
+                </button>
+                <button 
+                  onClick={() => {
+                    console.log('➕ Create New Playlist button clicked');
+                    endCommute();
+                    navigate('/create');
+                  }} 
+                  className="btn-done"
+                >
+                  Create New Playlist
+                </button>
+              </div>
             </div>
           </div>
         </div>

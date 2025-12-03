@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import VideoModal from '../VideoModal';
 import '../../styles/AnalyticsTab.css';
 import { buildApiUrl, getAuthHeaders } from '../../config/api';
+import { recordWatchAgain } from '../../utils/watchHistoryActions';
 
 const API_BASE = buildApiUrl();
 
@@ -204,7 +205,15 @@ function AnalyticsTab({ onSwitchToWatched }) {
     }
   };
 
-  const handleWatchAgain = (item) => {
+  const handleWatchAgain = async (item) => {
+    if (user) {
+      try {
+        await recordWatchAgain(user, item);
+      } catch (error) {
+        console.error('Failed to record rewatch:', error);
+      }
+    }
+
     setModalVideo({
       videoId: item.videoId,
       title: item.title

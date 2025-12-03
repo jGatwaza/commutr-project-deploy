@@ -187,8 +187,18 @@ export async function getWatchAnalytics(
     .find({ firebaseUid, ...dateFilter })
     .toArray();
 
+  const getReferenceDate = (entry: WatchHistory): Date | undefined =>
+    entry.startedAt || entry.completedAt || entry.updatedAt || entry.createdAt;
+
+  const getWatchDurationSec = (entry: WatchHistory): number => {
+    if (entry.startedAt && entry.completedAt) {
+      return Math.max(0, Math.round((entry.completedAt.getTime() - entry.startedAt.getTime()) / 1000));
+    }
+    return entry.durationSec || 0;
+  };
+
   const totalVideos = watchHistory.length;
-  const totalTimeSec = watchHistory.reduce((sum, w) => sum + w.durationSec, 0);
+  const totalTimeSec = watchHistory.reduce((sum, w) => sum + getWatchDurationSec(w), 0);
   const completedCount = watchHistory.filter(w => w.progressPct >= 90).length;
   const completionRate = totalVideos > 0 ? (completedCount / totalVideos) * 100 : 0;
 
@@ -200,7 +210,7 @@ export async function getWatchAnalytics(
         const existing = topicMap.get(topic) || { count: 0, totalDuration: 0 };
         topicMap.set(topic, {
           count: existing.count + 1,
-          totalDuration: existing.totalDuration + entry.durationSec,
+          totalDuration: existing.totalDuration + getWatchDurationSec(entry),
         });
       });
     }
@@ -227,8 +237,9 @@ export async function getWatchAnalytics(
   // Calculate streak (consecutive days with watch activity)
   const uniqueDays = new Set(
     watchHistory
-      .filter(w => w.completedAt)
-      .map(w => new Date(w.completedAt!).toDateString())
+      .map(w => getReferenceDate(w))
+      .filter(Boolean)
+      .map(date => date!.toDateString())
   );
   
   let streak = 0;
@@ -251,16 +262,17 @@ export async function getWatchAnalytics(
   ];
 
   watchHistory.forEach(w => {
-    const mins = Math.ceil(w.durationSec / 60);
+    const watchDuration = getWatchDurationSec(w);
+    const mins = Math.ceil(watchDuration / 60);
     if (mins <= 7) {
       byCommuteLength[0]!.videoCount++;
-      byCommuteLength[0]!.totalDuration += w.durationSec;
+      byCommuteLength[0]!.totalDuration += watchDuration;
     } else if (mins <= 12) {
       byCommuteLength[1]!.videoCount++;
-      byCommuteLength[1]!.totalDuration += w.durationSec;
+      byCommuteLength[1]!.totalDuration += watchDuration;
     } else if (mins <= 20) {
       byCommuteLength[2]!.videoCount++;
-      byCommuteLength[2]!.totalDuration += w.durationSec;
+      byCommuteLength[2]!.totalDuration += watchDuration;
     }
   });
 
@@ -272,18 +284,21 @@ export async function getWatchAnalytics(
   ];
 
   watchHistory.forEach(w => {
-    if (w.completedAt) {
-      const hour = new Date(w.completedAt).getHours();
-      if (hour >= 5 && hour < 12) {
-        byTimeOfDay[0]!.videoCount++;
-        byTimeOfDay[0]!.totalDuration += w.durationSec;
-      } else if (hour >= 12 && hour < 18) {
-        byTimeOfDay[1]!.videoCount++;
-        byTimeOfDay[1]!.totalDuration += w.durationSec;
-      } else {
-        byTimeOfDay[2]!.videoCount++;
-        byTimeOfDay[2]!.totalDuration += w.durationSec;
-      }
+    const referenceDate = w.completedAt || w.startedAt;
+    if (!referenceDate) return;
+
+    const hour = new Date(referenceDate).getHours();
+    const watchDuration = getWatchDurationSec(w);
+
+    if (hour >= 5 && hour < 12) {
+      byTimeOfDay[0]!.videoCount++;
+      byTimeOfDay[0]!.totalDuration += watchDuration;
+    } else if (hour >= 12 && hour < 18) {
+      byTimeOfDay[1]!.videoCount++;
+      byTimeOfDay[1]!.totalDuration += watchDuration;
+    } else {
+      byTimeOfDay[2]!.videoCount++;
+      byTimeOfDay[2]!.totalDuration += watchDuration;
     }
   });
 

@@ -7,6 +7,14 @@
   overflow: hidden;
 }
 
+.immersive-player-page.completion-mode {
+  height: auto;
+  min-height: 100vh;
+  background: #031926;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 .player-container {
   flex: 1;
   display: flex;
@@ -111,17 +119,20 @@
 
 /* Completion Screen */
 .completion-screen {
-  min-height: 100vh;
+  min-height: calc(100vh - 40px);
   background: #031926;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 20px;
+  padding: 40px 20px;
+  width: 100%;
 }
 
 .completion-content {
   text-align: center;
-  max-width: 600px;
+  max-width: 640px;
+  width: 100%;
+  padding-bottom: 140px;
 }
 
 .completion-icon {
@@ -334,17 +345,16 @@
   color: white !important;
   border: none !important;
   padding: 12px 32px !important;
-  font-size: 18px !important;
-  border-radius: 8px !important;
+  font-size: 16px !important;
+  border-radius: 999px !important;
   cursor: pointer !important;
-  box-shadow: 0 4px 12px rgba(70, 129, 137, 0.4) !important;
-  transition: all 0.3s ease !important;
+  box-shadow: 0 8px 24px rgba(70, 129, 137, 0.35) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
   margin: 0 !important;
-  display: inline-block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  z-index: 1000 !important;
-  position: relative !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-width: 160px;
 }
 
 @media (max-width: 768px) {
@@ -359,6 +369,48 @@
   transform: translateY(-2px) !important;
   box-shadow: 0 6px 24px rgba(70, 129, 137, 0.6) !important;
   background: #3a6b72 !important;
+}
+
+.completion-actions {
+  position: fixed;
+  bottom: 24px;
+  left: 0;
+  width: 100%;
+  padding: 0 16px;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.completion-actions-inner {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  pointer-events: auto;
+  padding: 16px clamp(12px, 4vw, 32px);
+  background: rgba(3, 25, 38, 0.92);
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+  width: min(640px, 100%);
+}
+
+@media (max-width: 768px) {
+  .completion-actions {
+    bottom: 16px;
+    padding: 0 12px;
+  }
+
+  .completion-actions-inner {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .btn-done {
+    width: 100%;
+  }
 }
 
 .completion-content > div[style*="display: flex"] {
