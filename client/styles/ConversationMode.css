@@ -1,10 +1,10 @@
 .conversation-mode-page {
   font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #031926;
+  background: var(--bg-page);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  color: #F4E9CD;
+  color: var(--text-main);
 }
 
 .conversation-container {
@@ -22,14 +22,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(70, 129, 137, 0.2);
-  background: rgba(3, 25, 38, 0.95);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-card);
 }
 
 .conversation-header h1 {
   font-size: 22px;
   font-weight: 400;
-  color: #F4E9CD;
+  color: var(--text-main);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -55,7 +55,7 @@
 
 .status-text {
   font-size: 18px;
-  color: #77ACA2;
+  color: var(--accent-strong);
   min-height: 24px;
   text-align: center;
   font-weight: 500;
@@ -65,8 +65,8 @@
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: rgba(70, 129, 137, 0.2);
-  border: 3px solid #468189;
+  background: var(--accent-soft);
+  border: 3px solid var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -77,9 +77,9 @@
 
 .voice-circle-btn:hover:not(:disabled) {
   transform: scale(1.05);
-  background: rgba(70, 129, 137, 0.3);
-  border-color: #77ACA2;
-  box-shadow: 0 8px 24px rgba(70, 129, 137, 0.4);
+  background: var(--accent-soft);
+  border-color: var(--accent-strong);
+  box-shadow: 0 8px 24px rgba(78, 124, 133, 0.35);
 }
 
 .voice-circle-btn:active:not(:disabled) {
@@ -87,10 +87,10 @@
 }
 
 .voice-circle-btn.listening {
-  background: #468189;
-  border-color: #468189;
+  background: var(--accent);
+  border-color: var(--accent);
   animation: pulse 1.5s infinite;
-  box-shadow: 0 0 0 0 rgba(70, 129, 137, 0.7);
+  box-shadow: 0 0 0 0 rgba(78, 124, 133, 0.45);
 }
 
 @keyframes pulse {
@@ -106,8 +106,8 @@
 }
 
 .voice-circle-btn.speaking {
-  background: #77ACA2;
-  border-color: #77ACA2;
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
   animation: speakPulse 0.8s ease-in-out infinite;
 }
 
@@ -127,12 +127,12 @@
 
 .voice-hint {
   font-size: 15px;
-  color: #9DBEBB;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 .back-btn {
-  color: #F4E9CD;
+  color: var(--accent-strong);
   text-decoration: none;
   padding: 10px 20px;
   border-radius: 8px;
@@ -140,14 +140,14 @@
   font-weight: 500;
   transition: all 0.2s;
   background: transparent;
-  border: 1px solid #9DBEBB;
+  border: 1px solid var(--accent-border);
   cursor: pointer;
 }
 
 .back-btn:hover {
-  background: rgba(157, 190, 187, 0.1);
-  border-color: #77ACA2;
-  color: #77ACA2;
+  background: var(--accent-soft);
+  border-color: var(--accent-strong);
+  color: var(--accent-strong);
 }
 
 @media (max-width: 640px) {

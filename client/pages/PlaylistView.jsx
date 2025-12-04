@@ -94,10 +94,14 @@ function PlaylistView() {
 
   const getDifficultyColor = (level) => {
     switch (level) {
-      case 'beginner': return '#77ACA2';
-      case 'intermediate': return '#468189';
-      case 'advanced': return '#031926';
-      default: return '#9DBEBB';
+      case 'beginner':
+        return '#CDECE5';
+      case 'intermediate':
+        return '#FFE5B4';
+      case 'advanced':
+        return '#F5C5C5';
+      default:
+        return '#E5E7EB';
     }
   };
 
@@ -114,17 +118,17 @@ function PlaylistView() {
         </div>
 
         <div className="playlist-summary">
-          <div className="summary-card" style={{ background: 'transparent', padding: 0, border: 'none', borderRadius: 0, boxShadow: 'none' }}>
-            <div className="summary-item">
+          <div className="playlist-summary-grid">
+            <div className="summary-card">
               <span className="summary-label">Videos</span>
               <span className="summary-value">{playlistItems.length}</span>
             </div>
-            <div className="summary-item">
-              <span className="summary-label">Total Duration</span>
+            <div className="summary-card">
+              <span className="summary-label">Total duration</span>
               <span className="summary-value">{totalMinutes} min</span>
             </div>
-            <div className="summary-item">
-              <span className="summary-label">Your Commute</span>
+            <div className="summary-card">
+              <span className="summary-label">Your commute</span>
               <span className="summary-value">{commuteDuration} min</span>
             </div>
           </div>
@@ -135,9 +139,12 @@ function PlaylistView() {
             </div>
           )}
 
-          <button onClick={() => startPlaylist(0)} className="btn-start-playlist">
-            ▶ Start Playlist
-          </button>
+          <div className="playlist-cta">
+            <p className="cta-subtitle">Ready to roll? We’ll keep you on track the entire ride.</p>
+            <button onClick={() => startPlaylist(0)} className="btn-start-playlist">
+              ▶ Start playlist
+            </button>
+          </div>
         </div>
 
         <div className="video-list">

@@ -3,7 +3,6 @@ import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-
 import { AuthProvider } from './context/AuthContext';
 import { CommuteProvider } from './context/CommuteContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import FloatingChat from './components/FloatingChat';
 
 // Lazy load pages for faster initial load
 const Login = lazy(() => import('./pages/Login'));
@@ -19,37 +18,6 @@ const AchievementsPage = lazy(() => import('./pages/AchievementsPage'));
 function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
-
-  const handleChatAction = (action) => {
-    console.log('Chat action:', action);
-    
-    switch (action.type) {
-      case 'skip_video':
-        window.dispatchEvent(new CustomEvent('chat-skip-video'));
-        break;
-      case 'change_topic':
-        window.dispatchEvent(new CustomEvent('chat-change-topic', { detail: action.topic }));
-        break;
-      case 'navigate':
-        if (action.playlist && action.context) {
-          navigate(action.path, {
-            state: {
-              playlist: action.playlist,
-              context: action.context,
-            }
-          });
-        } else {
-          navigate(action.path);
-        }
-        break;
-      default:
-        console.log('Unknown action:', action);
-    }
-  };
-
-  const showChat = location.pathname !== '/login' && 
-                    location.pathname !== '/agent' && 
-                    location.pathname !== '/conversation';
 
   return (
     <>
@@ -124,7 +92,6 @@ function AppContent() {
         </Routes>
       </Suspense>
 
-      {showChat && <FloatingChat onAction={handleChatAction} />}
     </>
   );
 }

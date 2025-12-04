@@ -14,7 +14,7 @@
 
 .watched-header h2 {
   margin: 0;
-  color: #468189;
+  color: var(--accent-strong);
   font-size: 24px;
 }
 
@@ -26,22 +26,25 @@
 
 .watched-search {
   padding: 10px 16px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
   font-size: 14px;
   min-width: 250px;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: var(--bg-card);
+  color: var(--text-main);
 }
 
 .watched-search:focus {
   outline: none;
-  border-color: #468189;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(78, 124, 133, 0.15);
 }
 
 .watched-loading {
   text-align: center;
   padding: 40px;
-  color: #666;
+  color: var(--text-muted);
   font-size: 16px;
 }
 
@@ -56,7 +59,7 @@
 .watched-empty {
   text-align: center;
   padding: 60px 20px;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .watched-empty p {
@@ -66,7 +69,7 @@
 
 .watched-empty-hint {
   font-size: 14px;
-  color: #999;
+  color: var(--text-soft);
 }
 
 .watched-items {
@@ -76,20 +79,21 @@
 }
 
 .watched-item {
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
   padding: 16px;
   transition: box-shadow 0.2s, border-color 0.2s;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
+  box-shadow: var(--shadow-soft);
 }
 
 .watched-item:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-color: #468189;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+  border-color: var(--accent-border);
 }
 
 .watched-item-main {
@@ -98,7 +102,7 @@
 
 .watched-item-main h3 {
   margin: 0 0 8px 0;
-  color: #333;
+  color: var(--text-main);
   font-size: 18px;
   font-weight: 600;
 }
@@ -109,11 +113,11 @@
   flex-wrap: wrap;
   margin-bottom: 8px;
   font-size: 14px;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .watched-date {
-  color: #468189;
+  color: var(--accent-strong);
   font-weight: 500;
 }
 
@@ -121,7 +125,7 @@
 .watched-source,
 .watched-progress {
   padding: 2px 8px;
-  background: #f5f5f5;
+  background: var(--bg-subtle);
   border-radius: 4px;
 }
 
@@ -134,8 +138,8 @@
 
 .watched-tag {
   padding: 4px 10px;
-  background: #e8f4f5;
-  color: #468189;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
   border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
@@ -145,18 +149,20 @@
   display: block;
   margin: 24px auto 0;
   padding: 12px 32px;
-  background: #468189;
+  background: var(--accent);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 999px;
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.2s;
+  box-shadow: var(--shadow-soft);
 }
 
 .watched-load-more:hover:not(:disabled) {
-  background: #3a6a72;
+  background: var(--accent-strong);
+  transform: translateY(-2px);
 }
 
 .watched-load-more:disabled {
@@ -165,10 +171,10 @@
 }
 
 .watched-filter-badge {
-  background: #e8f4f5;
-  color: #468189;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
   padding: 12px 16px;
-  border-radius: 8px;
+  border-radius: 12px;
   margin-bottom: 16px;
   display: flex;
   align-items: center;
@@ -177,11 +183,11 @@
 }
 
 .clear-filter-btn {
-  background: #468189;
+  background: var(--accent);
   color: white;
   border: none;
   padding: 4px 12px;
-  border-radius: 4px;
+  border-radius: 999px;
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
@@ -189,27 +195,28 @@
 }
 
 .clear-filter-btn:hover {
-  background: #3a6a72;
+  background: var(--accent-strong);
 }
 
 .watch-again-btn {
   padding: 10px 20px;
-  background: #468189;
+  background: var(--accent);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 999px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
   flex-shrink: 0;
+  box-shadow: var(--shadow-soft);
 }
 
 .watch-again-btn:hover {
-  background: #3a6a72;
+  background: var(--accent-strong);
   transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(70, 129, 137, 0.3);
+  box-shadow: 0 2px 6px rgba(78, 124, 133, 0.3);
 }
 
 .watch-again-btn:active {
@@ -226,10 +233,10 @@
 
 .filter-toggle-btn {
   padding: 10px 16px;
-  background: #468189;
+  background: var(--accent);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 999px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -238,18 +245,19 @@
 }
 
 .filter-toggle-btn:hover {
-  background: #3a6a72;
+  background: var(--accent-strong);
 }
 
 .watched-filters {
-  background: #f9f9f9;
+  background: var(--bg-card);
   padding: 16px;
-  border-radius: 8px;
+  border-radius: 12px;
   margin-bottom: 16px;
   display: flex;
   gap: 16px;
   align-items: flex-end;
   flex-wrap: wrap;
+  border: 1px solid var(--border-subtle);
 }
 
 .filter-group {
@@ -261,22 +269,23 @@
 .filter-group label {
   font-size: 13px;
   font-weight: 500;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .filter-select {
   padding: 8px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
   font-size: 14px;
-  background: white;
+  background: var(--bg-card);
   cursor: pointer;
   min-width: 150px;
 }
 
 .filter-select:focus {
   outline: none;
-  border-color: #468189;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(78, 124, 133, 0.15);
 }
 
 .clear-all-filters-btn {

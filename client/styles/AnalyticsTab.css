@@ -14,14 +14,14 @@
 
 .analytics-header h2 {
   margin: 0;
-  color: #468189;
+  color: var(--accent-strong);
   font-size: 24px;
 }
 
 .timeframe-selector {
   display: flex;
   gap: 8px;
-  background: #f5f5f5;
+  background: var(--bg-subtle);
   padding: 4px;
   border-radius: 8px;
 }
@@ -33,17 +33,17 @@
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
-  color: #666;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .timeframe-btn:hover {
-  background: #e0e0e0;
+  background: var(--border-subtle);
 }
 
 .timeframe-btn.active {
-  background: #468189;
+  background: var(--accent);
   color: white;
 }
 
@@ -52,7 +52,7 @@
 .analytics-empty {
   text-align: center;
   padding: 40px;
-  color: #666;
+  color: var(--text-muted);
   font-size: 16px;
 }
 
@@ -77,8 +77,8 @@
 }
 
 .summary-card {
-  background: white;
-  border: 1px solid #e0e0e0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
   padding: 20px;
   display: flex;
@@ -88,7 +88,7 @@
 }
 
 .summary-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-soft);
 }
 
 .summary-card.streak {
@@ -110,27 +110,27 @@
 .card-value {
   font-size: 32px;
   font-weight: bold;
-  color: #333;
+  color: var(--text-main);
   line-height: 1;
   margin-bottom: 4px;
 }
 
 .card-label {
   font-size: 14px;
-  color: #666;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 .card-subtitle {
   font-size: 12px;
-  color: #999;
+  color: var(--text-soft);
   margin-top: 4px;
 }
 
 /* Sections */
 .analytics-section {
-  background: white;
-  border: 1px solid #e0e0e0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
@@ -138,7 +138,7 @@
 
 .section-title {
   margin: 0 0 16px 0;
-  color: #333;
+  color: var(--text-main);
   font-size: 18px;
   font-weight: 600;
   display: flex;
@@ -148,8 +148,8 @@
 
 .view-all-btn {
   background: transparent;
-  color: #468189;
-  border: 1px solid #468189;
+  color: var(--accent);
+  border: 1px solid var(--accent);
   padding: 6px 12px;
   border-radius: 6px;
   font-size: 13px;
@@ -159,7 +159,7 @@
 }
 
 .view-all-btn:hover {
-  background: #468189;
+  background: var(--accent);
   color: white;
 }
 

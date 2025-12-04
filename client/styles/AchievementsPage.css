@@ -1,8 +1,8 @@
 /* HW9 CTR-C4: Achievements Page Styles */
 .achievements-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #031926 0%, #1a1f35 100%);
-  color: #F4E9CD;
+  background: var(--bg-page);
+  color: var(--text-main);
   padding: 20px;
 }
 
@@ -15,31 +15,31 @@
 .achievements-header h1 {
   font-size: 2.5rem;
   margin-bottom: 10px;
-  color: #F4E9CD;
+  color: var(--text-main);
 }
 
 .achievements-header .subtitle {
   font-size: 1.1rem;
-  color: #9DBEBB;
+  color: var(--text-muted);
   margin-top: 10px;
 }
 
 .back-btn {
   background: transparent;
-  color: #77ACA2;
-  border: 2px solid #468189;
+  color: var(--accent);
+  border: 2px solid var(--border-subtle);
   padding: 10px 20px;
-  border-radius: 8px;
+  border-radius: 999px;
   cursor: pointer;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   margin-bottom: 20px;
 }
 
 .back-btn:hover {
-  background: #468189;
-  color: #F4E9CD;
-  transform: translateX(-5px);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  border-color: var(--accent);
 }
 
 .achievements-container {
@@ -54,7 +54,7 @@
 
 .stats-section h2 {
   font-size: 1.8rem;
-  color: #F4E9CD;
+  color: var(--text-main);
   margin-bottom: 20px;
   text-align: center;
 }
@@ -67,17 +67,18 @@
 }
 
 .stat-card {
-  background: linear-gradient(135deg, #468189 0%, #77ACA2 100%);
+  background: var(--bg-card);
   border-radius: 16px;
   padding: 30px;
   text-align: center;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .stat-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 30px rgba(70, 129, 137, 0.4);
+  transform: translateY(-4px);
+  box-shadow: 0 24px 35px rgba(15, 23, 42, 0.18);
 }
 
 .stat-icon {
@@ -88,14 +89,13 @@
 .stat-value {
   font-size: 3rem;
   font-weight: bold;
-  color: #F4E9CD;
+  color: var(--text-main);
   margin: 10px 0;
 }
 
 .stat-label {
   font-size: 1rem;
-  color: #F4E9CD;
-  opacity: 0.9;
+  color: var(--text-muted);
 }
 
 /* Badges Section */
@@ -105,7 +105,7 @@
 
 .badges-section h2 {
   font-size: 1.8rem;
-  color: #F4E9CD;
+  color: var(--text-main);
   margin-bottom: 20px;
   text-align: center;
 }
@@ -117,28 +117,28 @@
 }
 
 .badge-card {
-  background: rgba(70, 129, 137, 0.2);
-  border: 2px solid #468189;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
   border-radius: 16px;
   padding: 25px;
   text-align: center;
-  transition: all 0.3s ease;
+  transition: box-shadow 0.2s ease;
+  color: var(--text-main);
 }
 
 .badge-card.earned {
-  background: linear-gradient(135deg, #468189 0%, #77ACA2 100%);
-  border-color: #9DBEBB;
-  box-shadow: 0 8px 20px rgba(70, 129, 137, 0.4);
+  background: linear-gradient(145deg, var(--accent-soft), #ffffff);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-soft);
 }
 
 .badge-card.locked {
-  opacity: 0.6;
-  filter: grayscale(50%);
+  opacity: 0.7;
+  filter: grayscale(30%);
 }
 
 .badge-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 24px 35px rgba(15, 23, 42, 0.18);
 }
 
 .badge-icon {
@@ -153,13 +153,13 @@
 .badge-title {
   font-size: 1.3rem;
   font-weight: bold;
-  color: #F4E9CD;
+  color: var(--text-main);
   margin-bottom: 10px;
 }
 
 .badge-description {
   font-size: 0.95rem;
-  color: #9DBEBB;
+  color: var(--text-muted);
   margin-bottom: 15px;
   min-height: 40px;
 }
@@ -173,13 +173,13 @@
 }
 
 .badge-status.earned {
-  background: rgba(244, 233, 205, 0.2);
-  color: #F4E9CD;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
 }
 
 .badge-status.locked {
-  background: rgba(255, 255, 255, 0.1);
-  color: #9DBEBB;
+  background: var(--bg-subtle);
+  color: var(--text-soft);
 }
 
 .badge-date {
@@ -190,7 +190,7 @@
 
 .badge-progress {
   font-size: 0.95rem;
-  color: #9DBEBB;
+  color: var(--text-muted);
 }
 
 /* Empty State */
@@ -218,33 +218,33 @@
 
 .empty-state h2 {
   font-size: 2rem;
-  color: #F4E9CD;
+  color: var(--text-main);
   margin-bottom: 15px;
 }
 
 .empty-message {
   font-size: 1.1rem;
-  color: #9DBEBB;
+  color: var(--text-muted);
   margin-bottom: 30px;
   line-height: 1.6;
 }
 
 .create-playlist-btn {
-  background: linear-gradient(135deg, #468189 0%, #77ACA2 100%);
-  color: #F4E9CD;
+  background: var(--accent);
+  color: white;
   border: none;
   padding: 15px 30px;
   border-radius: 12px;
   font-size: 1.1rem;
   font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(70, 129, 137, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.25);
 }
 
 .create-playlist-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(70, 129, 137, 0.5);
+  box-shadow: 0 14px 32px rgba(37, 99, 235, 0.3);
 }
 
 .error-message {
@@ -254,20 +254,19 @@
 }
 
 .retry-btn {
-  background: #468189;
-  color: #F4E9CD;
+  background: var(--accent);
+  color: white;
   border: none;
   padding: 12px 30px;
-  border-radius: 8px;
+  border-radius: 999px;
   cursor: pointer;
   font-size: 1rem;
   margin: 10px;
-  transition: all 0.3s ease;
+  transition: background-color 0.2s ease;
 }
 
 .retry-btn:hover {
-  background: #77ACA2;
-  transform: translateY(-2px);
+  background: var(--accent-strong);
 }
 
 /* Responsive Design */

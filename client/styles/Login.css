@@ -1,6 +1,6 @@
 .login-page {
-  background: #031926;
-  color: #F4E9CD;
+  background: var(--bg-page);
+  color: var(--text-main);
   min-height: 100vh;
   overflow: hidden;
 }
@@ -18,8 +18,8 @@
 
 .commute-line {
   position: absolute;
-  background: linear-gradient(90deg, transparent, #468189, transparent);
-  opacity: 0.15;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.08;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -38,9 +38,9 @@
 }
 
 .commute-line:hover {
-  opacity: 0.4;
-  background: linear-gradient(90deg, transparent, #77ACA2, transparent);
-  filter: drop-shadow(0 0 8px #77ACA2);
+  opacity: 0.3;
+  background: linear-gradient(90deg, transparent, var(--accent-strong), transparent);
+  filter: drop-shadow(0 0 8px rgba(78, 124, 133, 0.5));
   transform: scale(1.2);
 }
 

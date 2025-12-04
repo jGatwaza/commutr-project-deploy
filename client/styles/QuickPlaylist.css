@@ -1,6 +1,6 @@
 .quick-playlist-page {
   min-height: 100vh;
-  background: #031926;
+  background: var(--bg-page);
   padding: 20px;
 }
 
@@ -17,15 +17,15 @@
 }
 
 .quick-playlist-page .header h1 {
-  color: #F4E9CD;
+  color: var(--text-main);
   font-size: 32px;
   margin: 0;
 }
 
 .quick-playlist-page .back-btn {
-  background: transparent;
-  border: 2px solid #F4E9CD;
-  color: #F4E9CD;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--accent-strong);
   padding: 12px 24px;
   border-radius: 8px;
   cursor: pointer;
@@ -36,16 +36,16 @@
 }
 
 .quick-playlist-page .back-btn:hover {
-  background: rgba(244, 233, 205, 0.1);
-  border-color: #F4E9CD;
+  background: var(--bg-subtle);
+  border-color: var(--accent-border);
 }
 
 .form-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   border-radius: 16px;
   padding: 32px;
   margin-bottom: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-soft);
 }
 
 .form-group {
@@ -56,7 +56,7 @@
   display: block;
   font-weight: 600;
   margin-bottom: 8px;
-  color: #031926;
+  color: var(--text-main);
   font-size: 16px;
 }
 
@@ -64,7 +64,7 @@
 .form-group select {
   width: 100%;
   padding: 14px 16px;
-  border: 2px solid #9DBEBB;
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
   font-size: 16px;
   transition: border-color 0.3s;
@@ -74,7 +74,7 @@
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #468189;
+  border-color: var(--accent);
 }
 
 .form-group input:disabled,
@@ -85,7 +85,7 @@
 
 .hint {
   font-size: 14px;
-  color: #666;
+  color: var(--text-muted);
   margin-top: 8px;
   margin-bottom: 0;
 }
@@ -102,7 +102,7 @@
 
 .btn-create {
   width: 100%;
-  background: #468189;
+  background: var(--accent);
   color: white;
   border: none;
   padding: 18px 32px;
@@ -116,8 +116,8 @@
 
 .btn-create:hover:not(:disabled) {
   transform: translateY(-2px);
-  background: #3d6f76;
-  box-shadow: 0 6px 20px rgba(70, 129, 137, 0.4);
+  background: var(--accent-strong);
+  box-shadow: 0 6px 20px rgba(78, 124, 133, 0.35);
 }
 
 .btn-create:disabled {
@@ -127,11 +127,12 @@
 }
 
 .info-card {
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
   border-radius: 16px;
   padding: 24px;
-  color: #F4E9CD;
+  color: var(--text-main);
+  box-shadow: var(--shadow-soft);
 }
 
 .info-card h3 {
@@ -149,6 +150,7 @@
   padding: 8px 0;
   font-size: 16px;
   line-height: 1.6;
+  color: var(--text-muted);
 }
 
 @media (max-width: 768px) {
