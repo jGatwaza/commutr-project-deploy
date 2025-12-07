@@ -25,9 +25,13 @@ function VoiceButton({ onTranscript, onStatus, onComplete }) {
     recognition.continuous = false;
     recognition.interimResults = true;
     recognition.lang = 'en-US';
+    
+    // Safari-specific settings
+    if ('webkitSpeechRecognition' in window) {
+      recognition.maxAlternatives = 1;
+    }
 
     recognition.onstart = () => {
-      console.log('Voice recognition started');
       setIsRecording(true);
       callbacksRef.current.onStatus('Listening...');
     };
@@ -37,7 +41,6 @@ function VoiceButton({ onTranscript, onStatus, onComplete }) {
       for (let i = event.resultIndex; i < event.results.length; i++) {
         transcript += event.results[i][0].transcript;
       }
-      console.log('Transcript:', transcript);
       callbacksRef.current.onTranscript(transcript);
 
       // Show interim results in status
@@ -47,7 +50,6 @@ function VoiceButton({ onTranscript, onStatus, onComplete }) {
     };
 
     recognition.onend = () => {
-      console.log('Voice recognition ended');
       setIsRecording(false);
       
       // Let the user review and edit the transcribed message before sending.
@@ -61,47 +63,87 @@ function VoiceButton({ onTranscript, onStatus, onComplete }) {
     };
 
     recognition.onerror = (event) => {
-      console.error('Voice recognition error:', event.error);
       setIsRecording(false);
       
       if (event.error === 'no-speech') {
         callbacksRef.current.onStatus('No speech detected');
-      } else if (event.error === 'not-allowed') {
-        callbacksRef.current.onStatus('Microphone access denied');
+      } else if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+        callbacksRef.current.onStatus('Microphone access denied. Please allow microphone access in your browser settings.');
+      } else if (event.error === 'network') {
+        callbacksRef.current.onStatus('Network error. Please check your connection.');
+      } else if (event.error === 'aborted') {
+        // Aborted is normal when user stops manually, don't show error
+        callbacksRef.current.onStatus('');
       } else {
-        callbacksRef.current.onStatus(`Error: ${event.error}`);
+        callbacksRef.current.onStatus(`Speech error: ${event.error}. Please try again.`);
       }
 
       setTimeout(() => {
         callbacksRef.current.onStatus('');
-      }, 3000);
+      }, 4000);
     };
 
     recognitionRef.current = recognition;
 
     return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.abort();
+        try {
+          recognitionRef.current.abort();
+        } catch (e) {
+          // Ignore abort errors
+        }
       }
     };
   }, []); // Empty dependency array - only run once
 
-  const handleClick = () => {
+  const handleClick = async () => {
     if (!isSupported || !recognitionRef.current) return;
 
     if (isRecording) {
-      console.log('Stopping voice recognition');
-      recognitionRef.current.stop();
+      try {
+        recognitionRef.current.stop();
+      } catch (error) {
+        // Ignore stop errors
+      }
     } else {
       try {
-        console.log('Starting voice recognition');
+        // Request microphone permission explicitly
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          try {
+            await navigator.mediaDevices.getUserMedia({ audio: true });
+          } catch (permError) {
+            callbacksRef.current.onStatus('Microphone permission denied. Please allow access and try again.');
+            setTimeout(() => {
+              callbacksRef.current.onStatus('');
+            }, 4000);
+            return;
+          }
+        }
+        
         recognitionRef.current.start();
       } catch (error) {
-        console.error('Recognition error:', error);
-        callbacksRef.current.onStatus('Could not start voice recognition');
-        setTimeout(() => {
-          callbacksRef.current.onStatus('');
-        }, 3000);
+        // Handle Safari-specific issues
+        if (error.name === 'InvalidStateError') {
+          // Recognition is already started or not properly reset
+          try {
+            recognitionRef.current.abort();
+            setTimeout(() => {
+              try {
+                recognitionRef.current.start();
+              } catch (retryError) {
+                callbacksRef.current.onStatus('Could not start voice recognition. Please try again.');
+                setTimeout(() => callbacksRef.current.onStatus(''), 3000);
+              }
+            }, 100);
+          } catch (abortError) {
+            // Ignore abort errors
+          }
+        } else {
+          callbacksRef.current.onStatus('Could not start voice recognition. Please try again.');
+          setTimeout(() => {
+            callbacksRef.current.onStatus('');
+          }, 3000);
+        }
       }
     }
   };

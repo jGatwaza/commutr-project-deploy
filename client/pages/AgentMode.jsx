@@ -102,7 +102,8 @@ function AgentMode() {
           navigate('/playlist', {
             state: {
               playlist: data.playlist,
-              context: data.playlistContext
+              context: data.playlistContext,
+              fromAgent: true  // Track that playlist came from agent mode (text chat)
             }
           });
         }, 1000);

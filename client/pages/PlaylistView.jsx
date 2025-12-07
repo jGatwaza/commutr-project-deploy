@@ -26,10 +26,21 @@ function PlaylistView() {
     }
   });
 
-  const { playlist: statePlaylist, context: stateContext } = location.state || {};
+  const { playlist: statePlaylist, context: stateContext, fromAgent, fromConversation } = location.state || {};
   const playlist = statePlaylist || persistentPlaylist;
   const context = stateContext || persistentContext;
   const { startCommute, isActive } = useCommute();
+
+  // Determine where to go back to
+  const handleBack = () => {
+    if (fromAgent) {
+      navigate('/agent');  // Go back to agent text chat mode
+    } else if (fromConversation) {
+      navigate('/agent');  // Also go to agent mode, not conversation (to avoid auto-speaking)
+    } else {
+      navigate(-1);  // Default: go back in history
+    }
+  };
 
   useEffect(() => {
     if (statePlaylist) {
@@ -63,7 +74,7 @@ function PlaylistView() {
           <div className="error-state">
             <h2>No Playlist Found</h2>
             <p>Please create a playlist first.</p>
-            <button onClick={() => navigate('/agent-mode')} className="btn-primary">
+            <button onClick={() => navigate('/agent')} className="btn-primary">
               Go to Agent Mode
             </button>
           </div>
@@ -109,7 +120,7 @@ function PlaylistView() {
     <div className="playlist-view-page">
       <div className="container">
         <div className="header">
-          <button onClick={() => navigate(-1)} className="back-btn" aria-label="Back">
+          <button onClick={handleBack} className="back-btn" aria-label="Back">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>

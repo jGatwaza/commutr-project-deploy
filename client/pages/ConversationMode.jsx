@@ -58,6 +58,11 @@ function ConversationMode() {
     recognition.continuous = false;
     recognition.interimResults = true;
     recognition.lang = 'en-US';
+    
+    // Safari-specific settings
+    if ('webkitSpeechRecognition' in window) {
+      recognition.maxAlternatives = 1;
+    }
 
     recognition.onstart = () => {
       setIsListening(true);
@@ -103,19 +108,21 @@ function ConversationMode() {
       
       if (event.error === 'no-speech') {
         setStatus('No speech detected. Tap to speak again.');
-      } else if (event.error === 'not-allowed') {
-        setStatus('Microphone access denied. Please allow access.');
+      } else if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+        setStatus('Microphone access denied. Please allow microphone access in your browser settings.');
+      } else if (event.error === 'network') {
+        setStatus('Network error. Please check your connection.');
       } else if (event.error === 'aborted') {
         setStatus('Tap to speak');
       } else {
-        setStatus(`Speech error. Tap to try again.`);
+        setStatus(`Speech error: ${event.error}. Tap to try again.`);
       }
       
       setTimeout(() => {
         if (!isListening && !isSpeaking) {
           setStatus('Tap to speak');
         }
-      }, 3000);
+      }, 4000);
     };
 
     recognitionRef.current = recognition;
@@ -230,7 +237,8 @@ function ConversationMode() {
         navigate('/playlist', {
           state: {
             playlist: data.playlist,
-            context: data.playlistContext
+            context: data.playlistContext,
+            fromConversation: true  // Track that playlist came from conversation mode (voice)
           }
         });
       } else {
@@ -246,7 +254,7 @@ function ConversationMode() {
     }
   };
 
-  const startListening = () => {
+  const startListening = async () => {
     if (!recognitionRef.current) {
       setStatus('Voice recognition not available');
       return;
@@ -257,16 +265,39 @@ function ConversationMode() {
     setIsListening(false);
     finalTranscriptRef.current = '';
     
+    // Request microphone permission explicitly
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (permError) {
+        setStatus('Microphone permission denied. Please allow access in your browser settings.');
+        return;
+      }
+    }
+    
     try {
       recognitionRef.current.abort();
     } catch (e) {
+      // Ignore abort errors
     }
     
     try {
       recognitionRef.current.start();
     } catch (startError) {
       setIsListening(false);
-      setStatus('Could not start listening. Please try again.');
+      
+      // Handle Safari-specific issues
+      if (startError.name === 'InvalidStateError') {
+        setTimeout(() => {
+          try {
+            recognitionRef.current.start();
+          } catch (retryError) {
+            setStatus('Could not start listening. Please try again.');
+          }
+        }, 100);
+      } else {
+        setStatus('Could not start listening. Please try again.');
+      }
     }
   };
 

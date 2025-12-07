@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { processMessage } from '../services/agent.js';
 import { getCandidates } from '../stubs/metadata.js';
 import { getUserMastery } from '../stubs/mastery.js';
-import { buildPack } from '../pack/builder.js';
+import { buildPlaylist } from '../lib/playlist/builder.js';
 import { getWatchedVideoIds } from '../history/watchHistory.js';
 
 const router = Router();
@@ -58,19 +58,16 @@ router.post('/v1/agent/chat', async (req, res) => {
       // Get user mastery
       const mastery = await getUserMastery('demoUser', topic);
 
-      // Build playlist with 5 minutes tolerance
-      const minBuffer = 300; // 5 minutes
-      const pct = minBuffer / durationSec;
-      const playlist = buildPack({
+      // Build playlist using the same API as the wizard (better duration tolerance)
+      const playlist = await buildPlaylist({
         topic: topic,
-        minDurationSec: Math.round(durationSec * (1 - pct)),
-        maxDurationSec: Math.round(durationSec * (1 + pct)),
-        userMasteryLevel: mastery.level,
+        targetDurationSec: durationSec,
+        difficulty: mastery.level,
         candidates
       });
 
-      // Check if pack builder couldn't find any suitable videos
-      if (!playlist.items || playlist.items.length === 0) {
+      // Check if playlist builder couldn't find any suitable videos
+      if (!playlist || !playlist.videos || playlist.videos.length === 0) {
         return res.json({
           message: `I found videos about "${topic}", but couldn't create a playlist that fits your ${durationMinutes}-minute commute. Try adjusting your duration or choosing a different topic!`,
           playlist: null,
@@ -78,21 +75,18 @@ router.post('/v1/agent/chat', async (req, res) => {
         });
       }
 
-      // Format playlist for frontend
+      // Format playlist for frontend (playlist.videos already has the right format)
       const formattedPlaylist = {
-        items: playlist.items.map(item => {
-          const candidate = candidates.find(c => c.videoId === item.videoId);
-          return {
-            videoId: item.videoId,
-            durationSec: item.durationSec,
-            title: candidate?.title || `${topic} Tutorial`,
-            channelTitle: candidate?.channelTitle || 'YouTube',
-            level: candidate?.level || 'intermediate',
-            thumbnail: candidate?.thumbnail || `https://img.youtube.com/vi/${item.videoId}/mqdefault.jpg`
-          };
-        }),
+        items: playlist.videos.map((video: any) => ({
+          videoId: video.videoId,
+          durationSec: video.durationSec,
+          title: video.title,
+          channelTitle: video.channelTitle,
+          level: mastery.level,
+          thumbnail: video.thumbnail
+        })),
         totalDurationSec: playlist.totalDurationSec,
-        underFilled: playlist.underFilled
+        underFilled: false // buildPlaylist handles this better
       };
 
       return res.json({
@@ -208,19 +202,16 @@ router.post('/v1/agent/adjust-playlist', async (req, res) => {
     // Get user mastery
     const mastery = await getUserMastery(userId, topic);
 
-    // Build playlist for remaining time with 5 minutes tolerance
-    const minBuffer = 300; // 5 minutes
-    const pct = minBuffer / remainingTimeSec;
-    const playlist = buildPack({
+    // Build playlist for remaining time using the same API as the wizard (better duration tolerance)
+    const playlist = await buildPlaylist({
       topic: topic,
-      minDurationSec: Math.round(remainingTimeSec * (1 - pct)),
-      maxDurationSec: Math.round(remainingTimeSec * (1 + pct)),
-      userMasteryLevel: mastery.level,
+      targetDurationSec: remainingTimeSec,
+      difficulty: mastery.level,
       candidates: availableCandidates
     });
 
-    // Check if pack builder couldn't find any suitable videos
-    if (!playlist.items || playlist.items.length === 0) {
+    // Check if playlist builder couldn't find any suitable videos
+    if (!playlist || !playlist.videos || playlist.videos.length === 0) {
       return res.json({
         message: `I found videos about "${topic}", but couldn't create a playlist that fits your remaining ${Math.round(remainingTimeSec / 60)} minutes. Try a different topic!`,
         playlist: null,
@@ -228,21 +219,18 @@ router.post('/v1/agent/adjust-playlist', async (req, res) => {
       });
     }
 
-    // Format playlist for frontend
+    // Format playlist for frontend (playlist.videos already has the right format)
     const formattedPlaylist = {
-      items: playlist.items.map(item => {
-        const candidate = availableCandidates.find(c => c.videoId === item.videoId);
-        return {
-          videoId: item.videoId,
-          durationSec: item.durationSec,
-          title: candidate?.title || `${topic} Tutorial`,
-          channelTitle: candidate?.channelTitle || 'YouTube',
-          level: candidate?.level || 'intermediate',
-          thumbnail: candidate?.thumbnail || `https://img.youtube.com/vi/${item.videoId}/mqdefault.jpg`
-        };
-      }),
+      items: playlist.videos.map((video: any) => ({
+        videoId: video.videoId,
+        durationSec: video.durationSec,
+        title: video.title,
+        channelTitle: video.channelTitle,
+        level: mastery.level,
+        thumbnail: video.thumbnail
+      })),
       totalDurationSec: playlist.totalDurationSec,
-      underFilled: playlist.underFilled
+      underFilled: false // buildPlaylist handles this better
     };
 
     const message = action === 'change_topic' 
