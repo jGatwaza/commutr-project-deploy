@@ -125,7 +125,7 @@ describe('Achievements Service', () => {
     test('should earn commute badges', () => {
       const history: CommuteSession[] = Array(10).fill(null).map((_, i) => ({
         id: `s${i}`,
-        timestamp: `2024-01-0${i + 1}T10:00:00Z`,
+        timestamp: `2024-01-${String(i + 1).padStart(2, '0')}T10:00:00Z`,
         topics: ['python'],
         durationSec: 600,
         videosWatched: []

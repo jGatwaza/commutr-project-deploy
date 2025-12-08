@@ -7,6 +7,7 @@ export default {
     "**/test/**/*.test.{js,ts}"
   ],
   testTimeout: 10000,
+  forceExit: true,
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
     '^groq-sdk/shims/node$': '<rootDir>/jest.setup.js', // Map to empty module

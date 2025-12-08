@@ -3,13 +3,18 @@
  * Tests: getWatchAnalytics function and analytics calculations
  */
 
-import { getWatchAnalytics } from '../../src/db/services/watchHistoryService.js';
-import { getDatabase } from '../../src/db/connection.js';
-import { ObjectId } from 'mongodb';
+import { jest } from '@jest/globals';
 import type { WatchHistory } from '../../src/db/types.js';
+import { ObjectId } from 'mongodb';
 
-// Mock the database connection
-jest.mock('../../src/db/connection.js');
+// Mock the database connection module
+const mockGetDatabase = jest.fn();
+jest.unstable_mockModule('../../src/db/connection.js', () => ({
+  getDatabase: mockGetDatabase
+}));
+
+// Import after mocking
+const { getWatchAnalytics } = await import('../../src/db/services/watchHistoryService.js');
 
 describe('Analytics Service', () => {
   let mockCollection: any;
@@ -28,11 +33,15 @@ describe('Analytics Service', () => {
       collection: jest.fn().mockReturnValue(mockCollection),
     };
 
-    (getDatabase as jest.Mock).mockReturnValue(mockDb);
+    mockGetDatabase.mockReturnValue(mockDb);
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
   });
 
   describe('getWatchAnalytics', () => {
@@ -205,9 +214,10 @@ describe('Analytics Service', () => {
     });
 
     test('should categorize by time of day', async () => {
-      const morning = new Date('2024-01-01T08:00:00Z');
-      const afternoon = new Date('2024-01-01T14:00:00Z');
-      const evening = new Date('2024-01-01T20:00:00Z');
+      // Use local times to avoid timezone conversion issues
+      const morning = new Date(2024, 0, 1, 8, 0, 0); // 8 AM local
+      const afternoon = new Date(2024, 0, 1, 14, 0, 0); // 2 PM local
+      const evening = new Date(2024, 0, 1, 20, 0, 0); // 8 PM local
 
       const mockHistory: WatchHistory[] = [
         {

@@ -1,41 +1,28 @@
 [
   {
-    "id": "cmigi3p8zpd09poebtq",
-    "createdAt": "2025-11-26T21:12:36.755Z",
-    "queryText": "short session",
-    "intentJSON": {},
-    "playlistJSON": {},
-    "durationMs": 1500000,
-    "shareToken": "qgmfvlku4mi1rrilyl6wgz"
-  },
-  {
-    "id": "cmim9mco6hweyj4zutht",
-    "createdAt": "2025-11-30T22:01:47.430Z",
-    "queryText": "Learn JavaScript basics",
+    "id": "cmixnbqfberqye046rm",
+    "createdAt": "2025-12-08T21:10:54.599Z",
+    "queryText": "persistent query",
     "intentJSON": {
-      "topic": "javascript",
-      "duration": 600
+      "data": "test"
     },
     "playlistJSON": {
-      "topic": "javascript",
       "items": [
-        {
-          "videoId": "test-video-1",
-          "title": "JavaScript Tutorial for Beginners",
-          "channelTitle": "Code Academy",
-          "thumbnail": "https://img.youtube.com/vi/test-video-1/mqdefault.jpg",
-          "durationSec": 300
-        },
-        {
-          "videoId": "test-video-2",
-          "title": "Variables and Data Types",
-          "channelTitle": "Code Academy",
-          "thumbnail": "https://img.youtube.com/vi/test-video-2/mqdefault.jpg",
-          "durationSec": 300
-        }
+        1,
+        2,
+        3
       ]
     },
-    "durationMs": 600000,
-    "shareToken": "0eja9h150y5vdzfxx5enkac"
+    "durationMs": 7500,
+    "shareToken": "8nupyp1vrkvb7nqgm3rxll"
+  },
+  {
+    "id": "cmixnbqfb00rk7hrzuxrmp",
+    "createdAt": "2025-12-08T21:10:54.599Z",
+    "queryText": "second query",
+    "intentJSON": {},
+    "playlistJSON": {},
+    "durationMs": 1000,
+    "shareToken": "1id1befefdvhp03u22oiva"
   }
 ]
