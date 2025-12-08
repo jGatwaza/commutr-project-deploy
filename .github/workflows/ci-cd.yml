@@ -1,0 +1,154 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, comprehensive-test-suite ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run Test Suite
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [20.x]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run unit tests
+        run: npm run test:unit
+        env:
+          NODE_ENV: test
+      
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          NODE_ENV: test
+      
+      - name: Archive test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.node-version }}
+          path: junit.xml
+          retention-days: 30
+          continue-on-error: true
+
+  component-tests:
+    name: Component-Level Tests
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Test Playlist API
+        run: npm run test:playlist
+      
+      - name: Test Agent Mode
+        run: npm run test:agent
+      
+      - name: Test History
+        run: npm run test:history
+      
+      - name: Test Analytics
+        run: npm run test:analytics
+      
+      - name: Test Achievements
+        run: npm run test:achievements
+
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build application
+        run: npm run build
+        env:
+          NODE_ENV: production
+      
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+          retention-days: 7
+
+  mirror:
+    name: Mirror to Deployment Repo
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Mirror to deployment repository
+        uses: pixta-dev/repository-mirroring-action@v1
+        with:
+          target_repo_url: ${{ secrets.MIRROR_REPO_URL }}
+          ssh_private_key: ${{ secrets.MIRROR_SSH_KEY }}
+      
+      - name: Deployment notification
+        run: echo "✅ Code mirrored to deployment repository successfully"
+
+  summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [test, component-tests, build]
+    if: always()
+    
+    steps:
+      - name: Check test results
+        run: |
+          echo "Test Suite Status: ${{ needs.test.result }}"
+          echo "Component Tests Status: ${{ needs.component-tests.result }}"
+          echo "Build Status: ${{ needs.build.result }}"
+          
+          if [ "${{ needs.test.result }}" != "success" ] || \
+             [ "${{ needs.component-tests.result }}" != "success" ] || \
+             [ "${{ needs.build.result }}" != "success" ]; then
+            echo "❌ Pipeline failed"
+            exit 1
+          fi
+          
+          echo "✅ All checks passed successfully"
