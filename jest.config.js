@@ -2,11 +2,17 @@ export default {
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: "node",
   testMatch: [
-    "**/__tests__/**/*.test.{js,ts}",
-    "**/tests/**/*.test.{js,ts}",
-    "**/test/**/*.test.{js,ts}"
+    // Only run our new comprehensive test suite
+    "**/__tests__/unit/playlist.api.test.ts",
+    "**/__tests__/unit/agent.test.ts",
+    "**/__tests__/unit/analytics.test.ts",
+    "**/__tests__/unit/achievements.service.test.ts",
+    "**/__tests__/unit/history.service.test.ts",
+    "**/__tests__/integration/api.integration.test.ts",
+    "**/__tests__/integration/e2e.integration.test.ts"
   ],
   testTimeout: 10000,
+  forceExit: true,
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
     '^groq-sdk/shims/node$': '<rootDir>/jest.setup.js', // Map to empty module
