@@ -4,6 +4,7 @@ export default {
   testMatch: [
     // Only run our new comprehensive test suite
     "**/__tests__/unit/playlist.api.test.ts",
+    "**/__tests__/unit/agent.test.ts",
     "**/__tests__/unit/analytics.test.ts",
     "**/__tests__/unit/achievements.service.test.ts",
     "**/__tests__/unit/history.service.test.ts",
