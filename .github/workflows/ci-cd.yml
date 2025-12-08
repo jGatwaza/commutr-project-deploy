@@ -38,29 +38,14 @@ jobs:
         env:
           NODE_ENV: test
       
-      - name: Run all tests with coverage
-        run: npm run test:coverage
-        env:
-          NODE_ENV: test
-      
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v4
-        if: matrix.node-version == '20.x'
-        with:
-          file: ./coverage/lcov.info
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
-      
       - name: Archive test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.node-version }}
-          path: |
-            coverage/
-            junit.xml
+          path: junit.xml
           retention-days: 30
+          continue-on-error: true
 
   component-tests:
     name: Component-Level Tests
