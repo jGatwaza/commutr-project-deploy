@@ -44,7 +44,7 @@ npm run test:watch
 ### 1. Playlist Creation API Tests
 **File**: `__tests__/unit/playlist.api.test.ts`  
 **Tests**: 12  
-**Purpose**: Validates playlist generation algorithms
+**Purpose**: Validates all playlist generation algorithms
 
 #### Test Coverage:
 - Building playlists within duration bounds (min/max)
