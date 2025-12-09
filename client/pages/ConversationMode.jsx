@@ -35,10 +35,17 @@ function ConversationMode() {
     dispatch(initializeSession());
     
     if (!hasGreeted) {
+      setHasGreeted(true);
       const greeting = "Hello! I'm your Commutr assistant. What would you like to learn about today? You can tell me a topic and how long your commute is.";
       dispatch(addAssistantMessage(greeting));
-      speakText(greeting);
-      setHasGreeted(true);
+      
+      // Small delay to ensure TTS is ready, then speak greeting
+      setTimeout(() => {
+        speakText(greeting).catch((err) => {
+          console.error('Failed to speak greeting:', err);
+          setStatus('Tap to speak');
+        });
+      }, 500);
     }
   }, [dispatch, hasGreeted]);
 
@@ -149,7 +156,9 @@ function ConversationMode() {
         setIsSpeaking(false);
         
         if (autoListen) {
-          startListening();
+          setTimeout(() => {
+            startListening();
+          }, 300);
         } else {
           setStatus('Tap to speak');
         }
@@ -161,27 +170,46 @@ function ConversationMode() {
       const maxTimeout = Math.max(estimatedDuration + 2000, 10000);
       
       const timeoutId = setTimeout(() => {
+        console.log('TTS timeout reached, forcing end');
         handleEnd();
       }, maxTimeout);
 
-      const audio = await speak(text, {
-        onStart: () => {
-          setIsSpeaking(true);
-          setStatus('AI is speaking...');
-        },
-        onEnd: () => {
-          clearTimeout(timeoutId);
-          handleEnd();
-        },
-        onError: (event) => {
-          clearTimeout(timeoutId);
-          setIsSpeaking(false);
-          setStatus('Speech error. Tap to continue.');
-          resolve();
-        }
-      });
+      try {
+        setIsSpeaking(true);
+        setStatus('AI is speaking...');
+        
+        const audio = await speak(text, {
+          onStart: () => {
+            setIsSpeaking(true);
+            setStatus('AI is speaking...');
+          },
+          onEnd: () => {
+            clearTimeout(timeoutId);
+            handleEnd();
+          },
+          onError: (event) => {
+            console.error('TTS error:', event);
+            clearTimeout(timeoutId);
+            setIsSpeaking(false);
+            setStatus('Tap to speak');
+            resolve();
+          }
+        });
 
-      currentAudioRef.current = audio;
+        currentAudioRef.current = audio;
+        
+        // If speak() returned but no audio (browser TTS), the callbacks handle it
+        // But if it failed silently, ensure we recover
+        if (!audio) {
+          console.log('No audio returned from speak(), using timeout fallback');
+        }
+      } catch (err) {
+        console.error('speakText error:', err);
+        clearTimeout(timeoutId);
+        setIsSpeaking(false);
+        setStatus('Tap to speak');
+        resolve();
+      }
     });
   };
 

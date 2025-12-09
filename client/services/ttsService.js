@@ -11,6 +11,7 @@ const USE_GOOGLE_CLOUD = GOOGLE_CLOUD_API_KEY && GOOGLE_CLOUD_API_KEY.length > 0
 
 // Manual voice preference - set this to override automatic selection
 // Examples: 'Samantha', 'Alex', 'Google US English', 'Microsoft Aria Online (Natural)'
+const PREFERRED_VOICE_NAME = '';
 
 /**
  * Check if a voice is low quality and should be excluded

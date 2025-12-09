@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import CommuteTimer from '../components/CommuteTimer';
 import PlayerControls from '../components/PlayerControls';
 import '../styles/ImmersivePlayer.css';
-import { buildApiUrl, getAuthHeaders } from '../config/api';
+import { buildApiUrl, getAuthHeaders, AUTH_TOKEN } from '../config/api';
 
 const API_BASE = buildApiUrl();
 
@@ -153,13 +153,16 @@ function ImmersivePlayer() {
     setShowCompletion(true);
   };
 
-  // Update remaining time every second
+  // Update remaining time every second - stop when completion screen shows
   useEffect(() => {
+    // Don't run the timer if we're already showing completion
+    if (showCompletion) return;
+
     const interval = setInterval(() => {
       const remaining = getRemainingTime();
       setRemainingTimeSec(remaining);
 
-      if (remaining === 0 && !showCompletion) {
+      if (remaining === 0) {
         // Commute reached its planned duration. Save history and
         // transition to the completion summary, but defer clearing
         // commute context until the user leaves that screen so the
@@ -380,12 +383,11 @@ function ImmersivePlayer() {
       elapsedSeconds 
     });
 
-    const remainingSecForSummary = completionRemainingSec ?? remainingTimeSec ?? getRemainingTime();
-    const timerBasedSeconds = Math.max(
-      0,
-      Math.min(totalDuration, totalDuration - (remainingSecForSummary ?? 0))
-    );
-    const minutesLearned = Math.max(0, Math.round(timerBasedSeconds / 60));
+    // Use the captured remaining time at the moment the commute ended
+    // completionRemainingSec is set when showCompletion becomes true
+    const remainingAtEnd = completionRemainingSec ?? 0;
+    const actualTimeSpentSec = Math.max(0, totalDuration - remainingAtEnd);
+    const minutesLearned = Math.max(0, Math.round(actualTimeSpentSec / 60));
 
     return (
       <div className="immersive-player-page completion-mode">
