@@ -118,7 +118,11 @@ router.get('/history/watch', requireAuth, async (req, res) => {
   }
   
   try {
-    const entries = await getWatchHistory(userId, { limit, completedOnly: false });
+    const entries = await getWatchHistory(userId, { 
+      limit, 
+      completedOnly: false, 
+      ...(q && { searchQuery: q })
+    });
     
     // Transform to match expected format
     const items = entries.map(e => ({

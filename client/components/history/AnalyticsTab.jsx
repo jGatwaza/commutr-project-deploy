@@ -346,7 +346,6 @@ function AnalyticsTab({ onSwitchToWatched }) {
           <div className="card-content">
             <div className="card-value">{analytics.completionRate.totalVideos}</div>
             <div className="card-label">Videos Watched</div>
-            <div className="card-subtitle">{formatDuration(analytics.totalTimeSec || 0)} total</div>
           </div>
         </div>
       </div>

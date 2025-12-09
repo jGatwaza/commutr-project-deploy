@@ -142,19 +142,33 @@ function WatchedList() {
       <div className="watched-header">
         <h2>Watched Videos {topicFilter && `- ${topicFilter}`}</h2>
         <div className="watched-header-controls">
-          <input
-            type="text"
-            placeholder="Search by title..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="watched-search"
-          />
+          <div className="search-input-wrapper">
+            <input
+              type="text"
+              placeholder="Search by title..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && fetchWatched()}
+              className="watched-search"
+            />
+            <button 
+              onClick={() => fetchWatched()}
+              className="search-btn"
+              title="Search"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 21L16.65 16.65M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </div>
           <button 
             onClick={() => setShowFilters(!showFilters)}
-            className="filter-toggle-btn"
-            title="Toggle filters"
+            className="filter-toggle-link"
           >
-            🔍 Filters {(filterTopic || filterSource) && `(${[filterTopic, filterSource].filter(Boolean).length})`}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22 3H2L10 12.46V19L14 21V12.46L22 3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Filters {(filterTopic || filterSource) ? `(${[filterTopic, filterSource].filter(Boolean).length})` : ''}
           </button>
         </div>
       </div>

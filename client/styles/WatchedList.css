@@ -24,21 +24,48 @@
   align-items: center;
 }
 
-.watched-search {
-  padding: 10px 16px;
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  font-size: 14px;
-  min-width: 250px;
+  overflow: hidden;
   transition: border-color 0.2s, box-shadow 0.2s;
-  background: var(--bg-card);
+}
+
+.search-input-wrapper:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(78, 124, 133, 0.15);
+}
+
+.watched-search {
+  padding: 10px 16px;
+  border: none;
+  font-size: 14px;
+  min-width: 220px;
+  background: transparent;
   color: var(--text-main);
 }
 
 .watched-search:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(78, 124, 133, 0.15);
+}
+
+.search-btn {
+  padding: 10px 14px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.search-btn:hover {
+  background: var(--accent-strong);
 }
 
 .watched-loading {
@@ -231,21 +258,26 @@
   flex-shrink: 0;
 }
 
-.filter-toggle-btn {
-  padding: 10px 16px;
-  background: var(--accent);
-  color: white;
+.filter-toggle-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  background: none;
+  color: var(--text-muted);
   border: none;
-  border-radius: 999px;
   font-size: 14px;
-  font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: color 0.2s;
   white-space: nowrap;
 }
 
-.filter-toggle-btn:hover {
-  background: var(--accent-strong);
+.filter-toggle-link:hover {
+  color: var(--accent);
+}
+
+.filter-toggle-link svg {
+  opacity: 0.7;
 }
 
 .watched-filters {
@@ -324,13 +356,18 @@
     gap: 8px;
   }
   
+  .search-input-wrapper {
+    width: 100%;
+  }
+  
   .watched-search {
-    min-width: 100%;
+    min-width: 0;
+    flex: 1;
     font-size: 16px;
   }
 
-  .filter-toggle-btn {
-    width: 100%;
+  .filter-toggle-link {
+    justify-content: center;
   }
 
   .watched-item {

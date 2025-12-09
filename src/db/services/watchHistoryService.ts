@@ -105,14 +105,20 @@ export async function getWatchHistory(
     limit?: number;
     skip?: number;
     completedOnly?: boolean;
+    searchQuery?: string;
   } = {}
 ): Promise<WatchHistory[]> {
   const db = getDatabase();
-  const { limit = 50, skip = 0, completedOnly = false } = options;
+  const { limit = 50, skip = 0, completedOnly = false, searchQuery } = options;
 
   const query: any = { firebaseUid };
   if (completedOnly) {
     query.progressPct = { $gte: 90 };
+  }
+  
+  // Add case-insensitive title search if query provided
+  if (searchQuery && searchQuery.trim()) {
+    query.title = { $regex: searchQuery.trim(), $options: 'i' };
   }
 
   return db
