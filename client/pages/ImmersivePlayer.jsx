@@ -22,6 +22,8 @@ function ImmersivePlayer() {
   const [isLoading, setIsLoading] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
   const [completionRemainingSec, setCompletionRemainingSec] = useState(null);
+  // Track all watched videos with full metadata (persists across topic changes)
+  const [allWatchedVideos, setAllWatchedVideos] = useState([]);
 
   const playerRef = useRef(null);
 
@@ -93,15 +95,8 @@ function ImmersivePlayer() {
     console.log('User ID:', user.uid);
 
     try {
-      const watchedVideos = playlist.items
-        .filter(video => contextWatchedIds.includes(video.videoId))
-        .map(video => ({
-          videoId: video.videoId,
-          title: video.title,
-          thumbnail: video.thumbnail || `https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`,
-          channelTitle: video.channelTitle,
-          durationSec: video.durationSec
-        }));
+      // Use allWatchedVideos which persists across topic changes
+      const watchedVideos = allWatchedVideos;
 
       console.log('Filtered watched videos:', watchedVideos);
 
@@ -140,7 +135,7 @@ function ImmersivePlayer() {
       console.error('❌ Error details:', { message: error.message, stack: error.stack });
       alert(`Failed to save commute: ${error.message}`);
     }
-  }, [user, contextWatchedIds, topicsLearned, commuteStartTime, totalDuration, playlist.items]);
+  }, [user, contextWatchedIds, topicsLearned, commuteStartTime, totalDuration, allWatchedVideos]);
 
   const handleEndCommuteEarly = async () => {
     if (showCompletion) return;
@@ -206,6 +201,21 @@ function ImmersivePlayer() {
     if (!contextWatchedIds.includes(videoId)) {
       addWatchedVideo(videoId);
       
+      // Add to allWatchedVideos with full metadata (persists across topic changes)
+      const videoData = {
+        videoId: currentVideo.videoId,
+        title: currentVideo.title,
+        thumbnail: currentVideo.thumbnail || `https://img.youtube.com/vi/${currentVideo.videoId}/mqdefault.jpg`,
+        channelTitle: currentVideo.channelTitle,
+        durationSec: currentVideo.durationSec,
+        topic: context.topic
+      };
+      setAllWatchedVideos(prev => {
+        // Avoid duplicates
+        if (prev.some(v => v.videoId === videoId)) return prev;
+        return [...prev, videoData];
+      });
+      
       // Save to watch history
       if (user) {
         const authHeaders = await getAuthHeaders(user);
@@ -261,6 +271,10 @@ function ImmersivePlayer() {
   };
 
   const handleChangeTopic = async (newTopic) => {
+    // Mark current video as watched before switching topics
+    // This ensures it's saved to allWatchedVideos before playlist changes
+    markVideoWatched(currentVideo.videoId);
+    
     setIsLoading(true);
     
     try {
@@ -374,8 +388,8 @@ function ImmersivePlayer() {
         )
       : totalDuration;
 
-    const watchedVideos = playlist.items
-      .filter(video => contextWatchedIds.includes(video.videoId));
+    // Use allWatchedVideos which persists across topic changes
+    const watchedVideos = allWatchedVideos;
     
     console.log('Completion stats:', { 
       videosWatched: watchedVideos.length, 
@@ -423,26 +437,25 @@ function ImmersivePlayer() {
               </div>
             )}
 
-            {contextWatchedIds.length > 0 && (
+            {allWatchedVideos.length > 0 && (
               <div className="videos-watched-list">
                 <h3>Videos You Watched:</h3>
                 <div className="video-grid">
-                  {playlist.items
-                    .filter(video => contextWatchedIds.includes(video.videoId))
-                    .map((video) => (
+                  {allWatchedVideos.map((video) => (
                       <div 
                         key={video.videoId} 
                         className="video-card"
                         onClick={() => window.open(`https://www.youtube.com/watch?v=${video.videoId}`, '_blank')}
                       >
                         <img 
-                          src={video.thumbnail || `https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`}
+                          src={video.thumbnail}
                           alt={video.title}
                           className="video-thumbnail"
                         />
                         <div className="video-info">
                           <h4 className="video-card-title">{video.title}</h4>
                           <p className="video-card-channel">{video.channelTitle}</p>
+                          {video.topic && <span className="video-topic-tag">{video.topic}</span>}
                         </div>
                       </div>
                     ))}
