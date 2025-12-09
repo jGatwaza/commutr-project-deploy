@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { VIBE_PRESETS } from '../../../data/vibes';
 import { fetchWizardRecommendations, buildWizardPlaylist } from '../../../services/wizardApi';
 import { useCommute } from '../../../context/CommuteContext';
@@ -247,12 +247,16 @@ function SummaryStep({
 
 function CreateCommuteWizard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { topicsLearned } = useCommute();
+  
+  // Check if returning from playlist view with preserved state
+  const returnState = location.state?.returnState;
 
-  const [stepIndex, setStepIndex] = useState(0);
-  const [commuteMinutes, setCommuteMinutes] = useState(20);
-  const [vibeKey, setVibeKey] = useState(VIBE_PRESETS[0].key);
-  const [topic, setTopic] = useState('');
+  const [stepIndex, setStepIndex] = useState(returnState?.stepIndex ?? 0);
+  const [commuteMinutes, setCommuteMinutes] = useState(returnState?.commuteMinutes ?? 20);
+  const [vibeKey, setVibeKey] = useState(returnState?.vibeKey ?? VIBE_PRESETS[0].key);
+  const [topic, setTopic] = useState(returnState?.topic ?? '');
 
   const [recommendations, setRecommendations] = useState(null);
   const [recommendLoading, setRecommendLoading] = useState(false);
@@ -389,6 +393,13 @@ function CreateCommuteWizard() {
             vibe: playlistPayload.playlistContext?.vibe ?? vibeKey,
             difficulty: playlistPayload.playlistContext?.difficulty ?? effectiveDifficulty,
             masteryScore: playlistPayload.playlistContext?.masteryScore ?? 0
+          },
+          fromWizard: true,
+          wizardState: {
+            commuteMinutes,
+            vibeKey,
+            topic,
+            stepIndex: 3 // Summary step
           }
         }
       });

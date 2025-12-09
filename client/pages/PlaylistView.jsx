@@ -26,7 +26,7 @@ function PlaylistView() {
     }
   });
 
-  const { playlist: statePlaylist, context: stateContext, fromAgent, fromConversation } = location.state || {};
+  const { playlist: statePlaylist, context: stateContext, fromAgent, fromConversation, fromWizard, wizardState } = location.state || {};
   const playlist = statePlaylist || persistentPlaylist;
   const context = stateContext || persistentContext;
   const { startCommute, isActive } = useCommute();
@@ -37,8 +37,11 @@ function PlaylistView() {
       navigate('/agent');  // Go back to agent text chat mode
     } else if (fromConversation) {
       navigate('/agent');  // Also go to agent mode, not conversation (to avoid auto-speaking)
+    } else if (fromWizard && wizardState) {
+      // Go back to wizard with state preserved so user can edit
+      navigate('/create', { state: { returnState: wizardState } });
     } else {
-      navigate(-1);  // Default: go back in history
+      navigate('/create');  // Default: go back to wizard
     }
   };
 
