@@ -24,6 +24,8 @@ function ImmersivePlayer() {
   const [completionRemainingSec, setCompletionRemainingSec] = useState(null);
   // Track all watched videos with full metadata (persists across topic changes)
   const [allWatchedVideos, setAllWatchedVideos] = useState([]);
+  // Store original commute duration (doesn't change when topic switches)
+  const [originalTotalDuration] = useState(totalDuration);
 
   const playerRef = useRef(null);
 
@@ -399,8 +401,9 @@ function ImmersivePlayer() {
 
     // Use the captured remaining time at the moment the commute ended
     // completionRemainingSec is set when showCompletion becomes true
+    // Use originalTotalDuration which doesn't change when topic switches
     const remainingAtEnd = completionRemainingSec ?? 0;
-    const actualTimeSpentSec = Math.max(0, totalDuration - remainingAtEnd);
+    const actualTimeSpentSec = Math.max(0, originalTotalDuration - remainingAtEnd);
     const minutesLearned = Math.max(0, Math.round(actualTimeSpentSec / 60));
 
     return (
