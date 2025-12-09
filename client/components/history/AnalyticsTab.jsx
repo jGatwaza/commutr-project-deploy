@@ -341,12 +341,12 @@ function AnalyticsTab({ onSwitchToWatched }) {
           </div>
         </div>
 
-        <div className="summary-card completion">
-          <div className="card-icon">✅</div>
+        <div className="summary-card videos-watched">
+          <div className="card-icon">🎬</div>
           <div className="card-content">
-            <div className="card-value">{analytics.completionRate.completionRate.toFixed(1)}%</div>
-            <div className="card-label">Completion Rate</div>
-            <div className="card-subtitle">{analytics.completionRate.totalVideos} videos</div>
+            <div className="card-value">{analytics.completionRate.totalVideos}</div>
+            <div className="card-label">Videos Watched</div>
+            <div className="card-subtitle">{formatDuration(analytics.totalTimeSec || 0)} total</div>
           </div>
         </div>
       </div>

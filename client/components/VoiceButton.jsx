@@ -22,7 +22,7 @@ function VoiceButton({ onTranscript, onStatus, onComplete }) {
     }
 
     const recognition = new SpeechRecognition();
-    recognition.continuous = false;
+    recognition.continuous = true;  // Keep recording until user manually stops
     recognition.interimResults = true;
     recognition.lang = 'en-US';
     
@@ -55,11 +55,11 @@ function VoiceButton({ onTranscript, onStatus, onComplete }) {
       // Let the user review and edit the transcribed message before sending.
       // We only update status here; actual sending happens when the user
       // explicitly taps the Send button in the chat UI.
-      callbacksRef.current.onStatus('Recording complete. Review your message, then tap Send.');
+      callbacksRef.current.onStatus('Recording complete. Tap Send to submit.');
 
       setTimeout(() => {
         callbacksRef.current.onStatus('');
-      }, 3000);
+      }, 4000);
     };
 
     recognition.onerror = (event) => {

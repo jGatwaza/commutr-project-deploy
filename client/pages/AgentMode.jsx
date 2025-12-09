@@ -129,86 +129,10 @@ function AgentMode() {
   };
 
   const handleVoiceComplete = () => {
-    console.log('Voice complete, checking input value');
-    // Auto-submit after voice input
-    // Use a slight delay to ensure state has updated
-    setTimeout(() => {
-      // Check if already submitting
-      if (isSubmittingRef.current) {
-        console.log('Already submitting, skipping');
-        return;
-      }
-
-      // Use a callback to get the latest state
-      setInputValue(currentValue => {
-        console.log('Current input value:', currentValue);
-        if (currentValue.trim() && !isSubmittingRef.current) {
-          // Set submitting flag
-          isSubmittingRef.current = true;
-
-          // Trigger submit with the current value
-          const message = currentValue.trim();
-          
-          // Add user message to Redux store
-          dispatch(addUserMessage(message));
-          setIsTyping(true);
-          
-          // Build conversation history including the new user message
-          const updatedHistory = [
-            ...conversationHistory,
-            {
-              role: 'user',
-              content: message
-            }
-          ];
-          
-          // Make API call
-          fetch(`${API_BASE}/v1/agent/chat`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': AUTH_TOKEN
-            },
-            body: JSON.stringify({ 
-              message,
-              conversationHistory: updatedHistory 
-            })
-          })
-            .then(response => {
-              setIsTyping(false);
-              if (!response.ok) {
-                throw new Error(`API Error: ${response.status}`);
-              }
-              return response.json();
-            })
-            .then(data => {
-              dispatch(addAssistantMessage(data.message));
-              if (data.playlist) {
-                setTimeout(() => {
-                  navigate('/playlist', {
-                    state: {
-                      playlist: data.playlist,
-                      context: data.playlistContext
-                    }
-                  });
-                }, 1000);
-              }
-            })
-            .catch(error => {
-              console.error('Error:', error);
-              setIsTyping(false);
-              dispatch(addAssistantMessage('Sorry, I encountered an error. Please make sure the server is running and try again.'));
-            })
-            .finally(() => {
-              isSubmittingRef.current = false;
-              inputRef.current?.focus();
-            });
-          
-          return ''; // Clear input
-        }
-        return currentValue; // Keep current value if empty
-      });
-    }, 100);
+    // Voice recording complete - user should review and click Send
+    // No auto-submit, just focus the input so user can edit if needed
+    console.log('Voice recording complete, user can review and send');
+    inputRef.current?.focus();
   };
 
   return (

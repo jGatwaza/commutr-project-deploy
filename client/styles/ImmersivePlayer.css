@@ -457,6 +457,17 @@
   transform: translateY(-2px);
 }
 
+/* Video topic tag in completion screen */
+.video-topic-tag {
+  display: inline-block;
+  background: var(--accent);
+  color: white;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-top: 4px;
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
   .video-title {

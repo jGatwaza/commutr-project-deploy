@@ -7,23 +7,49 @@ import '../../../styles/CreateWizard.css';
 
 const DURATION_OPTIONS = [10, 15, 20, 30, 45, 60];
 
-function StepHeader({ stepIndex }) {
+function StepHeader({ stepIndex, onStepChange, canGoBack, canGoForward }) {
   const steps = ['Commute', 'Vibe', 'Topics', 'Summary'];
   return (
-    <div className="wizard-stepper">
-      {steps.map((label, index) => {
-        // Only show current step on mobile (CSS will handle this)
-        return (
-          <div
-            key={label}
-            className={`wizard-step ${index === stepIndex ? 'active' : ''} ${index < stepIndex ? 'completed' : ''}`}
-            data-current={index === stepIndex}
-          >
-            <span className="wizard-step-number">{index + 1}</span>
-            <span className="wizard-step-label">{label}</span>
-          </div>
-        );
-      })}
+    <div className="wizard-stepper-container">
+      <button
+        type="button"
+        className="stepper-nav-btn stepper-nav-prev"
+        onClick={() => onStepChange(stepIndex - 1)}
+        disabled={!canGoBack}
+        aria-label="Previous step"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+      
+      <div className="wizard-stepper">
+        {steps.map((label, index) => {
+          // Only show current step on mobile (CSS will handle this)
+          return (
+            <div
+              key={label}
+              className={`wizard-step ${index === stepIndex ? 'active' : ''} ${index < stepIndex ? 'completed' : ''}`}
+              data-current={index === stepIndex}
+            >
+              <span className="wizard-step-number">Step {index + 1}</span>
+              <span className="wizard-step-label">{label}</span>
+            </div>
+          );
+        })}
+      </div>
+      
+      <button
+        type="button"
+        className="stepper-nav-btn stepper-nav-next"
+        onClick={() => onStepChange(stepIndex + 1)}
+        disabled={!canGoForward}
+        aria-label="Next step"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
     </div>
   );
 }
@@ -381,15 +407,21 @@ function CreateCommuteWizard() {
           <h1>Playlist Wizard</h1>
           <p>Tell us how you&apos;re feeling and we&apos;ll craft the perfect learning ride.</p>
         </div>
-        <button type="button" className="back-link" onClick={() => navigate('/home')} aria-label="Back to Home">
+        <button type="button" className="home-link" onClick={() => navigate('/home')} aria-label="Go to Home">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M9 22V12H15V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
       </header>
 
       <div className="wizard-page">
-        <StepHeader stepIndex={stepIndex} />
+        <StepHeader 
+          stepIndex={stepIndex} 
+          onStepChange={setStepIndex}
+          canGoBack={stepIndex > 0 && !submitting}
+          canGoForward={stepIndex < 3 && canProceed && !submitting}
+        />
 
         <div className="wizard-content">
           {stepIndex === 0 && (

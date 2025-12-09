@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import CommuteTimer from '../components/CommuteTimer';
 import PlayerControls from '../components/PlayerControls';
 import '../styles/ImmersivePlayer.css';
-import { buildApiUrl, getAuthHeaders } from '../config/api';
+import { buildApiUrl, getAuthHeaders, AUTH_TOKEN } from '../config/api';
 
 const API_BASE = buildApiUrl();
 
@@ -22,6 +22,8 @@ function ImmersivePlayer() {
   const [isLoading, setIsLoading] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
   const [completionRemainingSec, setCompletionRemainingSec] = useState(null);
+  // Track all watched videos with full metadata (persists across topic changes)
+  const [allWatchedVideos, setAllWatchedVideos] = useState([]);
 
   const playerRef = useRef(null);
 
@@ -93,15 +95,8 @@ function ImmersivePlayer() {
     console.log('User ID:', user.uid);
 
     try {
-      const watchedVideos = playlist.items
-        .filter(video => contextWatchedIds.includes(video.videoId))
-        .map(video => ({
-          videoId: video.videoId,
-          title: video.title,
-          thumbnail: video.thumbnail || `https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`,
-          channelTitle: video.channelTitle,
-          durationSec: video.durationSec
-        }));
+      // Use allWatchedVideos which persists across topic changes
+      const watchedVideos = allWatchedVideos;
 
       console.log('Filtered watched videos:', watchedVideos);
 
@@ -140,7 +135,7 @@ function ImmersivePlayer() {
       console.error('❌ Error details:', { message: error.message, stack: error.stack });
       alert(`Failed to save commute: ${error.message}`);
     }
-  }, [user, contextWatchedIds, topicsLearned, commuteStartTime, totalDuration, playlist.items]);
+  }, [user, contextWatchedIds, topicsLearned, commuteStartTime, totalDuration, allWatchedVideos]);
 
   const handleEndCommuteEarly = async () => {
     if (showCompletion) return;
@@ -153,13 +148,16 @@ function ImmersivePlayer() {
     setShowCompletion(true);
   };
 
-  // Update remaining time every second
+  // Update remaining time every second - stop when completion screen shows
   useEffect(() => {
+    // Don't run the timer if we're already showing completion
+    if (showCompletion) return;
+
     const interval = setInterval(() => {
       const remaining = getRemainingTime();
       setRemainingTimeSec(remaining);
 
-      if (remaining === 0 && !showCompletion) {
+      if (remaining === 0) {
         // Commute reached its planned duration. Save history and
         // transition to the completion summary, but defer clearing
         // commute context until the user leaves that screen so the
@@ -202,6 +200,21 @@ function ImmersivePlayer() {
   const markVideoWatched = async (videoId) => {
     if (!contextWatchedIds.includes(videoId)) {
       addWatchedVideo(videoId);
+      
+      // Add to allWatchedVideos with full metadata (persists across topic changes)
+      const videoData = {
+        videoId: currentVideo.videoId,
+        title: currentVideo.title,
+        thumbnail: currentVideo.thumbnail || `https://img.youtube.com/vi/${currentVideo.videoId}/mqdefault.jpg`,
+        channelTitle: currentVideo.channelTitle,
+        durationSec: currentVideo.durationSec,
+        topic: context.topic
+      };
+      setAllWatchedVideos(prev => {
+        // Avoid duplicates
+        if (prev.some(v => v.videoId === videoId)) return prev;
+        return [...prev, videoData];
+      });
       
       // Save to watch history
       if (user) {
@@ -258,6 +271,10 @@ function ImmersivePlayer() {
   };
 
   const handleChangeTopic = async (newTopic) => {
+    // Mark current video as watched before switching topics
+    // This ensures it's saved to allWatchedVideos before playlist changes
+    markVideoWatched(currentVideo.videoId);
+    
     setIsLoading(true);
     
     try {
@@ -371,8 +388,8 @@ function ImmersivePlayer() {
         )
       : totalDuration;
 
-    const watchedVideos = playlist.items
-      .filter(video => contextWatchedIds.includes(video.videoId));
+    // Use allWatchedVideos which persists across topic changes
+    const watchedVideos = allWatchedVideos;
     
     console.log('Completion stats:', { 
       videosWatched: watchedVideos.length, 
@@ -380,12 +397,11 @@ function ImmersivePlayer() {
       elapsedSeconds 
     });
 
-    const remainingSecForSummary = completionRemainingSec ?? remainingTimeSec ?? getRemainingTime();
-    const timerBasedSeconds = Math.max(
-      0,
-      Math.min(totalDuration, totalDuration - (remainingSecForSummary ?? 0))
-    );
-    const minutesLearned = Math.max(0, Math.round(timerBasedSeconds / 60));
+    // Use the captured remaining time at the moment the commute ended
+    // completionRemainingSec is set when showCompletion becomes true
+    const remainingAtEnd = completionRemainingSec ?? 0;
+    const actualTimeSpentSec = Math.max(0, totalDuration - remainingAtEnd);
+    const minutesLearned = Math.max(0, Math.round(actualTimeSpentSec / 60));
 
     return (
       <div className="immersive-player-page completion-mode">
@@ -421,26 +437,25 @@ function ImmersivePlayer() {
               </div>
             )}
 
-            {contextWatchedIds.length > 0 && (
+            {allWatchedVideos.length > 0 && (
               <div className="videos-watched-list">
                 <h3>Videos You Watched:</h3>
                 <div className="video-grid">
-                  {playlist.items
-                    .filter(video => contextWatchedIds.includes(video.videoId))
-                    .map((video) => (
+                  {allWatchedVideos.map((video) => (
                       <div 
                         key={video.videoId} 
                         className="video-card"
                         onClick={() => window.open(`https://www.youtube.com/watch?v=${video.videoId}`, '_blank')}
                       >
                         <img 
-                          src={video.thumbnail || `https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`}
+                          src={video.thumbnail}
                           alt={video.title}
                           className="video-thumbnail"
                         />
                         <div className="video-info">
                           <h4 className="video-card-title">{video.title}</h4>
                           <p className="video-card-channel">{video.channelTitle}</p>
+                          {video.topic && <span className="video-topic-tag">{video.topic}</span>}
                         </div>
                       </div>
                     ))}
